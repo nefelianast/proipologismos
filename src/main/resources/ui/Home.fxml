@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ScrollPane?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="ui.HomeController"
+            prefWidth="1400.0" prefHeight="900.0"
+            styleClass="root-pane">
+
+    <!-- HEADER -->
+    <top>
+        <VBox styleClass="header-container">
+            <HBox styleClass="header-bar" BorderPane.alignment="CENTER">
+                <children>
+                    <VBox spacing="2">
+                        <children>
+                            <Label text="Κρατικός Προϋπολογισμός"
+                                   styleClass="header-title"/>
+                            <Label text="Σύστημα Ανάλυσης &amp; Οπτικοποίησης"
+                                   styleClass="header-subtitle"/>
+                        </children>
+                    </VBox>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <ComboBox fx:id="yearCombo" promptText="Έτος" prefWidth="100" styleClass="year-combo"/>
+                </children>
+                <padding>
+                    <Insets top="20" right="32" bottom="20" left="32"/>
+                </padding>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- LEFT NAVIGATION -->
+    <left>
+        <VBox styleClass="nav-menu" spacing="4">
+            <padding>
+                <Insets top="20" right="0" bottom="20" left="20"/>
+            </padding>
+            <children>
+                <Button text="Αρχική" onAction="#onNavigateHome" styleClass="nav-button nav-button-active" fx:id="navHome"/>
+                <Button text="Έσοδα" onAction="#onNavigateRevenues" styleClass="nav-button" fx:id="navRevenues"/>
+                <Button text="Δαπάνες" onAction="#onNavigateExpenses" styleClass="nav-button" fx:id="navExpenses"/>
+                <Button text="Κατηγορίες" onAction="#onNavigateCategories" styleClass="nav-button" fx:id="navCategories"/>
+                <Button text="Συγκρίσεις" onAction="#onNavigateComparisons" styleClass="nav-button" fx:id="navComparisons"/>
+                <Button text="Προσομοιώσεις" onAction="#onNavigateSimulations" styleClass="nav-button" fx:id="navSimulations"/>
+                <Button text="Σχετικά" onAction="#onNavigateAbout" styleClass="nav-button" fx:id="navAbout"/>
+            </children>
+        </VBox>
+    </left>
+
+    <!-- CENTER CONTENT -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="content-scroll">
+            <content>
+                <VBox spacing="24" styleClass="content-container">
+                <padding>
+                    <Insets top="24" right="32" bottom="24" left="32"/>
+                </padding>
+                <children>
+
+                    <!-- SUMMARY CARDS -->
+                    <HBox styleClass="summary-row" spacing="20">
+                        <children>
+                            <VBox styleClass="summary-card" spacing="6">
+                                <children>
+                                    <Label text="Συνολικά Έσοδα" styleClass="summary-label"/>
+                                    <Label fx:id="totalRevenuesLabel" text="€100,2 δισ." styleClass="summary-number"/>
+                                    <Label fx:id="revenuesDeltaLabel" text="+2,3% από πέρυσι" styleClass="summary-delta positive"/>
+                                </children>
+                            </VBox>
+
+                            <VBox styleClass="summary-card" spacing="6">
+                                <children>
+                                    <Label text="Συνολικές Δαπάνες" styleClass="summary-label"/>
+                                    <Label fx:id="totalExpensesLabel" text="€98,5 δισ." styleClass="summary-number"/>
+                                    <Label fx:id="expensesDeltaLabel" text="+1,1% από πέρυσι" styleClass="summary-delta positive"/>
+                                </children>
+                            </VBox>
+
+                            <VBox styleClass="summary-card" spacing="6">
+                                <children>
+                                    <Label text="Ισοζύγιο" styleClass="summary-label"/>
+                                    <Label fx:id="balanceLabel" text="+€1,7 δισ." styleClass="summary-number"/>
+                                    <Label fx:id="balanceStatusLabel" text="Πλεόνασμα" styleClass="summary-delta positive"/>
+                                </children>
+                            </VBox>
+                        </children>
+                    </HBox>
+
+                    <!-- CHARTS SECTION (Placeholder - Charts will be added when javafx-charts dependency is available) -->
+                    <HBox spacing="20" styleClass="charts-row">
+                        <children>
+                            <VBox styleClass="section-card chart-card" spacing="12">
+                                <padding>
+                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                </padding>
+                                <children>
+                                    <Label text="Κατανομή ανά Κατηγορία" styleClass="section-title"/>
+                                    <VBox prefWidth="400" prefHeight="300" styleClass="chart-placeholder">
+                                        <children>
+                                            <Region VBox.vgrow="ALWAYS"/>
+                                            <Label text="Γράφημα Pie Chart" styleClass="placeholder-text"/>
+                                            <Label text="(Θα προστεθεί όταν είναι διαθέσιμο javafx-charts)" styleClass="placeholder-subtext"/>
+                                            <Region VBox.vgrow="ALWAYS"/>
+                                        </children>
+                                    </VBox>
+                                </children>
+                            </VBox>
+
+                            <VBox styleClass="section-card chart-card" spacing="12">
+                                <padding>
+                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                </padding>
+                                <children>
+                                    <Label text="Σύγκριση Ετών" styleClass="section-title"/>
+                                    <VBox prefWidth="400" prefHeight="300" styleClass="chart-placeholder">
+                                        <children>
+                                            <Region VBox.vgrow="ALWAYS"/>
+                                            <Label text="Γράφημα Bar Chart" styleClass="placeholder-text"/>
+                                            <Label text="(Θα προστεθεί όταν είναι διαθέσιμο javafx-charts)" styleClass="placeholder-subtext"/>
+                                            <Region VBox.vgrow="ALWAYS"/>
+                                        </children>
+                                    </VBox>
+                                </children>
+                            </VBox>
+                        </children>
+                    </HBox>
+
+                    <!-- TABLE SECTION -->
+                    <VBox styleClass="section-card" spacing="12">
+                        <padding>
+                            <Insets top="20" right="20" bottom="20" left="20"/>
+                        </padding>
+                        <children>
+                            <Label text="Ανάλυση Κατηγοριών" styleClass="section-title"/>
+                            <TableView fx:id="categoryTable" prefHeight="300">
+                                <columns>
+                                    <TableColumn fx:id="categoryColumn" text="Κατηγορία" prefWidth="350"/>
+                                    <TableColumn fx:id="amountColumn" text="Ποσό" prefWidth="200"/>
+                                    <TableColumn fx:id="percentageColumn" text="%% στο σύνολο" prefWidth="150"/>
+                                    <TableColumn fx:id="changeColumn" text="Αλλαγή από πέρυσι" prefWidth="200"/>
+                                </columns>
+                            </TableView>
+                        </children>
+                    </VBox>
+
+                </children>
+            </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+
+    <!-- FOOTER -->
+    <bottom>
+        <HBox styleClass="footer-bar" spacing="16">
+            <padding>
+                <Insets top="12" right="32" bottom="12" left="32"/>
+            </padding>
+            <children>
+                <Label text="eProipologismos v0.0.1" styleClass="footer-text"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="© 2025 - Ομάδα Ανάπτυξης" styleClass="footer-text"/>
+                <Label text="|" styleClass="footer-separator"/>
+                <Label text="Τεκμηρίωση" styleClass="footer-link"/>
+            </children>
+        </HBox>
+    </bottom>
+
+</BorderPane>
