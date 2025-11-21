@@ -305,7 +305,6 @@ public class HomeController {
         }
     }
 
-    // Legacy handlers (kept for compatibility)
     @FXML
     private void onShowRevenues() {
         onNavigateRevenues();

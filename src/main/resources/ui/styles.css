@@ -1,10 +1,8 @@
-/* Root and Global Styles */
 .root-pane {
     -fx-background-color: #f8fafc;
     -fx-font-family: "Segoe UI", "Roboto", "System", sans-serif;
 }
 
-/* Header Styles - Enhanced */
 .header-container {
     -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%);
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 20, 0, 0, 2);
@@ -54,7 +52,6 @@
     -fx-border-width: 2;
 }
 
-/* Navigation Menu Styles - Enhanced */
 .nav-menu {
     -fx-background-color: white;
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.08), 15, 0, 2, 0);
@@ -97,7 +94,6 @@
     -fx-background-color: linear-gradient(to right, #d2e3fc 0%, #b8d4f0 100%);
 }
 
-/* Content Area */
 .content-scroll {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -125,7 +121,6 @@
     -fx-background-color: transparent;
 }
 
-/* Summary Cards - Enhanced */
 .summary-row {
     -fx-spacing: 24;
 }
@@ -175,7 +170,6 @@
     -fx-text-fill: #dc2626;
 }
 
-/* Section Cards - Enhanced */
 .section-card {
     -fx-background-color: white;
     -fx-background-radius: 16;
@@ -202,7 +196,6 @@
     -fx-spacing: 24;
 }
 
-/* Table Styles - Enhanced */
 .table-view {
     -fx-background-color: white;
     -fx-border-color: #e2e8f0;
@@ -258,7 +251,6 @@
     -fx-background-color: linear-gradient(to right, #d2e3fc 0%, #b8d4f0 100%);
 }
 
-/* Chart Placeholder Styles - Enhanced */
 .chart-placeholder {
     -fx-background-color: linear-gradient(to bottom, #fafbfc 0%, #f8fafc 100%);
     -fx-border-color: #cbd5e1;
@@ -281,7 +273,6 @@
     -fx-padding: 8 0 0 0;
 }
 
-/* Footer Styles - Enhanced */
 .footer-bar {
     -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%);
     -fx-border-color: #e5e7eb;
@@ -315,7 +306,6 @@
     -fx-effect: dropshadow(gaussian, rgba(26, 115, 232, 0.2), 0, 0, 0, 1);
 }
 
-/* Status Bar */
 .status-bar {
     -fx-background-color: transparent;
     -fx-text-fill: #64748b;
@@ -323,7 +313,6 @@
     -fx-font-weight: 400;
 }
 
-/* Button Styles - Enhanced */
 .button {
     -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
     -fx-text-fill: #475569;
@@ -372,7 +361,6 @@
     -fx-translate-y: 0;
 }
 
-/* ComboBox Styles */
 .combo-box {
     -fx-background-color: white;
     -fx-border-color: #d1d5db;
@@ -389,7 +377,6 @@
     -fx-border-width: 2;
 }
 
-/* ScrollPane Enhancements */
 .scroll-pane {
     -fx-background-color: transparent;
 }
@@ -398,10 +385,6 @@
     -fx-background-color: transparent;
 }
 
-/* Additional Polish */
 .label {
     -fx-text-alignment: left;
 }
-
-/* Smooth transitions would be nice but JavaFX CSS doesn't support transitions directly */
-/* We rely on hover effects and state changes for interactivity */
