@@ -6,10 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-/**
- * Service class to load and process budget data.
- * This can be extended to integrate with your colleagues' data parsing code.
- */
 public class BudgetDataService {
     
     private static BudgetDataService instance;
@@ -26,32 +22,18 @@ public class BudgetDataService {
         return instance;
     }
     
-    /**
-     * Load budget data from JSON files or other sources.
-     * Currently loads sample data, but can be extended to load from:
-     * - proipologismos.json files
-     * - Your colleagues' data parsing classes
-     * - API endpoints
-     */
     private void loadData() {
-        // TODO: Replace with actual data loading from your colleagues' code
-        // For now, we'll use sample data structure
-        
-        // Example: Try to load from JSON file if it exists
             try {
             File jsonFile = new File("proipologismos.json");
             if (jsonFile.exists()) {
                 String content = new String(Files.readAllBytes(Paths.get(jsonFile.getPath())));
                 @SuppressWarnings("unused")
                 JSONObject json = new JSONObject(content);
-                // Parse the JSON here when your colleagues' parsing code is ready
-                // For now, we'll use sample data
             }
         } catch (Exception e) {
             System.out.println("Could not load JSON file, using sample data: " + e.getMessage());
         }
         
-        // Sample data structure - replace with real data loading
         initializeSampleData();
     }
     
