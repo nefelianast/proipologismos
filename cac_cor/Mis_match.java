@@ -4,10 +4,10 @@ public class Mis_match {
         try {
                 return Double.parseDouble(a) ;  
         }  
-             catch (NumberFormatException e) {
+        catch (NumberFormatException e) {
               System.out.println("δεν ειναι δεχτεσ αυτες οι τιμεσ");
              }
-    
+
     return 0;
 }
 }
