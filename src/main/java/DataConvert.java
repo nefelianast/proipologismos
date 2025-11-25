@@ -26,7 +26,7 @@ public class DataConvert extends DataDownload{
             writer.close();
             
             
-            System.out.println("Ο Προιπολογισμός του ετους " +DataDownload.yearof + " μετατράπηκε σε JSON: proipologismos.json");
+            System.out.println("Ο Προυπολογισμός του έτους " +DataDownload.yearof + " μετατράπηκε σε αρχείο JSON: proipologismos.json");
             
 
         } catch (Exception e) {
