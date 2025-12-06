@@ -18,7 +18,7 @@ public class DataConvert {
             PDFTextStripper pdfStripper = new PDFTextStripper();
 
             StringBuilder csvBuilder = new StringBuilder();
-            csvBuilder.append("Σελίδα,Κείμενο,Αριθμοί\n"); // header CSV
+            csvBuilder.append("Σελίδα,Κείμενο,Αριθμοί\n"); 
 
             int totalPages = document.getNumberOfPages();
             for (int page = 1; page <= totalPages; page++) {
@@ -58,11 +58,11 @@ public class DataConvert {
 
             document.close();
 
-            FileWriter csvWriter = new FileWriter("proipologismos_full_formatted.csv");
+            FileWriter csvWriter = new FileWriter("proipologismos.csv");
             csvWriter.write(csvBuilder.toString());
             csvWriter.close();
 
-            System.out.println("Ολόκληρος ο προϋπολογισμός μετατράπηκε σε CSV με μορφοποιημένα κείμενα σε ένα κελί: proipologismos_full_formatted.csv");
+            System.out.println("Ολόκληρος ο προϋπολογισμός μετατράπηκε σε CSV proipologismos.csv");
 
         } catch (Exception e) {
             e.printStackTrace();
