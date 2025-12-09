@@ -4,27 +4,34 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import javax.swing.JOptionPane;
-import java.util.Scanner;
+//import java.util.Scanner;
 //η κλάση main ειναι γραμμενη προαιρετικά μην μπερδεύεστε
 public class DataDownload 
 {
     public static int yearof;
 
 
-	public static void main(String args[]) throws IOException
+	public void Download() throws IOException
 	{
-		Scanner scan = new Scanner(System.in);
-		System.out.println("ΠΟΙΑΣ ΧΡΟΝΙΑΣ ΠΡΟΥΠΟΛΟΓΙΣΜΟ ΘΕΣ ΝΑ ΔΕΙΣ 1:2023, 2:2024, 3:2025");
-		int epilogi = scan.nextInt();
-		do {
-			if (epilogi !=1 && epilogi !=2 && epilogi!=3) {
-				System.out.println("έγκυρες απαντήσεις ειναι μονο οι αριθμοι 1,2,3 παρακαλώ ξανά πληκτρολογήστε");
-				System.out.println("ΠΟΙΑΣ ΧΡΟΝΙΑΣ ΠΡΟΥΠΟΛΟΓΙΣΜΟ ΘΕΣ ΝΑ ΔΕΙΣ 1:2023, 2:2024, 3:2025");
-				epilogi = scan.nextInt();
-			}
+		//Scanner scan = new Scanner(System.in);
+		//System.out.println("ΠΟΙΑΣ ΧΡΟΝΙΑΣ ΠΡΟΥΠΟΛΟΓΙΣΜΟ ΘΕΣ ΝΑ ΔΕΙΣ 1:2023, 2:2024, 3:2025");
+		//int epilogi = scan.nextInt();
+		//do {
+		//	if (epilogi !=1 && epilogi !=2 && epilogi!=3) {
+		//		System.out.println("έγκυρες απαντήσεις ειναι μονο οι αριθμοι 1,2,3 παρακαλώ ξανά πληκτρολογήστε");
+		//		System.out.println("ΠΟΙΑΣ ΧΡΟΝΙΑΣ ΠΡΟΥΠΟΛΟΓΙΣΜΟ ΘΕΣ ΝΑ ΔΕΙΣ 1:2023, 2:2024, 3:2025");
+		//		epilogi = scan.nextInt();
+		//	}
 		
-		}while(epilogi !=1 && epilogi !=2 && epilogi!=3);
+		//}while(epilogi !=1 && epilogi !=2 && epilogi!=3);
+		
+
+
+		for (int epilogi = 1; epilogi <=3; epilogi++ ) {
+
+
+
+
 		String link2025 = "https://minfin.gov.gr/wp-content/uploads/2024/11/Κρατικός-Προϋπολογισμός-2025_ΟΕ.pdf";
 		String link2024 = "https://minfin.gov.gr/wp-content/uploads/2023/11/ΚΡΑΤΙΚΟΣ-ΠΡΟΥΠΟΛΟΓΙΣΜΟΣ-2024.pdf";
 		String link2023 = "https://minfin.gov.gr/wp-content/uploads/2023/11/21-11-2022-ΚΡΑΤΙΚΟΣ-ΠΡΟΫΠΟΛΟΓΙΣΜΟΣ-2023.pdf";
@@ -44,6 +51,11 @@ public class DataDownload
 		} else{
 			yearof= 2025;
 		}
+		
+		
+	
+
+		
 
 
 
@@ -60,7 +72,7 @@ public class DataDownload
 				InputStream input = connection.getInputStream();
 		
 		
-				File destination = new File("proipologismos.pdf");
+				File destination = new File("proipologismos"+yearof+".pdf");
 				FileOutputStream output = new FileOutputStream(destination, false);
 					
 				byte[] buffer = new byte[2048];
@@ -125,7 +137,11 @@ public class DataDownload
 
 			 DataConvert converter = new DataConvert();
 			 converter.convertiontool();
-        
+			 DataStorer Storer = new DataStorer();
+			 Storer.Store();
+			 
+		}
+		
     
 	
 	}

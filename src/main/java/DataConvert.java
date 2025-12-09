@@ -4,11 +4,11 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import java.io.File;
 import java.io.FileWriter;
 
-public class DataConvert {
+public class DataConvert extends DataDownload {
 
     public static void convertiontool() {
         try {
-            File pdfFile = new File("proipologismos.pdf");
+            File pdfFile = new File("proipologismos"+yearof+".pdf");
             if (!pdfFile.exists()) {
                 System.out.println("Δεν βρέθηκε το αρχείο proipologismos.pdf στον τρέχοντα φάκελο");
                 return;
@@ -58,11 +58,12 @@ public class DataConvert {
 
             document.close();
 
-            FileWriter csvWriter = new FileWriter("proipologismos.csv");
+            FileWriter csvWriter = new FileWriter("proipologismos"+yearof+".csv");
             csvWriter.write(csvBuilder.toString());
             csvWriter.close();
 
-            System.out.println("Ολόκληρος ο προϋπολογισμός μετατράπηκε σε CSV proipologismos.csv");
+            System.out.println("Ο προϋπολογισμός του έτους"+yearof+" μετατράπηκε σε CSV proipologismos"+yearof+".csv");
+            
 
         } catch (Exception e) {
             e.printStackTrace();
