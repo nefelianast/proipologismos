@@ -4,13 +4,12 @@ import java.util.List;
 
 public class BudgetYear {
     private int year;
-    private List<Revenue> revenues;
-    private List<Expense> expenses;
+    private List<Ministry> ministries;
+    
 
      public BudgetYear(int year) {
         this.year = year;
-        this.revenues = new ArrayList<>();
-        this.expenses = new ArrayList<>();
+        this.ministries = new ArrayList<>();
      }
 
     public int getYear() {
@@ -21,12 +20,8 @@ public class BudgetYear {
         this.year = year;
      }
 
-    public List<Revenue> getRevenues() { 
-        return revenues;
-    }
-
-    public List<Expense> getExpenses() {
-        return expenses;
+    public List<Ministry> getMinistries() {
+        return ministries;
     }
 
     public void addRevenue(Revenue r) {
