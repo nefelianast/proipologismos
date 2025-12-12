@@ -12,5 +12,16 @@ public class Ministry {
         this.name = name;
         this.revenues = new ArrayList<>();
         this.expenses = new ArrayList<>();
+
     }
+    
+    public String getName() {
+       return name;
+    }
+     public void addRevenue(Revenue r) {
+        if (r != null) {
+            revenues.add(r);
+        }
+    }
+
 }
