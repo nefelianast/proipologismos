@@ -24,17 +24,11 @@ public class BudgetYear {
         return ministries;
     }
 
-    public void addRevenue(Revenue r) {
-        if (r != null) {
-            revenues.add(r);
+     public void addMinistry(Ministry m) {
+        if (m != null) {
+            ministries.add(m);
         }
     }
-
-    public void addExpense(Expense e) {
-        if (e != null) {
-            expenses.add(e);
-        }
-      }  
 
     // calculations//
     public double getTotalRevenue() {
