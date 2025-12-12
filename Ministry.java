@@ -50,5 +50,9 @@ public class Ministry {
         }
         return sum;
     }
-
+     public double getBalance() {
+        return getTotalRevenue() - getTotalExpenses();
+    }
 }
+
+
