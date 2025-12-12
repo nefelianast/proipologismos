@@ -41,8 +41,8 @@ public class BudgetYear {
 
     public double getTotalExpenses() {
         double sum = 0;
-        for (Expense e : expenses) {
-              sum += e.getAmount();
+        for (Ministry m : ministries) {
+            sum += m.getTotalExpenses();
         }
         return sum;
     }
