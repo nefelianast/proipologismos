@@ -36,5 +36,19 @@ public class Ministry {
     public List<Expense> getExpenses() {
         return expenses;
     }
+    public double getTotalRevenue() {
+        double sum = 0;
+        for (Revenue r : revenues) {
+            sum += r.getAmount(); // Προσθέτουμε κάθε έσοδο
+        }
+        return sum;
+    }
+    public double getTotalExpenses() {
+        double sum = 0;
+        for (Expense e : expenses) {
+            sum += e.getAmount(); // Προσθέτουμε κάθε έξοδο
+        }
+        return sum;
+    }
 
 }
