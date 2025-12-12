@@ -33,8 +33,8 @@ public class BudgetYear {
     // calculations//
     public double getTotalRevenue() {
         double sum = 0;
-        for (Revenue r : revenues) {
-              sum += r.getAmount();
+        for (Ministry m : ministries) {
+            sum += m.getTotalRevenue();
         }
         return sum;
     }
