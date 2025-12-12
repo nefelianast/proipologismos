@@ -47,9 +47,10 @@ public class BudgetYear {
         return sum;
     }
 
-    public double getBalance() {
+   public double getBalance() {
         return getTotalRevenue() - getTotalExpenses();
     }
+}
 
     
 
