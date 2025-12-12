@@ -23,5 +23,18 @@ public class Ministry {
             revenues.add(r);
         }
     }
+    public void addExpense(Expense e) {
+        if (e != null) {
+            expenses.add(e);
+        }
+    }
+     public List<Revenue> getRevenues() {
+        return revenues;
+    }
+
+    // Λίστα εξόδων
+    public List<Expense> getExpenses() {
+        return expenses;
+    }
 
 }
