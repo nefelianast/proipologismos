@@ -136,9 +136,8 @@ public class DataDownload
 			}
 
 			 DataConvert converter = new DataConvert();
-			 converter.convertiontool();
-			 DataStorer Storer = new DataStorer();
-			 Storer.Store();
+			 converter.convertiontool(yearof);
+			 
 			 
 		}
 		
