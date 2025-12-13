@@ -49,106 +49,189 @@ public class DataConvert {
                         }
                     }
 
-                    if (numbers.length() > 0) numbers.setLength(numbers.length() - 1);
+                    if (numbers.length() > 0)
+                        numbers.setLength(numbers.length() - 1);
 
                     csvBuilder.append(page).append(",")
-                              .append("\"").append(textOnly).append("\"").append(",")
-                              .append(numbers)
-                              .append("\n");
+                            .append("\"").append(textOnly).append("\"").append(",")
+                            .append(numbers)
+                            .append("\n");
                 }
             }
 
             document.close();
 
             String csvFile = "proipologismos" + yearof + ".csv";
-            FileWriter csvWriter = new FileWriter(csvFile);
-            csvWriter.write(csvBuilder.toString());
-            csvWriter.close();
+            FileWriter writer = new FileWriter(csvFile);
+            writer.write(csvBuilder.toString());
+            writer.close();
 
-            // -------------------------
-            // Διόρθωση μόνο για τον προϋπολογισμό 2024
-            // -------------------------
-            if (yearof == 2024) {
-                fix2024SpecificLines(csvFile);
+            // ============================
+            // FIXES ΑΝΑ ΕΤΟΣ
+            // ============================
+            if (yearof == 2023) {
+                fix2023Specific(csvFile);
             }
 
-            System.out.println("Ο προϋπολογισμός του έτους " + yearof + " μετατράπηκε σε CSV.");
+            if (yearof == 2024) {
+                fix2024(csvFile);
+                fix2024Titles(csvFile);
+            }
+
+            System.out.println("Ο προϋπολογισμός " + yearof + " μετατράπηκε σε CSV.");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // -------------------------
-    // Μέθοδος για διόρθωση γραμμών μόνο για το 2024
-    // -------------------------
-    private static void fix2024SpecificLines(String csvFile) {
+    // =========================================================
+    // FIX 2023 – ΣΥΓΚΕΚΡΙΜΕΝΕΣ Αποκεντρωμένες Διοικήσεις
+    // =========================================================
+    private static void fix2023Specific(String csvFile) {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(csvFile));
-            List<String> lines = new ArrayList<>();
-            String line;
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
 
-            while ((line = reader.readLine()) != null) {
-                lines.add(line);
-            }
-            reader.close();
-
-            List<String> fixedLines = new ArrayList<>();
             for (int i = 0; i < lines.size(); i++) {
-                line = lines.get(i);
+                String line = lines.get(i).trim();
 
-                // -----------------------------
-                // Γραμμές με κενό όνομα ("")
-                // -----------------------------
-                if (line.matches("^3,\"\",.*") && !fixedLines.isEmpty()) {
-                    String prevLine = fixedLines.remove(fixedLines.size() - 1);
+                if (line.startsWith("3,\"Αποκεντρωμένη Διοίκηση")) {
+                    StringBuilder name = new StringBuilder();
+                    String amounts = null;
+                    String id = null;
 
-                    String[] currParts = line.split(",", 3); // ["3", "\"\"", "ID,ή ποσά"]
-                    String id = currParts[2]; // Παίρνουμε το ID
+                    // Προσθέτουμε πρώτο μέρος του ονόματος
+                    name.append(line.substring(line.indexOf("\"") + 1, line.lastIndexOf("\"")));
 
-                    // Χωρίζουμε την προηγούμενη γραμμή σε μέρη
-                    String[] prevParts = prevLine.split(",", 3); // ["3", "\"Υπουργείο...\"", "παλιά ποσά"]
-                    String prevAmounts = prevParts[2];
-                    String[] prevAmountsSplit = prevAmounts.split(",", 2); // [παλιό ID, υπόλοιπα ποσά]
-                    String amounts = prevAmountsSplit.length > 1 ? prevAmountsSplit[1] : "";
-
-                    // Δημιουργούμε νέα γραμμή: σελίδα, όνομα, νέο ID, ποσά
-                    String mergedLine = prevParts[0] + "," + prevParts[1] + "," + id;
-                    if (!amounts.isEmpty()) {
-                        mergedLine += "," + amounts;
+                    // Έλεγχος επόμενης γραμμής για συνέχεια ονόματος
+                    if (i + 1 < lines.size()) {
+                        String next = lines.get(i + 1).trim();
+                        if (next.startsWith("3,\"") && !next.startsWith("3,\"\",") && !next.matches(".*\\d.*")) {
+                            name.append(" ")
+                                .append(next.substring(next.indexOf("\"") + 1, next.lastIndexOf("\"")));
+                            i++;
+                        }
                     }
 
-                    fixedLines.add(mergedLine);
-                    continue;
-                }
+                    // Επόμενη γραμμή για ποσά
+                    if (i + 1 < lines.size()) {
+                        String next = lines.get(i + 1).trim();
+                        if (next.contains(",")) {
+                            String[] parts = next.split(",", 3);
+                            if (parts.length >= 3) {
+                                amounts = parts[2]; // τα ποσά
+                            }
+                            i++;
+                        }
+                    }
 
-                // -----------------------------
-                // Σπασμένο όνομα Υπουργείου Κλιματικής Κρίσης
-                // -----------------------------
-                if (line.contains("\"Υπουργείο Κλιματικής Κρίσης και Πολιτικής\"") && i + 1 < lines.size()) {
-                    String nextLine = lines.get(i + 1);
-                    if (nextLine.contains("\"Προστασίας\"")) {
-                        String mergedLine = "3,\"Υπουργείο Κλιματικής Κρίσης και Πολιτικής Προστασίας\",1059,575.351.000,68.122.000,643.473.000";
-                        fixedLines.add(mergedLine);
-                        i++; // Παραλείπουμε την επόμενη γραμμή
+                    // Επόμενη γραμμή για ID
+                    if (i + 1 < lines.size()) {
+                        String next = lines.get(i + 1).trim();
+                        if (next.startsWith("3,\"\",") && next.split(",").length >= 3) {
+                            id = next.split(",", 3)[2];
+                            i++;
+                        }
+                    }
+
+                    // Προσθήκη της σωστής γραμμής
+                    if (id != null && amounts != null) {
+                        fixed.add("3,\"" + name + "\"," + id + "," + amounts);
                         continue;
                     }
                 }
 
-                fixedLines.add(line);
+                // Όλες οι υπόλοιπες γραμμές μένουν ίδιες
+                fixed.add(line);
             }
 
-            BufferedWriter writer = new BufferedWriter(new FileWriter(csvFile));
-            for (String fixedLine : fixedLines) {
-                writer.write(fixedLine);
-                writer.newLine();
-            }
-            writer.close();
-
-            System.out.println("Οι γραμμές με κενά ονόματα για τον προϋπολογισμό 2024 διορθώθηκαν και τα IDs τοποθετήθηκαν σωστά!");
+            write(csvFile, fixed);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // =========================================================
+    // FIX 2024 – όπως το είχες
+    // =========================================================
+    private static void fix2024(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i);
+
+                if (line.matches("^3,\"\",.*") && !fixed.isEmpty()) {
+                    String prev = fixed.remove(fixed.size() - 1);
+
+                    String id = line.split(",", 3)[2];
+                    String[] p = prev.split(",", 3);
+                    String[] a = p[2].split(",", 2);
+
+                    fixed.add(p[0] + "," + p[1] + "," + id + "," + a[1]);
+                    continue;
+                }
+
+                fixed.add(line);
+            }
+
+            write(csvFile, fixed);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // FIX 2024 – Χρεωστικοί / Συμμετοχικοί τίτλοι
+    // =========================================================
+    private static void fix2024Titles(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i);
+
+                if (line.matches("^2,\".*\",\\d+\\.?$") && i + 1 < lines.size()
+                        && lines.get(i + 1).matches("^2,\"\",\\d+\\.?$")) {
+
+                    String[] a = line.split(",", 3);
+                    String id = lines.get(i + 1).split(",", 3)[2];
+                    fixed.add(a[0] + "," + a[1] + "," + id);
+                    i++;
+                    continue;
+                }
+
+                fixed.add(line);
+            }
+
+            write(csvFile, fixed);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // HELPERS
+    // =========================================================
+    private static List<String> read(String f) throws Exception {
+        List<String> l = new ArrayList<>();
+        BufferedReader r = new BufferedReader(new FileReader(f));
+        String s;
+        while ((s = r.readLine()) != null) l.add(s);
+        r.close();
+        return l;
+    }
+
+    private static void write(String f, List<String> l) throws Exception {
+        BufferedWriter w = new BufferedWriter(new FileWriter(f));
+        for (String s : l) {
+            w.write(s);
+            w.newLine();
+        }
+        w.close();
     }
 }
