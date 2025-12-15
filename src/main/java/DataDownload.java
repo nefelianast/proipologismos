@@ -27,30 +27,37 @@ public class DataDownload
 		
 
 
-		for (int epilogi = 1; epilogi <=3; epilogi++ ) {
+		for (int epilogi = 1; epilogi <=4; epilogi++ ) {
 
 
 
-
+		String link2026 = "https://minfin.gov.gr/wp-content/uploads/2025/11/Κρατικός-Προϋπολογισμός-2026.pdf";
 		String link2025 = "https://minfin.gov.gr/wp-content/uploads/2024/11/Κρατικός-Προϋπολογισμός-2025_ΟΕ.pdf";
 		String link2024 = "https://minfin.gov.gr/wp-content/uploads/2023/11/ΚΡΑΤΙΚΟΣ-ΠΡΟΥΠΟΛΟΓΙΣΜΟΣ-2024.pdf";
 		String link2023 = "https://minfin.gov.gr/wp-content/uploads/2023/11/21-11-2022-ΚΡΑΤΙΚΟΣ-ΠΡΟΫΠΟΛΟΓΙΣΜΟΣ-2023.pdf";
+		
 		String year;
 
 		if (epilogi == 1){
 			year= link2023;
 		} else if (epilogi == 2){
 			year= link2024;
-		} else{
+		} else if(epilogi == 3){
 			year= link2025;
+		} else{
+			year = link2026;
 		}
 		if (epilogi == 1){
 			yearof= 2023;
 		} else if (epilogi == 2){
 			yearof= 2024;
-		} else{
+		} else if (epilogi == 3){
 			yearof= 2025;
+		} else {
+			yearof = 2026;
 		}
+
+		
 		
 		
 	
@@ -122,6 +129,19 @@ public class DataDownload
 
 
 				
+				   } else if (epilogi ==4) {
+					System.out.println(
+        "  _               _            _     ___   ___ ___   __  \n" +
+        " | |             | |          | |   |__ \\ / _ \\__ \\ / /  \n" +
+        " | |__  _   _  __| | __ _  ___| |_     ) | | | | ) / /_  \n" +
+        " | '_ \\| | | |/ _` |/ _` |/ _ \\ __|   / /| | | |/ / '_ \\ \n" +
+        " | |_) | |_| | (_| | (_| |  __/ |_   / /_| |_| / /| (_) |\n" +
+        " |_.__/ \\__,_|\\__,_|\\__, |\\___|\\__| |____|\\___/____\\___/ \n" +
+        "                     __/ |                               \n" +
+        "                    |___/                                \n"
+);
+
+   			    
 				   }
 
 					
