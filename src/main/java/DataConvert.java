@@ -71,20 +71,454 @@ public class DataConvert {
             // ============================
             if (yearof == 2023) {
                 fix2023Specific(csvFile);
+                fix2023_KlimatikiKrisi(csvFile);
             }
 
             if (yearof == 2024) {
                 fix2024(csvFile);
                 fix2024Titles(csvFile);
-                applyManualFixes(csvFile, yearof);
+                fix2024_SymmetochikoiTitloi(csvFile);
+                fix2024_KlimatikiKrisi(csvFile);
+                fix2024_ApokentromenesDioikiseis(csvFile);
             }
             
             if (yearof == 2025) {
-                applyManualFixes(csvFile, yearof);
+                fix2025_SymmetochikoiTitloi(csvFile);
+                fix2025_ApokentromenesDioikiseis(csvFile);
+            }
+            
+            if (yearof == 2026) {
+                fix2024Titles(csvFile);
+                fix2026_SymmetochikoiTitloi(csvFile); // ΝΕΟ ΓΙΑ 2026
+                fix2026_ApokentromenesDioikiseis(csvFile); // ΝΕΟ ΓΙΑ 2026
             }
 
             System.out.println("Ο προϋπολογισμός " + yearof + " μετατράπηκε σε CSV.");
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // FIX 2026 – ΣΥΜΜΕΤΟΧΙΚΟΙ ΤΙΤΛΟΙ (2 φορές)
+    // =========================================================
+    private static void fix2026_SymmetochikoiTitloi(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            int i = 0;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                
+                // Προσθήκη επικεφαλίδας
+                if (i == 0) {
+                    fixed.add(line);
+                    i++;
+                    continue;
+                }
+                
+                // Εύρεση του ΠΡΩΤΟΥ προβλήματος (228.000.000)
+                if (i + 3 < lines.size() && 
+                    line.startsWith("2,\"\",45.") && 
+                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
+                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
+                    lines.get(i+3).startsWith("2,\"»\",228.000.000")) {
+                    
+                    // Ενώνουμε τις 4 γραμμές σε 1
+                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,228.000.000");
+                    i += 4; // Παραλείπουμε τις 4 γραμμές
+                    continue;
+                }
+                
+                // Εύρεση του ΔΕΥΤΕΡΟΥ προβλήματος (1.587.084.000)
+                if (i + 3 < lines.size() && 
+                    line.startsWith("2,\"\",45.") && 
+                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
+                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
+                    lines.get(i+3).startsWith("2,\"»\",1.587.084.000")) {
+                    
+                    // Ενώνουμε τις 4 γραμμές σε 1
+                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,1.587.084.000");
+                    i += 4; // Παραλείπουμε τις 4 γραμμές
+                    continue;
+                }
+                
+                // Προσθήκη κανονικής γραμμής
+                fixed.add(line);
+                i++;
+            }
+            
+            write(csvFile, fixed);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // FIX 2026 – ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ
+    // =========================================================
+    private static void fix2026_ApokentromenesDioikiseis(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            int i = 0;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                
+                // Προσθήκη επικεφαλίδας
+                if (i == 0) {
+                    fixed.add(line);
+                    i++;
+                    continue;
+                }
+                
+                // 1. Ηπείρου - Δυτικής Μακεδονίας (1903)
+                if (i + 3 < lines.size() && 
+                    line.startsWith("3,\"\",1903") &&
+                    lines.get(i+1).startsWith("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής\"") &&
+                    lines.get(i+2).startsWith("3,\"Μακεδονίας\"") &&
+                    lines.get(i+3).startsWith("3,\"\",10.981.000,0,10.981.000")) {
+                    
+                    // Ενώνουμε τις 4 γραμμές σε 1
+                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής Μακεδονίας\",1903,10.981.000,0,10.981.000");
+                    i += 4; // Παραλείπουμε τις 4 γραμμές
+                    continue;
+                }
+                
+                // 2. Πελοποννήσου - Δυτικής Ελλάδας και Ιονίου (1904)
+                if (i + 3 < lines.size() && 
+                    line.startsWith("3,\"\",1904") &&
+                    lines.get(i+1).startsWith("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής\"") &&
+                    lines.get(i+2).startsWith("3,\"Ελλάδας και Ιονίου\"") &&
+                    lines.get(i+3).startsWith("3,\"\",15.556.000,0,15.556.000")) {
+                    
+                    // Ενώνουμε τις 4 γραμμές σε 1
+                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής Ελλάδας και Ιονίου\",1904,15.556.000,0,15.556.000");
+                    i += 4; // Παραλείπουμε τις 4 γραμμές
+                    continue;
+                }
+                
+                // Προσθήκη κανονικής γραμμής
+                fixed.add(line);
+                i++;
+            }
+            
+            write(csvFile, fixed);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // ΥΠΟΛΟΙΠΕΣ ΜΕΘΟΔΟΙ (ΜΕΝΟΥΝ ΟΙ ΙΔΙΕΣ)
+    // =========================================================
+
+    // =========================================================
+    // FIX 2023 – ΥΠΟΥΡΓΕΙΟ ΚΛΙΜΑΤΙΚΗΣ ΚΡΙΣΗΣ
+    // =========================================================
+    private static void fix2023_KlimatikiKrisi(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            int i = 0;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                
+                if (i == 0) {
+                    fixed.add(line);
+                    i++;
+                    continue;
+                }
+                
+                if (i + 1 < lines.size() && 
+                    line.startsWith("3,\"Υπουργείο Κλιματικής Κρίσης και Πολιτικής\",1059") &&
+                    lines.get(i+1).startsWith("3,\"Προστασίας\"")) {
+                    
+                    String[] parts = lines.get(i+1).split(",", 5);
+                    if (parts.length >= 5) {
+                        fixed.add("3,\"Υπουργείο Κλιματικής Κρίσης και Πολιτικής Προστασίας\",1059," + 
+                                 parts[2] + "," + parts[3] + "," + parts[4]);
+                        i += 2;
+                        continue;
+                    }
+                }
+                
+                fixed.add(line);
+                i++;
+            }
+            
+            write(csvFile, fixed);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // FIX 2025 – ΣΥΜΜΕΤΟΧΙΚΟΙ ΤΙΤΛΟΙ
+    // =========================================================
+    private static void fix2025_SymmetochikoiTitloi(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            int i = 0;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                
+                if (i == 0) {
+                    fixed.add(line);
+                    i++;
+                    continue;
+                }
+                
+                if (i + 3 < lines.size() && 
+                    line.startsWith("2,\"\",45.") && 
+                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
+                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
+                    lines.get(i+3).startsWith("2,\"»\",467.000.000")) {
+                    
+                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,467.000.000");
+                    i += 4;
+                    continue;
+                }
+                
+                if (i + 3 < lines.size() && 
+                    line.startsWith("2,\"\",45.") && 
+                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
+                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
+                    lines.get(i+3).startsWith("2,\"»\",1.755.112.000")) {
+                    
+                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,1.755.112.000");
+                    i += 4;
+                    continue;
+                }
+                
+                fixed.add(line);
+                i++;
+            }
+            
+            write(csvFile, fixed);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // FIX 2025 – ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ
+    // =========================================================
+    private static void fix2025_ApokentromenesDioikiseis(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            int i = 0;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                
+                if (i == 0) {
+                    fixed.add(line);
+                    i++;
+                    continue;
+                }
+                
+                if (i + 3 < lines.size() && 
+                    line.startsWith("3,\"\",1903") &&
+                    lines.get(i+1).startsWith("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής\"") &&
+                    lines.get(i+2).startsWith("3,\"Μακεδονίας\"") &&
+                    lines.get(i+3).startsWith("3,\"\",9.943.000,0,9.943.000")) {
+                    
+                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής Μακεδονίας\",1903,9.943.000,0,9.943.000");
+                    i += 4;
+                    continue;
+                }
+                
+                if (i + 3 < lines.size() && 
+                    line.startsWith("3,\"\",1904") &&
+                    lines.get(i+1).startsWith("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής\"") &&
+                    lines.get(i+2).startsWith("3,\"Ελλάδας και Ιονίου\"") &&
+                    lines.get(i+3).startsWith("3,\"\",14.918.000,0,14.918.000")) {
+                    
+                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής Ελλάδας και Ιονίου\",1904,14.918.000,0,14.918.000");
+                    i += 4;
+                    continue;
+                }
+                
+                fixed.add(line);
+                i++;
+            }
+            
+            write(csvFile, fixed);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // FIX 2024 – ΣΥΜΜΕΤΟΧΙΚΟΙ ΤΙΤΛΟΙ
+    // =========================================================
+    private static void fix2024_SymmetochikoiTitloi(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            int i = 0;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                
+                if (i == 0) {
+                    fixed.add(line);
+                    i++;
+                    continue;
+                }
+                
+                if (i + 4 < lines.size() && 
+                    line.startsWith("2,\"\",45.") && 
+                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
+                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
+                    lines.get(i+3).startsWith("2,\"»\"") &&
+                    lines.get(i+4).startsWith("2,\"\",1.095.000.000")) {
+                    
+                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,1.095.000.000");
+                    i += 5;
+                    continue;
+                }
+                
+                if (i + 4 < lines.size() && 
+                    line.startsWith("2,\"\",45.") && 
+                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
+                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
+                    lines.get(i+3).startsWith("2,\"»\"") &&
+                    lines.get(i+4).startsWith("2,\"\",1.557.768.000")) {
+                    
+                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,1.557.768.000");
+                    i += 5;
+                    continue;
+                }
+                
+                fixed.add(line);
+                i++;
+            }
+            
+            write(csvFile, fixed);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // FIX 2024 – ΚΛΙΜΑΤΙΚΗ ΚΡΙΣΗ
+    // =========================================================
+    private static void fix2024_KlimatikiKrisi(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            int i = 0;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                
+                if (i == 0) {
+                    fixed.add(line);
+                    i++;
+                    continue;
+                }
+                
+                if (i + 1 < lines.size() && 
+                    line.startsWith("3,\"Υπουργείο Κλιματικής Κρίσης και Πολιτικής\"") &&
+                    lines.get(i+1).startsWith("3,\"Προστασίας\"")) {
+                    
+                    String[] parts = lines.get(i+1).split(",", 4);
+                    if (parts.length >= 4) {
+                        fixed.add("3,\"Υπουργείο Κλιματικής Κρίσης και Πολιτικής Προστασίας\"," + parts[2] + "," + parts[3]);
+                        i += 2;
+                        continue;
+                    }
+                }
+                
+                fixed.add(line);
+                i++;
+            }
+            
+            write(csvFile, fixed);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // FIX 2024 – ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ
+    // =========================================================
+    private static void fix2024_ApokentromenesDioikiseis(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            int i = 0;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                
+                if (i == 0) {
+                    fixed.add(line);
+                    i++;
+                    continue;
+                }
+                
+                if (i + 1 < lines.size() && 
+                    line.startsWith("3,\"Αποκεντρωμένη Διοίκηση Θεσσαλίας - Στερεάς\"") &&
+                    lines.get(i+1).startsWith("3,\"Ελλάδας\",1903")) {
+                    
+                    String[] parts = lines.get(i+1).split(",", 5);
+                    if (parts.length >= 5) {
+                        fixed.add("3,\"Αποκεντρωμένη Διοίκηση Θεσσαλίας - Στερεάς Ελλάδας\"," + 
+                                 parts[2] + "," + parts[3] + "," + parts[4]);
+                        i += 2;
+                        continue;
+                    }
+                }
+                
+                if (i + 1 < lines.size() && 
+                    line.startsWith("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής\"") &&
+                    lines.get(i+1).startsWith("3,\"Μακεδονίας\",1904")) {
+                    
+                    String[] parts = lines.get(i+1).split(",", 5);
+                    if (parts.length >= 5) {
+                        fixed.add("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής Μακεδονίας\"," + 
+                                 parts[2] + "," + parts[3] + "," + parts[4]);
+                        i += 2;
+                        continue;
+                    }
+                }
+                
+                if (i + 1 < lines.size() && 
+                    line.startsWith("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής\"") &&
+                    lines.get(i+1).startsWith("3,\"Ελλάδας και Ιονίου\"")) {
+                    
+                    String[] parts = lines.get(i+1).split(",", 5);
+                    if (parts.length >= 5) {
+                        fixed.add("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής Ελλάδας και Ιονίου\"," + 
+                                 parts[2] + "," + parts[3] + "," + parts[4]);
+                        i += 2;
+                        continue;
+                    }
+                }
+                
+                fixed.add(line);
+                i++;
+            }
+            
+            write(csvFile, fixed);
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -106,10 +540,8 @@ public class DataConvert {
                     String amounts = null;
                     String id = null;
 
-                    // Προσθέτουμε πρώτο μέρος του ονόματος
                     name.append(line.substring(line.indexOf("\"") + 1, line.lastIndexOf("\"")));
 
-                    // Έλεγχος επόμενης γραμμής για συνέχεια ονόματος
                     if (i + 1 < lines.size()) {
                         String next = lines.get(i + 1).trim();
                         if (next.startsWith("3,\"") && !next.startsWith("3,\"\",") && !next.matches(".*\\d.*")) {
@@ -119,19 +551,17 @@ public class DataConvert {
                         }
                     }
 
-                    // Επόμενη γραμμή για ποσά
                     if (i + 1 < lines.size()) {
                         String next = lines.get(i + 1).trim();
                         if (next.contains(",")) {
                             String[] parts = next.split(",", 3);
                             if (parts.length >= 3) {
-                                amounts = parts[2]; // τα ποσά
+                                amounts = parts[2];
                             }
                             i++;
                         }
                     }
 
-                    // Επόμενη γραμμή για ID
                     if (i + 1 < lines.size()) {
                         String next = lines.get(i + 1).trim();
                         if (next.startsWith("3,\"\",") && next.split(",").length >= 3) {
@@ -140,14 +570,12 @@ public class DataConvert {
                         }
                     }
 
-                    // Προσθήκη της σωστής γραμμής
                     if (id != null && amounts != null) {
                         fixed.add("3,\"" + name + "\"," + id + "," + amounts);
                         continue;
                     }
                 }
 
-                // Όλες οι υπόλοιπες γραμμές μένουν ίδιες
                 fixed.add(line);
             }
 
@@ -159,7 +587,7 @@ public class DataConvert {
     }
 
     // =========================================================
-    // FIX 2024 – όπως το είχες
+    // FIX 2024 
     // =========================================================
     private static void fix2024(String csvFile) {
         try {
@@ -220,109 +648,6 @@ public class DataConvert {
     }
 
     // =========================================================
-    // MANUAL FIXES – Find and replace για συγκεκριμένα προβλήματα
-    // =========================================================
-    private static void applyManualFixes(String csvFile, int year) {
-        try {
-            // Διάβασε όλο το αρχείο ως string για εύκολο replace
-            String content = readFileAsString(csvFile);
-            
-            if (year == 2024) {
-                // FIX 1: Συμμετοχικοί τίτλοι (πρώτο κομμάτι)
-                content = content.replace(
-                    "2,\"\",45.\n" +
-                    "2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\",\n" +
-                    "2,\"κεφαλαίων\",\n" +
-                    "2,\"»\",\n" +
-                    "2,\"\",1.095.000.000 ,",
-                    "2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών » 45. κεφαλαίων\",1.095.000.000\n"
-                );
-                
-                // FIX 2: Συμμετοχικοί τίτλοι (δεύτερο κομμάτι)
-                content = content.replace(
-                    "2,\"\",45.\n" +
-                    "2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\",\n" +
-                    "2,\"κεφαλαίων\",\n" +
-                    "2,\"»\",\n" +
-                    "2,\"\",1.557.768.000,",
-                    "2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών » κεφαλαίων\",1.557.768.000\n"
-                );
-                
-                // FIX 3: Αποκεντρωμένες διοικήσεις
-                content = content.replace(
-                    "3,\"Αποκεντρωμένη Διοίκηση Θεσσαλίας - Στερεάς\",\n" +
-                    "3,\"Ελλάδας\",1903,0,10.659.000",
-                    "3,\"Αποκεντρωμένη Διοίκηση Θεσσαλίας - Στερεάς Ελλάδας\",1903,0,10.659.000"
-                );
-                
-                content = content.replace(
-                    "3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής\",\n" +
-                    "3,\"Μακεδονίας\",1904,0,9.796.000",
-                    "3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής Μακεδονίας\",1904,0,9.796.000"
-                );
-                
-                content = content.replace(
-                    "3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής\",\n" +
-                    "3,\"Ελλάδας και Ιονίου\",15.415.000,0,15.415.000",
-                    "3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής Ελλάδας και Ιονίου\",15.415.000,0,15.415.000"
-                );
-            }
-            
-            if (year == 2025) {
-                // FIX 1: Συμμετοχικοί τίτλοι (πρώτο κομμάτι)
-                content = content.replace(
-                    "2,\"\",45.\n" +
-                    "2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\",\n" +
-                    "2,\"κεφαλαίων\",\n" +
-                    "2,\"»\",467.000.000,",
-                    "2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών » 45. κεφαλαίων\",467.000.000\n"
-                );
-                
-                // FIX 2: Συμμετοχικοί τίτλοι (δεύτερο κομμάτι)
-                content = content.replace(
-                    "2,\"\",45.\n" +
-                    "2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\",\n" +
-                    "2,\"κεφαλαίων\",\n" +
-                    "2,\"»\",1.755.112.000,",
-                    "2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών » κεφαλαίων\",1.755.112.000\n"
-                );
-                
-                // FIX 3: Θεσσαλία - πρόβλημα με το πρώτο κελί
-                content = content.replace(
-                    ",\"Αποκεντρωμένη Διοίκηση Θεσσαλίας - Στερεάς Ελλάδας\",1902,10.579.000,0,10.579.000",
-                    "3,\"Αποκεντρωμένη Διοίκηση Θεσσαλίας - Στερεάς Ελλάδας\",1902,10.579.000,0,10.579.000"
-                );
-                
-                // FIX 4: Ηπειρος - συνένωση πολλών γραμμών
-                content = content.replace(
-                    "3,\"\",1903\n" +
-                    "3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής\",\n" +
-                    "3,\"Μακεδονίας\",\n" +
-                    "3,\"\",9.943.000,0,9.943.000",
-                    "3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής Μακεδονίας\",1903,9.943.000,0,9.943.000"
-                );
-                
-                // FIX 5: Πελοποννησος - συνένωση πολλών γραμμών
-                content = content.replace(
-                    "3,\"\",1904\n" +
-                    "3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής\",\n" +
-                    "3,\"Ελλάδας και Ιονίου\",\n" +
-                    "3,\"\",14.918.000,0,14.918.000",
-                    "3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής Ελλάδας και Ιονίου\",1904,14.918.000,0,14.918.000"
-                );
-            }
-            
-            // Αφαίρεση κενών γραμμών που μπορεί να προκύψουν
-            content = content.replace("\n\n", "\n").replace(",\n", "\n");
-            
-            writeStringToFile(csvFile, content);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // =========================================================
     // HELPERS
     // =========================================================
     private static List<String> read(String f) throws Exception {
@@ -341,22 +666,5 @@ public class DataConvert {
             w.newLine();
         }
         w.close();
-    }
-    
-    private static String readFileAsString(String filePath) throws Exception {
-        StringBuilder content = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new FileReader(filePath));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            content.append(line).append("\n");
-        }
-        reader.close();
-        return content.toString();
-    }
-
-    private static void writeStringToFile(String filePath, String content) throws Exception {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-        writer.write(content);
-        writer.close();
     }
 }
