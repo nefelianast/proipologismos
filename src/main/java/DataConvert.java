@@ -72,6 +72,8 @@ public class DataConvert {
             if (yearof == 2023) {
                 fix2023Specific(csvFile);
                 fix2023_KlimatikiKrisi(csvFile);
+                fix2023_ApokentromenesDioikiseis(csvFile);
+                fix2023_CreteOnly(csvFile);
             }
 
             if (yearof == 2024) {
@@ -89,8 +91,8 @@ public class DataConvert {
             
             if (yearof == 2026) {
                 fix2024Titles(csvFile);
-                fix2026_SymmetochikoiTitloi(csvFile); // ΝΕΟ ΓΙΑ 2026
-                fix2026_ApokentromenesDioikiseis(csvFile); // ΝΕΟ ΓΙΑ 2026
+                fix2026_SymmetochikoiTitloi(csvFile);
+                fix2026_ApokentromenesDioikiseis(csvFile);
             }
 
             System.out.println("Ο προϋπολογισμός " + yearof + " μετατράπηκε σε CSV.");
@@ -100,10 +102,12 @@ public class DataConvert {
         }
     }
 
+  
+
     // =========================================================
-    // FIX 2026 – ΣΥΜΜΕΤΟΧΙΚΟΙ ΤΙΤΛΟΙ (2 φορές)
+    // FIX 2023 – ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ
     // =========================================================
-    private static void fix2026_SymmetochikoiTitloi(String csvFile) {
+    private static void fix2023_ApokentromenesDioikiseis(String csvFile) {
         try {
             List<String> lines = read(csvFile);
             List<String> fixed = new ArrayList<>();
@@ -112,40 +116,18 @@ public class DataConvert {
             while (i < lines.size()) {
                 String line = lines.get(i);
                 
-                // Προσθήκη επικεφαλίδας
                 if (i == 0) {
                     fixed.add(line);
                     i++;
                     continue;
                 }
                 
-                // Εύρεση του ΠΡΩΤΟΥ προβλήματος (228.000.000)
-                if (i + 3 < lines.size() && 
-                    line.startsWith("2,\"\",45.") && 
-                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
-                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
-                    lines.get(i+3).startsWith("2,\"»\",228.000.000")) {
-                    
-                    // Ενώνουμε τις 4 γραμμές σε 1
-                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,228.000.000");
-                    i += 4; // Παραλείπουμε τις 4 γραμμές
+                if (line.startsWith("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου -")) {
+                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής Ελλάδας και Ιονίου\",1904,12.467.000,0,12.467.000");
+                    i++;
                     continue;
                 }
                 
-                // Εύρεση του ΔΕΥΤΕΡΟΥ προβλήματος (1.587.084.000)
-                if (i + 3 < lines.size() && 
-                    line.startsWith("2,\"\",45.") && 
-                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
-                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
-                    lines.get(i+3).startsWith("2,\"»\",1.587.084.000")) {
-                    
-                    // Ενώνουμε τις 4 γραμμές σε 1
-                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,1.587.084.000");
-                    i += 4; // Παραλείπουμε τις 4 γραμμές
-                    continue;
-                }
-                
-                // Προσθήκη κανονικής γραμμής
                 fixed.add(line);
                 i++;
             }
@@ -156,67 +138,6 @@ public class DataConvert {
             e.printStackTrace();
         }
     }
-
-    // =========================================================
-    // FIX 2026 – ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ
-    // =========================================================
-    private static void fix2026_ApokentromenesDioikiseis(String csvFile) {
-        try {
-            List<String> lines = read(csvFile);
-            List<String> fixed = new ArrayList<>();
-            
-            int i = 0;
-            while (i < lines.size()) {
-                String line = lines.get(i);
-                
-                // Προσθήκη επικεφαλίδας
-                if (i == 0) {
-                    fixed.add(line);
-                    i++;
-                    continue;
-                }
-                
-                // 1. Ηπείρου - Δυτικής Μακεδονίας (1903)
-                if (i + 3 < lines.size() && 
-                    line.startsWith("3,\"\",1903") &&
-                    lines.get(i+1).startsWith("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής\"") &&
-                    lines.get(i+2).startsWith("3,\"Μακεδονίας\"") &&
-                    lines.get(i+3).startsWith("3,\"\",10.981.000,0,10.981.000")) {
-                    
-                    // Ενώνουμε τις 4 γραμμές σε 1
-                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής Μακεδονίας\",1903,10.981.000,0,10.981.000");
-                    i += 4; // Παραλείπουμε τις 4 γραμμές
-                    continue;
-                }
-                
-                // 2. Πελοποννήσου - Δυτικής Ελλάδας και Ιονίου (1904)
-                if (i + 3 < lines.size() && 
-                    line.startsWith("3,\"\",1904") &&
-                    lines.get(i+1).startsWith("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής\"") &&
-                    lines.get(i+2).startsWith("3,\"Ελλάδας και Ιονίου\"") &&
-                    lines.get(i+3).startsWith("3,\"\",15.556.000,0,15.556.000")) {
-                    
-                    // Ενώνουμε τις 4 γραμμές σε 1
-                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής Ελλάδας και Ιονίου\",1904,15.556.000,0,15.556.000");
-                    i += 4; // Παραλείπουμε τις 4 γραμμές
-                    continue;
-                }
-                
-                // Προσθήκη κανονικής γραμμής
-                fixed.add(line);
-                i++;
-            }
-            
-            write(csvFile, fixed);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // =========================================================
-    // ΥΠΟΛΟΙΠΕΣ ΜΕΘΟΔΟΙ (ΜΕΝΟΥΝ ΟΙ ΙΔΙΕΣ)
-    // =========================================================
 
     // =========================================================
     // FIX 2023 – ΥΠΟΥΡΓΕΙΟ ΚΛΙΜΑΤΙΚΗΣ ΚΡΙΣΗΣ
@@ -247,108 +168,6 @@ public class DataConvert {
                         i += 2;
                         continue;
                     }
-                }
-                
-                fixed.add(line);
-                i++;
-            }
-            
-            write(csvFile, fixed);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // =========================================================
-    // FIX 2025 – ΣΥΜΜΕΤΟΧΙΚΟΙ ΤΙΤΛΟΙ
-    // =========================================================
-    private static void fix2025_SymmetochikoiTitloi(String csvFile) {
-        try {
-            List<String> lines = read(csvFile);
-            List<String> fixed = new ArrayList<>();
-            
-            int i = 0;
-            while (i < lines.size()) {
-                String line = lines.get(i);
-                
-                if (i == 0) {
-                    fixed.add(line);
-                    i++;
-                    continue;
-                }
-                
-                if (i + 3 < lines.size() && 
-                    line.startsWith("2,\"\",45.") && 
-                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
-                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
-                    lines.get(i+3).startsWith("2,\"»\",467.000.000")) {
-                    
-                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,467.000.000");
-                    i += 4;
-                    continue;
-                }
-                
-                if (i + 3 < lines.size() && 
-                    line.startsWith("2,\"\",45.") && 
-                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
-                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
-                    lines.get(i+3).startsWith("2,\"»\",1.755.112.000")) {
-                    
-                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,1.755.112.000");
-                    i += 4;
-                    continue;
-                }
-                
-                fixed.add(line);
-                i++;
-            }
-            
-            write(csvFile, fixed);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // =========================================================
-    // FIX 2025 – ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ
-    // =========================================================
-    private static void fix2025_ApokentromenesDioikiseis(String csvFile) {
-        try {
-            List<String> lines = read(csvFile);
-            List<String> fixed = new ArrayList<>();
-            
-            int i = 0;
-            while (i < lines.size()) {
-                String line = lines.get(i);
-                
-                if (i == 0) {
-                    fixed.add(line);
-                    i++;
-                    continue;
-                }
-                
-                if (i + 3 < lines.size() && 
-                    line.startsWith("3,\"\",1903") &&
-                    lines.get(i+1).startsWith("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής\"") &&
-                    lines.get(i+2).startsWith("3,\"Μακεδονίας\"") &&
-                    lines.get(i+3).startsWith("3,\"\",9.943.000,0,9.943.000")) {
-                    
-                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής Μακεδονίας\",1903,9.943.000,0,9.943.000");
-                    i += 4;
-                    continue;
-                }
-                
-                if (i + 3 < lines.size() && 
-                    line.startsWith("3,\"\",1904") &&
-                    lines.get(i+1).startsWith("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής\"") &&
-                    lines.get(i+2).startsWith("3,\"Ελλάδας και Ιονίου\"") &&
-                    lines.get(i+3).startsWith("3,\"\",14.918.000,0,14.918.000")) {
-                    
-                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής Ελλάδας και Ιονίου\",1904,14.918.000,0,14.918.000");
-                    i += 4;
-                    continue;
                 }
                 
                 fixed.add(line);
@@ -525,8 +344,264 @@ public class DataConvert {
     }
 
     // =========================================================
-    // FIX 2023 – ΣΥΓΚΕΚΡΙΜΕΝΕΣ Αποκεντρωμένες Διοικήσεις
+    // FIX 2025 – ΣΥΜΜΕΤΟΧΙΚΟΙ ΤΙΤΛΟΙ
     // =========================================================
+    private static void fix2025_SymmetochikoiTitloi(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            int i = 0;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                
+                if (i == 0) {
+                    fixed.add(line);
+                    i++;
+                    continue;
+                }
+                
+                if (i + 3 < lines.size() && 
+                    line.startsWith("2,\"\",45.") && 
+                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
+                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
+                    lines.get(i+3).startsWith("2,\"»\",467.000.000")) {
+                    
+                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,467.000.000");
+                    i += 4;
+                    continue;
+                }
+                
+                if (i + 3 < lines.size() && 
+                    line.startsWith("2,\"\",45.") && 
+                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
+                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
+                    lines.get(i+3).startsWith("2,\"»\",1.755.112.000")) {
+                    
+                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,1.755.112.000");
+                    i += 4;
+                    continue;
+                }
+                
+                fixed.add(line);
+                i++;
+            }
+            
+            write(csvFile, fixed);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // FIX 2025 – ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ
+    // =========================================================
+    private static void fix2025_ApokentromenesDioikiseis(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            int i = 0;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                
+                if (i == 0) {
+                    fixed.add(line);
+                    i++;
+                    continue;
+                }
+                
+                if (i + 3 < lines.size() && 
+                    line.startsWith("3,\"\",1903") &&
+                    lines.get(i+1).startsWith("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής\"") &&
+                    lines.get(i+2).startsWith("3,\"Μακεδονίας\"") &&
+                    lines.get(i+3).startsWith("3,\"\",9.943.000,0,9.943.000")) {
+                    
+                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής Μακεδονίας\",1903,9.943.000,0,9.943.000");
+                    i += 4;
+                    continue;
+                }
+                
+                if (i + 3 < lines.size() && 
+                    line.startsWith("3,\"\",1904") &&
+                    lines.get(i+1).startsWith("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής\"") &&
+                    lines.get(i+2).startsWith("3,\"Ελλάδας και Ιονίου\"") &&
+                    lines.get(i+3).startsWith("3,\"\",14.918.000,0,14.918.000")) {
+                    
+                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής Ελλάδας και Ιονίου\",1904,14.918.000,0,14.918.000");
+                    i += 4;
+                    continue;
+                }
+                
+                fixed.add(line);
+                i++;
+            }
+            
+            write(csvFile, fixed);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // FIX 2026 – ΣΥΜΜΕΤΟΧΙΚΟΙ ΤΙΤΛΟΙ
+    // =========================================================
+    private static void fix2026_SymmetochikoiTitloi(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            int i = 0;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                
+                if (i == 0) {
+                    fixed.add(line);
+                    i++;
+                    continue;
+                }
+                
+                if (i + 3 < lines.size() && 
+                    line.startsWith("2,\"\",45.") && 
+                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
+                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
+                    lines.get(i+3).startsWith("2,\"»\",228.000.000")) {
+                    
+                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,228.000.000");
+                    i += 4;
+                    continue;
+                }
+                
+                if (i + 3 < lines.size() && 
+                    line.startsWith("2,\"\",45.") && 
+                    lines.get(i+1).startsWith("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών\"") &&
+                    lines.get(i+2).startsWith("2,\"κεφαλαίων\"") &&
+                    lines.get(i+3).startsWith("2,\"»\",1.587.084.000")) {
+                    
+                    fixed.add("2,\"Συμμετοχικοί τίτλοι και μερίδια επενδυτικών κεφαλαίων»,45,1.587.084.000");
+                    i += 4;
+                    continue;
+                }
+                
+                fixed.add(line);
+                i++;
+            }
+            
+            write(csvFile, fixed);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    // =========================================================
+    // FIX 2023 – ΚΡΗΤΗ (ΒΕΛΤΙΩΜΕΝΗ)
+    // =========================================================
+    private static void fix2023_CreteOnly(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            boolean hasCrete = false;
+            
+            for (String line : lines) {
+                // ΕΛΕΓΧΟΣ 1: Αν είναι η Κρήτη με λάθος αριθμούς, τη διορθώνουμε
+                if (line.contains("Αποκεντρωμένη Διοίκηση Κρήτης")) {
+                    hasCrete = true;
+                    // Αντικαθιστούμε ΠΑΝΤΑ με τους σωστούς αριθμούς
+                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Κρήτης\",1906,6.068.000,0,6.068.000");
+                    continue;
+                }
+                
+                fixed.add(line);
+            }
+            
+            // ΕΛΕΓΧΟΣ 2: Αν η Κρήτη λείπει τελείως, την προσθέτουμε
+            if (!hasCrete) {
+                List<String> finalFixed = new ArrayList<>();
+                boolean addedCrete = false;
+                
+                for (String line : fixed) {
+                    finalFixed.add(line);
+                    
+                    // Προσθέτουμε την Κρήτη αμέσως μετά το Αιγαίο (1905)
+                    if (!addedCrete && (line.contains("Αιγαίου") || line.contains("1905"))) {
+                        finalFixed.add("3,\"Αποκεντρωμένη Διοίκηση Κρήτης\",1906,6.068.000,0,6.068.000");
+                        addedCrete = true;
+                    }
+                }
+                
+                // Αν δεν βρήκαμε το Αιγαίο, προσθέτουμε στο τέλος
+                if (!addedCrete) {
+                    finalFixed.add("3,\"Αποκεντρωμένη Διοίκηση Κρήτης\",1906,6.068.000,0,6.068.000");
+                }
+                
+                write(csvFile, finalFixed);
+                return;
+            }
+            
+            write(csvFile, fixed);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    // =========================================================
+    // FIX 2026 – ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ
+    // =========================================================
+    private static void fix2026_ApokentromenesDioikiseis(String csvFile) {
+        try {
+            List<String> lines = read(csvFile);
+            List<String> fixed = new ArrayList<>();
+            
+            int i = 0;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                
+                if (i == 0) {
+                    fixed.add(line);
+                    i++;
+                    continue;
+                }
+                
+                if (i + 3 < lines.size() && 
+                    line.startsWith("3,\"\",1903") &&
+                    lines.get(i+1).startsWith("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής\"") &&
+                    lines.get(i+2).startsWith("3,\"Μακεδονίας\"") &&
+                    lines.get(i+3).startsWith("3,\"\",10.981.000,0,10.981.000")) {
+                    
+                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Ηπείρου - Δυτικής Μακεδονίας\",1903,10.981.000,0,10.981.000");
+                    i += 4;
+                    continue;
+                }
+                
+                if (i + 3 < lines.size() && 
+                    line.startsWith("3,\"\",1904") &&
+                    lines.get(i+1).startsWith("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής\"") &&
+                    lines.get(i+2).startsWith("3,\"Ελλάδας και Ιονίου\"") &&
+                    lines.get(i+3).startsWith("3,\"\",15.556.000,0,15.556.000")) {
+                    
+                    fixed.add("3,\"Αποκεντρωμένη Διοίκηση Πελοποννήσου - Δυτικής Ελλάδας και Ιονίου\",1904,15.556.000,0,15.556.000");
+                    i += 4;
+                    continue;
+                }
+                
+                fixed.add(line);
+                i++;
+            }
+            
+            write(csvFile, fixed);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // ΥΠΑΡΧΟΥΣΕΣ ΜΕΘΟΔΟΙ
+    // =========================================================
+
     private static void fix2023Specific(String csvFile) {
         try {
             List<String> lines = read(csvFile);
@@ -586,9 +661,6 @@ public class DataConvert {
         }
     }
 
-    // =========================================================
-    // FIX 2024 
-    // =========================================================
     private static void fix2024(String csvFile) {
         try {
             List<String> lines = read(csvFile);
@@ -617,9 +689,6 @@ public class DataConvert {
         }
     }
 
-    // =========================================================
-    // FIX 2024 – Χρεωστικοί / Συμμετοχικοί τίτλοι
-    // =========================================================
     private static void fix2024Titles(String csvFile) {
         try {
             List<String> lines = read(csvFile);
