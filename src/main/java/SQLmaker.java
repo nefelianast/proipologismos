@@ -375,8 +375,9 @@ public class SQLmaker {
         SQLinserter test = new SQLinserter();
         try {
             test.insertRevenue2025();
+             
             test.insertExpenses2025();
-            
+           
            test.insertMinistries2025();
            
            test.insertDecentralizedAdministrations2025();
@@ -408,6 +409,9 @@ public class SQLmaker {
    test.insertDecentralizedAdministrations2026();
    
    test.insertBudgetSummary2026();
+   /* 
+   String sc="social_contributions";
+   test.updateRevenue(2025, 3, sc, "10");*/
  
         } catch (Exception e) {
             e.printStackTrace();
