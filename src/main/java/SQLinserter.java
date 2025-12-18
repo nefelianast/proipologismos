@@ -9,6 +9,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Set;
 
 public class SQLinserter {
   
@@ -599,42 +600,43 @@ public class SQLinserter {
                 lineNumber++;
                 String [] data =linetext.split(",");
 
+
                 if (lineNumber < 13) {
                     continue;
                 }
-                if (lineNumber > 24) {
+                if (lineNumber > 26) {
                     break;
                 }
                
-                if (lineNumber==13){
-                     total_revenue=data[3];
+                if (lineNumber == 13) {
+                    total_revenue = data[3];
                 } else if (lineNumber == 14) {
-                     taxes=data[3];
+                    taxes = data[3];
                 } else if (lineNumber == 15) {
-                     social_contributions=data[3];
+                    social_contributions = data[3];
                 } else if (lineNumber == 16) {
-                     transfers=data[3];
+                    transfers = data[3];
                 } else if (lineNumber == 17) {
-                     sales_of_goods_and_services=data[3];
+                    sales_of_goods_and_services = data[3];
                 } else if (lineNumber == 18) {
-                     other_current_revenue=data[3];
+                    other_current_revenue = data[3];
                 } else if (lineNumber == 19) {
-                     fixed_assets=data[3];
+                    fixed_assets = data[3];
                 } else if (lineNumber == 20) {
-                     debt_securities=data[3];
+                    debt_securities = data[3];
                 } else if (lineNumber == 21) {
-                     loans=data[3];
+                    loans = data[3];
                 } else if (lineNumber == 22) {
-                     equity_securities_and_fund_shares=data[3];
+                    equity_securities_and_fund_shares = data[3];
                 } else if (lineNumber == 23) {
-                     currency_and_deposit_liabilities=data[3];
+                    currency_and_deposit_liabilities = data[3];
                 } else if (lineNumber == 24) {
-                     debt_securities_liabilities=data[3];
+                    debt_securities_liabilities = data[3];
                 } else if (lineNumber == 25) {
-                     loans_liabilities=data[3];
+                    loans_liabilities = data[3];
                 } else if (lineNumber == 26) {
-                     financial_derivatives=data[3];
-                } 
+                    financial_derivatives = data[3];
+                }
 
             }
              statement.setBigDecimal(1,  parseMoney(total_revenue));
@@ -2168,4 +2170,94 @@ public class SQLinserter {
         }
     }
 
+
+
+public static void updateRevenue(
+        int year,
+        int collum,
+        String change,
+        String newValue
+        
+    
+) {
+
+if (year==2025||year==2026){ 
+
+    Set<String> allowedColumns = Set.of(
+        "taxes",
+        "social_contributions",
+        "transfers",
+        "sales_of_goods_and_services",
+        "other_current_revenue",
+        "fixed_assets",
+        "debt_securities",
+        "loans",
+        "equity_securities_and_fund_shares",
+        "currency_and_deposit_liabilities",
+        "debt_securities_liabilities",
+        "loans_liabilities",
+        "financial_derivatives"
+    );
+
+    if (!allowedColumns.contains(change)) {
+        throw new IllegalArgumentException("Μη έγκυρη στήλη");
+    }
+
+    String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
+    String sql = "UPDATE revenue_" + year +
+                 " SET " + change + " = ? WHERE total_revenue = ?";
+
+    try (Connection conn = DriverManager.getConnection(DB);
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        pstmt.setBigDecimal(collum, parseMoney(newValue));
+        
+
+        pstmt.executeUpdate();
+
+    } catch (SQLException e) {
+        System.out.println("Σφάλμα UPDATE: " + e.getMessage());
+    }
+}else {
+    Set<String> allowedColumns = Set.of(
+        "taxes",
+        "social_contributions",
+        "transfers",
+        "sales_of_goods_and_services",
+        "other_current_revenue",
+        "fixed_assets",
+        "debt_securities",
+        "equity_securities_and_fund_shares",
+        "currency_and_deposit_liabilities",
+        "debt_securities_liabilities",
+        "loans_liabilities",
+        "financial_derivatives"
+    );
+
+    if (!allowedColumns.contains(change)) {
+        throw new IllegalArgumentException("Μη έγκυρη στήλη");
+    }
+
+    String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
+    String sql = "UPDATE revenue_" + year +
+                 " SET " + change + " = ? WHERE total_revenue = ?";
+
+    try (Connection conn = DriverManager.getConnection(DB);
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        pstmt.setBigDecimal(collum, parseMoney(newValue));
+        
+
+        pstmt.executeUpdate();
+
+    } catch (SQLException e) {
+        System.out.println("Σφάλμα UPDATE: " + e.getMessage());
+    }
 }
+
+}
+
+
+
+}
+
