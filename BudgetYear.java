@@ -50,7 +50,7 @@ public class BudgetYear {
    public double getBalance() {
         return getTotalRevenue() - getTotalExpenses();
     }
-}
+
 // βρίσκει ενα υπουργείο με το ονομα του 
 public Ministry getMinistryByName(String name) {
     for (Ministry m : ministries) {
@@ -59,6 +59,7 @@ public Ministry getMinistryByName(String name) {
         }
     }
     return null;
+}
 }
     
 
