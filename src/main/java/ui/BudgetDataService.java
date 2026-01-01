@@ -4,12 +4,22 @@ import org.json.JSONObject;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.*;
 
 public class BudgetDataService {
     
     private static BudgetDataService instance;
     private Map<Integer, BudgetYearData> budgetData = new HashMap<>();
+
+     long budget_result = 0;
+     long total_revenue = 0;
+     long total_expenses = 0;
+     long total_ministries = 0;
+     long total_da = 0;
     
     private BudgetDataService() {
         loadData();
@@ -88,10 +98,27 @@ public class BudgetDataService {
     /**
      * Get total revenues for a year
      */
-    public double getTotalRevenues(int year) {
-        BudgetYearData data = budgetData.get(year);
-        return data != null ? data.getTotalRevenues() : 0.0;
+   public double getTotalRevenues(int year) {
+    String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
+    long totalRevenue = 0;
+
+    String sql = "SELECT total_revenue FROM budget_summary_" + year;
+
+    try (Connection connection = DriverManager.getConnection(DB);
+         Statement stmt = connection.createStatement();
+         ResultSet rs = stmt.executeQuery(sql)) {
+
+        if (rs.next()) {
+            totalRevenue = rs.getLong("total_revenue");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+
+    return totalRevenue;
+}
+
     
     /**
      * Get total expenses for a year
