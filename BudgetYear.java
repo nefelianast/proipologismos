@@ -51,7 +51,15 @@ public class BudgetYear {
         return getTotalRevenue() - getTotalExpenses();
     }
 }
-
+// βρίσκει ενα υπουργείο με το ονομα του 
+public Ministry getMinistryByName(String name) {
+    for (Ministry m : ministries) {
+        if (m.getName().equalsIgnoreCase(name)) {
+            return m;
+        }
+    }
+    return null;
+}
     
 
 
