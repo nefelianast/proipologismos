@@ -4,13 +4,12 @@ import java.util.List;
 
 public class BudgetYear {
     private int year;
-    private List<Revenue> revenues;
-    private List<Expense> expenses;
+    private List<Ministry> ministries;
+    
 
      public BudgetYear(int year) {
         this.year = year;
-        this.revenues = new ArrayList<>();
-        this.expenses = new ArrayList<>();
+        this.ministries = new ArrayList<>();
      }
 
     public int getYear() {
@@ -21,47 +20,47 @@ public class BudgetYear {
         this.year = year;
      }
 
-    public List<Revenue> getRevenues() { 
-        return revenues;
+    public List<Ministry> getMinistries() {
+        return ministries;
     }
 
-    public List<Expense> getExpenses() {
-        return expenses;
-    }
-
-    public void addRevenue(Revenue r) {
-        if (r != null) {
-            revenues.add(r);
+     public void addMinistry(Ministry m) {
+        if (m != null) {
+            ministries.add(m);
         }
     }
-
-    public void addExpense(Expense e) {
-        if (e != null) {
-            expenses.add(e);
-        }
-      }  
 
     // calculations//
     public double getTotalRevenue() {
         double sum = 0;
-        for (Revenue r : revenues) {
-              sum += r.getAmount();
+        for (Ministry m : ministries) {
+            sum += m.getTotalRevenue();
         }
         return sum;
     }
 
     public double getTotalExpenses() {
         double sum = 0;
-        for (Expense e : expenses) {
-              sum += e.getAmount();
+        for (Ministry m : ministries) {
+            sum += m.getTotalExpenses();
         }
         return sum;
     }
 
-    public double getBalance() {
+   public double getBalance() {
         return getTotalRevenue() - getTotalExpenses();
     }
 
+// βρίσκει ενα υπουργείο με το ονομα του 
+public Ministry getMinistryByName(String name) {
+    for (Ministry m : ministries) {
+        if (m.getName().equalsIgnoreCase(name)) {
+            return m;
+        }
+    }
+    return null;
+}
+}
     
 
-}
+
