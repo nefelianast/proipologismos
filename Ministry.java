@@ -53,6 +53,25 @@ public class Ministry {
      public double getBalance() {
         return getTotalRevenue() - getTotalExpenses();
     }
+// epistrefei poso sygkekrimenis katigorias esodon
+public double getRevenueAmountByCategory(String categoryName) {
+    for (Revenue r : revenues) {
+        if (r.getCategory().equalsIgnoreCase(categoryName)) {
+            return r.getAmount();
+        }
+    }
+    return 0;
+}
+
+// epistrefei poso sygkekrimenis katigorias eksodon
+public double getExpenseAmountByCategory(String categoryName) {
+    for (Expense e : expenses) {
+        if (e.getCategory().equalsIgnoreCase(categoryName)) {
+            return e.getAmount();
+        }
+    }
+    return 0;
+}
 }
 
 
