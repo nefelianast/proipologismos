@@ -26,37 +26,47 @@
     <!-- HEADER -->
     <top>
         <VBox styleClass="header-container">
-            <HBox styleClass="header-bar" BorderPane.alignment="CENTER" spacing="0">
+            <StackPane styleClass="header-bar">
                 <children>
-                    <!-- Κουμπί Διαχείριση Δεδομένων αριστερά (μόνο για κυβέρνηση) -->
-                    <HBox alignment="CENTER_LEFT" fx:id="dataManagementButtonContainer" visible="false" managed="false" HBox.hgrow="NEVER">
+                    <!-- Background HBox για τα κουμπιά -->
+                    <HBox spacing="0" alignment="CENTER_LEFT">
                         <children>
-                            <Button text="Διαχείριση Δεδομένων" onAction="#onNavigateDataManagement" styleClass="auth-button" fx:id="dataManagementButton"/>
+                            <!-- Αριστερά: Κουμπιά -->
+                            <HBox alignment="CENTER_LEFT" HBox.hgrow="NEVER" spacing="12">
+                                <children>
+                                    <!-- Κουμπί Διαχείριση Δεδομένων (μόνο για κυβέρνηση) -->
+                                    <HBox alignment="CENTER_LEFT" fx:id="dataManagementButtonContainer" visible="false" managed="false" HBox.hgrow="NEVER">
+                                        <children>
+                                            <Button text="Διαχείριση Δεδομένων" onAction="#onNavigateDataManagement" styleClass="auth-button" fx:id="dataManagementButton"/>
+                                        </children>
+                                    </HBox>
+                                    
+                                    <!-- Κουμπί Προεπισκοπήσεις Αλλαγών (για όλους) - Coming soon -->
+                                    <Button text="Προεπισκοπήσεις Αλλαγών" onAction="#onNavigateProjections" styleClass="auth-button" fx:id="projectionsButton"/>
+                                </children>
+                                <padding>
+                                    <Insets top="0" right="0" bottom="0" left="32"/>
+                                </padding>
+                            </HBox>
+                            
+                            <Region HBox.hgrow="ALWAYS"/>
+                            
+                            <!-- Κουμπί Σύνδεση/Αποσύνδεση δεξιά -->
+                            <HBox alignment="CENTER_RIGHT" HBox.hgrow="NEVER">
+                                <children>
+                                    <Button fx:id="authButton" onAction="#onAuthButtonClicked" styleClass="auth-button"/>
+                                </children>
+                                <padding>
+                                    <Insets top="0" right="32" bottom="0" left="0"/>
+                                </padding>
+                            </HBox>
                         </children>
-                        <padding>
-                            <Insets top="0" right="0" bottom="0" left="32"/>
-                        </padding>
                     </HBox>
                     
-                    <!-- Κουμπί Προεπισκοπήσεις Αλλαγών (για όλους) - Coming soon -->
-                    <HBox alignment="CENTER_LEFT" HBox.hgrow="NEVER" spacing="12">
+                    <!-- Logo absolute centered (mouse transparent so buttons work) -->
+                    <VBox spacing="0" alignment="CENTER" StackPane.alignment="CENTER" mouseTransparent="true">
                         <children>
-                            <Button text="Προεπισκοπήσεις Αλλαγών" onAction="#onNavigateProjections" styleClass="auth-button" fx:id="projectionsButton"/>
-                        </children>
-                        <padding>
-                            <Insets top="0" right="0" bottom="0" left="32"/>
-                        </padding>
-                    </HBox>
-                    
-                    <Region HBox.hgrow="ALWAYS"/>
-                    
-                    <!-- Logo στο κέντρο -->
-                    <VBox spacing="0" alignment="CENTER" HBox.hgrow="NEVER">
-                        <padding>
-                            <Insets top="0" right="0" bottom="0" left="0"/>
-                        </padding>
-                        <children>
-                            <ImageView fx:id="headerLogoImageView">
+                            <ImageView fx:id="headerLogoImageView" mouseTransparent="true">
                                 <image>
                                     <Image url="@/images/logo.png"/>
                                 </image>
@@ -65,23 +75,8 @@
                             </ImageView>
                         </children>
                     </VBox>
-                    
-                    <Region HBox.hgrow="ALWAYS"/>
-                    
-                    <!-- Κουμπί Σύνδεση/Αποσύνδεση δεξιά -->
-                    <HBox alignment="CENTER_RIGHT" HBox.hgrow="NEVER">
-                        <children>
-                            <Button fx:id="authButton" onAction="#onAuthButtonClicked" styleClass="auth-button"/>
-                        </children>
-                        <padding>
-                            <Insets top="0" right="32" bottom="0" left="0"/>
-                        </padding>
-                    </HBox>
                 </children>
-                <padding>
-                    <Insets top="0" right="32" bottom="0" left="0"/>
-                </padding>
-            </HBox>
+            </StackPane>
         </VBox>
     </top>
 
@@ -162,7 +157,7 @@
                                                     <children>
                                                         <Label text="3" styleClass="quick-nav-number"/>
                                                         <Label text="Δαπάνες" styleClass="quick-nav-title"/>
-                                                        <Label text="Αναλυτική ανάλυση των δαπανών" styleClass="quick-nav-description"/>
+                                                        <Label text="Λεπτομερής κατανομή των δαπανών" styleClass="quick-nav-description"/>
                                                         <Label text="Δείτε περισσότερα →" styleClass="quick-nav-link"/>
                                                     </children>
                                                 </VBox>
@@ -205,7 +200,7 @@
                                             <columns>
                                                 <TableColumn fx:id="categoryColumn" text="Υπουργείο / Φορέας" prefWidth="400"/>
                                                 <TableColumn fx:id="amountColumn" text="Δαπάνες (€)" prefWidth="220"/>
-                                                <TableColumn fx:id="percentageColumn" text="Συμμετοχή (%%)" prefWidth="180"/>
+                                                <TableColumn fx:id="percentageColumn" text="Συμμετοχή (%)" prefWidth="180"/>
                                                 <TableColumn fx:id="changeColumn" text="Μεταβολή από προηγούμενο έτος" prefWidth="250"/>
                                             </columns>
                                         </TableView>
@@ -236,7 +231,7 @@
                                             <columns>
                                                 <TableColumn fx:id="revenueCategoryColumn" text="Είδος Έσοδων" prefWidth="450"/>
                                                 <TableColumn fx:id="revenueAmountColumn" text="Ποσό (€)" prefWidth="280"/>
-                                                <TableColumn fx:id="revenuePercentageColumn" text="Συμμετοχή (%%)" prefWidth="220"/>
+                                                <TableColumn fx:id="revenuePercentageColumn" text="Συμμετοχή (%)" prefWidth="220"/>
                                             </columns>
                                         </TableView>
                                     </children>
@@ -266,7 +261,7 @@
                                             <columns>
                                                 <TableColumn fx:id="expenseCategoryColumn" text="Είδος Δαπανών" prefWidth="450"/>
                                                 <TableColumn fx:id="expenseAmountColumn" text="Ποσό (€)" prefWidth="280"/>
-                                                <TableColumn fx:id="expensePercentageColumn" text="Συμμετοχή (%%)" prefWidth="220"/>
+                                                <TableColumn fx:id="expensePercentageColumn" text="Συμμετοχή (%)" prefWidth="220"/>
                                             </columns>
                                         </TableView>
                                     </children>
@@ -296,7 +291,7 @@
                                             <columns>
                                                 <TableColumn fx:id="adminCategoryColumn" text="Αποκεντρωμένη Διοίκηση" prefWidth="550"/>
                                                 <TableColumn fx:id="adminAmountColumn" text="Ποσό (€)" prefWidth="280"/>
-                                                <TableColumn fx:id="adminPercentageColumn" text="Συμμετοχή (%%)" prefWidth="220"/>
+                                                <TableColumn fx:id="adminPercentageColumn" text="Συμμετοχή (%)" prefWidth="220"/>
                                             </columns>
                                         </TableView>
                                     </children>

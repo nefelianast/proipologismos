@@ -411,13 +411,8 @@ public class HomeController {
     private void updateGovernmentFeatures() {
         boolean isGovernment = currentUserType == UserType.GOVERNMENT;
         
-        // Show/hide data management view
-        if (dataManagementView != null) {
-            dataManagementView.setVisible(isGovernment);
-            dataManagementView.setManaged(isGovernment);
-        }
-        
         // Show/hide data management button in header
+        // Note: dataManagementView visibility is controlled by showView() method, not here
         if (dataManagementButtonContainer != null) {
             dataManagementButtonContainer.setVisible(isGovernment);
             dataManagementButtonContainer.setManaged(isGovernment);
@@ -514,6 +509,7 @@ public class HomeController {
                     // Set user type to government
                     currentUserType = UserType.GOVERNMENT;
                     updateAuthButton();
+                    updateGovernmentFeatures();
                     
                     // Close login dialog
                     loginStage.close();
