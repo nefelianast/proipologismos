@@ -116,7 +116,7 @@ public class BudgetDataService {
         e.printStackTrace();
     }
 
-    return totalRevenue;
+    return (double) totalRevenue;
 }
 
     
@@ -124,43 +124,113 @@ public class BudgetDataService {
      * Get total expenses for a year
      */
     public double getTotalExpenses(int year) {
-        BudgetYearData data = budgetData.get(year);
-        return data != null ? data.getTotalExpenses() : 0.0;
+        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
+        long totalExpenses = 0;
+
+        String sql = "SELECT total_expenses FROM budget_summary_" + year;
+
+        try (Connection connection = DriverManager.getConnection(DB);
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                totalExpenses = rs.getLong("total_expenses");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return (double) totalExpenses;
     }
     
     /**
      * Get balance (surplus/deficit) for a year
      */
     public double getBalance(int year) {
-        BudgetYearData data = budgetData.get(year);
-        if (data == null) return 0.0;
-        return data.getTotalRevenues() - data.getTotalExpenses();
+        double revenues = getTotalRevenues(year);
+        double expenses = getTotalExpenses(year);
+        return revenues - expenses;
     }
     
     /**
      * Get percentage change from previous year
      */
     public double getRevenuesChange(int year) {
-        BudgetYearData current = budgetData.get(year);
-        BudgetYearData previous = budgetData.get(year - 1);
-        if (current == null || previous == null) return 0.0;
-        return ((current.getTotalRevenues() - previous.getTotalRevenues()) / previous.getTotalRevenues()) * 100;
+        double current = getTotalRevenues(year);
+        double previous = getTotalRevenues(year - 1);
+        if (previous == 0) return 0.0;
+        return ((current - previous) / previous) * 100;
     }
     
     public double getExpensesChange(int year) {
-        BudgetYearData current = budgetData.get(year);
-        BudgetYearData previous = budgetData.get(year - 1);
-        if (current == null || previous == null) return 0.0;
-        return ((current.getTotalExpenses() - previous.getTotalExpenses()) / previous.getTotalExpenses()) * 100;
+        double current = getTotalExpenses(year);
+        double previous = getTotalExpenses(year - 1);
+        if (previous == 0) return 0.0;
+        return ((current - previous) / previous) * 100;
     }
     
     /**
-     * Get category data for a year
+     * Get category data for a year (from ministries table)
      */
     public List<CategoryInfo> getCategories(int year) {
-        BudgetYearData data = budgetData.get(year);
-        if (data == null) return new ArrayList<>();
-        return data.getCategories();
+        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
+        List<CategoryInfo> categories = new ArrayList<>();
+        
+        // Get total expenses for percentage calculation (use total_expenses as the base)
+        double totalExpenses = getTotalExpenses(year);
+        if (totalExpenses == 0) return categories;
+        
+        // Define ministry columns and their Greek names (excluding total_ministries)
+        String[][] ministries = {
+            {"presidency_of_the_republic", "Προεδρία της Δημοκρατίας"},
+            {"hellenic_parliament", "Ελληνικό Κοινοβούλιο"},
+            {"presidency_of_the_government", "Προεδρία της Κυβέρνησης"},
+            {"ministry_of_interior", "Εσωτερικών"},
+            {"ministry_of_foreign_affairs", "Εξωτερικών"},
+            {"ministry_of_national_defence", "Εθνικής Άμυνας"},
+            {"ministry_of_health", "Υγείας"},
+            {"ministry_of_justice", "Δικαιοσύνης"},
+            {"ministry_of_education_religious_affairs_and_sports", "Παιδείας, Θρησκευμάτων και Αθλητισμού"},
+            {"ministry_of_culture", "Πολιτισμού"},
+            {"ministry_of_national_economy_and_finance", "Εθνικής Οικονομίας και Οικονομικών"},
+            {"ministry_of_agricultural_development_and_food", "Αγροτικής Ανάπτυξης και Τροφίμων"},
+            {"ministry_of_environment_and_energy", "Περιβάλλοντος και Ενέργειας"},
+            {"ministry_of_labor_and_social_security", "Εργασίας και Κοινωνικής Ασφάλισης"},
+            {"ministry_of_social_cohesion_and_family", "Κοινωνικής Συνοχής και Οικογένειας"},
+            {"ministry_of_development", "Ανάπτυξης"},
+            {"ministry_of_infrastructure_and_transport", "Υποδομών και Μεταφορών"},
+            {"ministry_of_maritime_affairs_and_insular_policy", "Ναυτιλίας και Νησιωτικής Πολιτικής"},
+            {"ministry_of_tourism", "Τουρισμού"},
+            {"ministry_of_digital_governance", "Ψηφιακής Διακυβέρνησης"},
+            {"ministry_of_migration_and_asylum", "Μετανάστευσης και Ασύλου"},
+            {"ministry_of_citizen_protection", "Προστασίας του Πολίτη"},
+            {"ministry_of_climate_crisis_and_civil_protection", "Κλιματικής Κρίσης και Πολιτικής Προστασίας"}
+        };
+        
+        // Query all ministries
+        try (Connection connection = DriverManager.getConnection(DB);
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM ministries_" + year)) {
+            
+            if (rs.next()) {
+                for (String[] ministry : ministries) {
+                    String columnName = ministry[0];
+                    String greekName = ministry[1];
+                    long amount = rs.getLong(columnName);
+                    
+                    if (amount > 0) {
+                        double amountDouble = (double) amount;
+                        double percentage = (amountDouble / totalExpenses) * 100;
+                        categories.add(new CategoryInfo(greekName, amountDouble, percentage));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return categories;
     }
     
     /**
@@ -192,6 +262,151 @@ public class BudgetDataService {
         public double getTotalRevenues() { return totalRevenues; }
         public double getTotalExpenses() { return totalExpenses; }
         public List<CategoryInfo> getCategories() { return categories; }
+    }
+    
+    /**
+     * Get revenue breakdown for a year
+     */
+    public List<CategoryInfo> getRevenueBreakdown(int year) {
+        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
+        List<CategoryInfo> revenues = new ArrayList<>();
+        
+        double totalRevenue = getTotalRevenues(year);
+        if (totalRevenue == 0) return revenues;
+        
+        String[][] revenueCategories = {
+            {"taxes", "Φορολογία"},
+            {"social_contributions", "Κοινωνικές Εισφορές"},
+            {"transfers", "Μεταβιβάσεις"},
+            {"sales_of_goods_and_services", "Πωλήσεις Αγαθών και Υπηρεσιών"},
+            {"other_current_revenue", "Άλλα Τρέχοντα Έσοδα"},
+            {"fixed_assets", "Πάγια Περιουσιακά Στοιχεία"},
+            {"debt_securities", "Ομόλογα"},
+            {"loans", "Δάνεια"},
+            {"equity_securities_and_fund_shares", "Μετοχές και Συμμετοχές"},
+            {"currency_and_deposit_liabilities", "Νομισματικά Μέσα και Καταθέσεις"},
+            {"debt_securities_liabilities", "Ομόλογα (Υποχρεώσεις)"},
+            {"loans_liabilities", "Δάνεια (Υποχρεώσεις)"},
+            {"financial_derivatives", "Χρηματοοικονομικά Παράγωγα"}
+        };
+        
+        try (Connection connection = DriverManager.getConnection(DB);
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM revenue_" + year)) {
+            
+            if (rs.next()) {
+                for (String[] category : revenueCategories) {
+                    String columnName = category[0];
+                    String greekName = category[1];
+                    long amount = rs.getLong(columnName);
+                    
+                    if (amount > 0) {
+                        double amountDouble = (double) amount;
+                        double percentage = (amountDouble / totalRevenue) * 100;
+                        revenues.add(new CategoryInfo(greekName, amountDouble, percentage));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return revenues;
+    }
+    
+    /**
+     * Get expenses breakdown for a year
+     */
+    public List<CategoryInfo> getExpensesBreakdown(int year) {
+        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
+        List<CategoryInfo> expenses = new ArrayList<>();
+        
+        double totalExpenses = getTotalExpenses(year);
+        if (totalExpenses == 0) return expenses;
+        
+        String[][] expenseCategories = {
+            {"employee_benefits", "Προσωπικά"},
+            {"social_benefits", "Κοινωνικά Επιδόματα"},
+            {"transfers", "Μεταβιβάσεις"},
+            {"purchases_of_goods_and_services", "Αγορές Αγαθών και Υπηρεσιών"},
+            {"subsidies", "Επιδοτήσεις"},
+            {"interest", "Τόκοι"},
+            {"other_expenditures", "Άλλες Δαπάνες"},
+            {"appropriations", "Πιστώσεις"},
+            {"fixed_assets", "Πάγια Περιουσιακά Στοιχεία"},
+            {"valuables", "Πολύτιμα"},
+            {"loans", "Δάνεια"},
+            {"equity_securities_and_fund_shares", "Μετοχές και Συμμετοχές"},
+            {"debt_securities_liabilities", "Ομόλογα (Υποχρεώσεις)"},
+            {"loans_liabilities", "Δάνεια (Υποχρεώσεις)"}
+        };
+        
+        try (Connection connection = DriverManager.getConnection(DB);
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM expenses_" + year)) {
+            
+            if (rs.next()) {
+                for (String[] category : expenseCategories) {
+                    String columnName = category[0];
+                    String greekName = category[1];
+                    long amount = rs.getLong(columnName);
+                    
+                    if (amount > 0) {
+                        double amountDouble = (double) amount;
+                        double percentage = (amountDouble / totalExpenses) * 100;
+                        expenses.add(new CategoryInfo(greekName, amountDouble, percentage));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return expenses;
+    }
+    
+    /**
+     * Get decentralized administrations for a year
+     */
+    public List<CategoryInfo> getDecentralizedAdministrations(int year) {
+        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
+        List<CategoryInfo> administrations = new ArrayList<>();
+        
+        String[][] adminCategories = {
+            {"decentralized_administration_of_attica", "Αποκεντρωμένη Διοίκηση Αττικής"},
+            {"decentralized_administration_of_thessaly_central_greece", "Αποκεντρωμένη Διοίκηση Θεσσαλίας & Στερεάς Ελλάδας"},
+            {"decentralized_administration_of_epirus_western_macedonia", "Αποκεντρωμένη Διοίκηση Ηπείρου & Δυτικής Μακεδονίας"},
+            {"decentralized_administration_of_peloponnese_western_greece_and_ionian", "Αποκεντρωμένη Διοίκηση Πελοποννήσου, Δυτικής Ελλάδας & Ιονίου"},
+            {"decentralized_administration_of_aegean", "Αποκεντρωμένη Διοίκηση Αιγαίου"},
+            {"decentralized_administration_of_crete", "Αποκεντρωμένη Διοίκηση Κρήτης"},
+            {"decentralized_administration_of_macedonia_thrace", "Αποκεντρωμένη Διοίκηση Μακεδονίας & Θράκης"}
+        };
+        
+        try (Connection connection = DriverManager.getConnection(DB);
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM decentralized_administrations_" + year)) {
+            
+            if (rs.next()) {
+                long totalDA = rs.getLong("total_da");
+                if (totalDA == 0) return administrations;
+                
+                for (String[] category : adminCategories) {
+                    String columnName = category[0];
+                    String greekName = category[1];
+                    long amount = rs.getLong(columnName);
+                    
+                    if (amount > 0) {
+                        double amountDouble = (double) amount;
+                        double percentage = (amountDouble / (double) totalDA) * 100;
+                        administrations.add(new CategoryInfo(greekName, amountDouble, percentage));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return administrations;
     }
     
     /**
