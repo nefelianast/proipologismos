@@ -14,6 +14,11 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.scene.chart.CategoryAxis; // ΠΡΟΣΘΕΣΑ ΤΑ 5 ΑΥΤΑ
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
 
 public class HomeController {
 
@@ -95,6 +100,16 @@ public class HomeController {
     private TableColumn<CategoryData, Double> percentageColumn;
     @FXML
     private TableColumn<CategoryData, String> changeColumn;
+    @FXML // ΠΡΟΣΘΕΣΑ ΑΥΤΑ ΤΑ 5
+    private PieChart pieRevenue;
+    @FXML 
+    private PieChart pieExpenses;
+    @FXML 
+    private PieChart pieMinistries;
+    @FXML 
+    private PieChart pieTotals;
+    @FXML 
+    private LineChart<String, Number> lineHistory;
     
     // Navigation buttons
     @FXML
@@ -172,6 +187,7 @@ public class HomeController {
         
         // Update table
         updateCategoryTable();
+        updateCharts(Integer.parseInt(selectedYear)); // ΠΡΟΣΘΕΣΑ ΑΥΤΟ
     }
 
     private void updateSummaryCards(String year) {
@@ -318,5 +334,67 @@ public class HomeController {
     @FXML
     private void onShowScenarios() {
         onNavigateSimulations();
+    }
+    
+    //  ΝΕΕΣ ΜΕΘΟΔΟΙ ΓΙΑ ΤΑ ΓΡΑΦΗΜΑΤΑ (CHARTS LOGIC)
+
+    private void updateCharts(int year) {
+        // Αν το FXML δεν έχει φορτώσει ακόμα τα γραφήματα, σταματάμε
+        if (pieRevenue == null) return;
+
+        // 1. Πίτα Εσόδων
+        fillPie(pieRevenue, dataService.getRevenueBreakdown(year), "Έσοδα " + year);
+
+        // 2. Πίτα Εξόδων
+        fillPie(pieExpenses, dataService.getExpenseBreakdown(year), "Έξοδα " + year);
+
+        // 3. Πίτα Υπουργείων
+        fillPie(pieMinistries, dataService.getMinistriesBreakdown(year), "Υπουργεία " + year);
+
+        // 4. Πίτα Συνόλων (Έσοδα vs Έξοδα)
+        double totalRev = dataService.getTotalAmount(year, "total_revenue");
+        double totalExp = dataService.getTotalAmount(year, "total_expenses");
+        
+        ObservableList<PieChart.Data> totals = FXCollections.observableArrayList(
+            new PieChart.Data("Έσοδα", totalRev),
+            new PieChart.Data("Έξοδα", totalExp)
+        );
+        pieTotals.setData(totals);
+        pieTotals.setTitle("Ισοζύγιο " + year);
+
+        // 5. Γραμμικό Διάγραμμα (2023-2025)
+        loadLineChart();
+    }
+
+    // Βοηθητική μέθοδος για γέμισμα πίτας
+    private void fillPie(PieChart chart, Map<String, Double> data, String title) {
+        ObservableList<PieChart.Data> list = FXCollections.observableArrayList();
+        data.forEach((k, v) -> {
+            if (v > 0) list.add(new PieChart.Data(k, v));
+        });
+        chart.setData(list);
+        chart.setTitle(title);
+    }
+
+    // Βοηθητική μέθοδος για γραμμικό διάγραμμα
+    private void loadLineChart() {
+        if (lineHistory == null) return;
+        lineHistory.getData().clear();
+        
+        XYChart.Series<String, Number> revSeries = new XYChart.Series<>();
+        revSeries.setName("Έσοδα");
+        
+        XYChart.Series<String, Number> expSeries = new XYChart.Series<>();
+        expSeries.setName("Έξοδα");
+
+        int[] years = {2023, 2024, 2025};
+        for (int y : years) {
+            double rev = dataService.getTotalAmount(y, "total_revenue");
+            double exp = dataService.getTotalAmount(y, "total_expenses");
+            
+            revSeries.getData().add(new XYChart.Data<>(String.valueOf(y), rev));
+            expSeries.getData().add(new XYChart.Data<>(String.valueOf(y), exp));
+        }
+        lineHistory.getData().addAll(revSeries, expSeries);
     }
 }
