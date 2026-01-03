@@ -9,6 +9,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.*;
+import java.util.HashMap; // ΠΡΟΣΘΕΣΑ ΑΥΤΑ ΤΑ 3
+import java.util.Map;
+import java.math.BigDecimal;
 
 public class BudgetDataService {
     
@@ -211,6 +214,113 @@ public class BudgetDataService {
         public String getName() { return name; }
         public double getAmount() { return amount; }
         public double getPercentage() { return percentage; }
+    }
+    
+    // ΟΙ ΝΕΕΣ ΜΕΘΟΔΟΙ ΓΙΑ ΤΑ ΔΙΑΓΡΑΜΜΑΤΑ 
+
+    // 1. Παίρνουμε τα Έσοδα αναλυτικά (Map: Κατηγορία -> Ποσό)
+    public Map<String, Double> getRevenueBreakdown(int year) {
+        Map<String, Double> data = new HashMap<>();
+        String DB_URL = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
+        String sql = "SELECT * FROM revenue_" + year; 
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                data.put("Φόροι", safeGet(rs, "taxes"));
+                data.put("Εισφορές", safeGet(rs, "social_contributions"));
+                data.put("Μεταβιβάσεις", safeGet(rs, "transfers"));
+                data.put("Πωλήσεις Αγαθών", safeGet(rs, "sales_of_goods_and_services"));
+                data.put("Άλλα Έσοδα", safeGet(rs, "other_current_revenue"));
+                data.put("Πάγια", safeGet(rs, "fixed_assets"));
+                data.put("Δάνεια", safeGet(rs, "loans"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading revenues for " + year + ": " + e.getMessage());
+        }
+        return data;
+    }
+
+    // 2. Παίρνουμε τα Έξοδα αναλυτικά
+    public Map<String, Double> getExpenseBreakdown(int year) {
+        Map<String, Double> data = new HashMap<>();
+        String DB_URL = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
+        String sql = "SELECT * FROM expenses_" + year;
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                data.put("Μισθοί", safeGet(rs, "employee_benefits"));
+                data.put("Κοινωνικές Παροχές", safeGet(rs, "social_benefits"));
+                data.put("Μεταβιβάσεις", safeGet(rs, "transfers"));
+                data.put("Αγορές Αγαθών", safeGet(rs, "purchases_of_goods_and_services"));
+                data.put("Επιδοτήσεις", safeGet(rs, "subsidies"));
+                data.put("Τόκοι", safeGet(rs, "interest"));
+                data.put("Πάγια", safeGet(rs, "fixed_assets"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading expenses for " + year + ": " + e.getMessage());
+        }
+        return data;
+    }
+
+    // 3. Παίρνουμε τα Υπουργεία αναλυτικά
+    public Map<String, Double> getMinistriesBreakdown(int year) {
+        Map<String, Double> data = new HashMap<>();
+        String DB_URL = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
+        String sql = "SELECT * FROM ministries_" + year;
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                data.put("Άμυνας", safeGet(rs, "ministry_of_national_defence"));
+                data.put("Υγείας", safeGet(rs, "ministry_of_health"));
+                data.put("Παιδείας", safeGet(rs, "ministry_of_education_religious_affairs_and_sports"));
+                data.put("Εσωτερικών", safeGet(rs, "ministry_of_interior"));
+                data.put("Υποδομών", safeGet(rs, "ministry_of_infrastructure_and_transport"));
+                data.put("Εργασίας", safeGet(rs, "ministry_of_labor_and_social_security"));
+                data.put("Οικονομικών", safeGet(rs, "ministry_of_national_economy_and_finance"));
+                data.put("Προστασίας Πολίτη", safeGet(rs, "ministry_of_citizen_protection"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading ministries for " + year + ": " + e.getMessage());
+        }
+        return data;
+    }
+
+    // 4. Βοηθητική μέθοδος για να παίρνουμε τα Σύνολα (για την Πίτα 4 και το Γραμμικό)
+    public double getTotalAmount(int year, String type) {
+        String DB_URL = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
+        String sql = "SELECT " + type + " FROM budget_summary_" + year;
+        double amount = 0;
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                amount = safeGet(rs, type);
+            }
+        } catch (Exception e) {
+             // Μην τυπώνεις λάθος, απλά γύρνα 0 αν δεν βρεθεί το έτος
+        }
+        return amount;
+    }
+
+    // Βοηθητική μέθοδος για ασφαλή μετατροπή από βάση σε double
+    private double safeGet(ResultSet rs, String column) {
+        try {
+            BigDecimal bd = rs.getBigDecimal(column);
+            return bd != null ? bd.doubleValue() : 0.0;
+        } catch (Exception e) {
+            return 0.0;
+        }
     }
 }
 
