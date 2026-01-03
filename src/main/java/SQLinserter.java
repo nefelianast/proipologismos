@@ -5,8 +5,8 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
+import ui.DatabaseConnection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Set;
@@ -16,10 +16,8 @@ public class SQLinserter {
     // ------------------ 2026 ------------------ //
 
     void insertRevenue2026() throws Exception {
-         String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-         
          try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             String sql = "INSERT INTO revenue_2026(total_revenue,taxes,social_contributions,transfers,sales_of_goods_and_services,other_current_revenue,fixed_assets,debt_securities,loans,equity_securities_and_fund_shares,currency_and_deposit_liabilities,debt_securities_liabilities,loans_liabilities,financial_derivatives) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -125,11 +123,10 @@ public class SQLinserter {
     }
 
      void insertExpenses2026() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO expenses_2026(total_expenses,employee_benefits,social_benefits,transfers,purchases_of_goods_and_services,subsidies,interest,other_expenditures,appropriations,fixed_assets,valuables,loans,equity_securities_and_fund_shares,debt_securities_liabilities,loans_liabilities,financial_derivatives) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO expenses_2026(total_expenses,employee_benefits,social_benefits,transfers,purchases_of_goods_and_services,subsidies,interest,other_expenditures,appropriations,fixed_assets,valuables,loans,equity_securities_and_fund_shares,debt_securities_liabilities,loans_liabilities,financial_derivatives) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -242,12 +239,11 @@ public class SQLinserter {
     }
 
      void insertMinistries2026() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO ministries_2026(total_ministries,presidency_of_the_republic,hellenic_parliament,presidency_of_the_government,ministry_of_interior,ministry_of_foreign_affairs,ministry_of_national_defence,ministry_of_health,ministry_of_justice,ministry_of_education_religious_affairs_and_sports,ministry_of_culture,ministry_of_national_economy_and_finance,ministry_of_agricultural_development_and_food,ministry_of_environment_and_energy,ministry_of_labor_and_social_security,ministry_of_social_cohesion_and_family,ministry_of_development,ministry_of_infrastructure_and_transport,ministry_of_maritime_affairs_and_insular_policy,ministry_of_tourism,ministry_of_digital_governance,ministry_of_migration_and_asylum,ministry_of_citizen_protection,ministry_of_climate_crisis_and_civil_protection) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO ministries_2026(total_ministries,presidency_of_the_republic,hellenic_parliament,presidency_of_the_government,ministry_of_interior,ministry_of_foreign_affairs,ministry_of_national_defence,ministry_of_health,ministry_of_justice,ministry_of_education_religious_affairs_and_sports,ministry_of_culture,ministry_of_national_economy_and_finance,ministry_of_agricultural_development_and_food,ministry_of_environment_and_energy,ministry_of_labor_and_social_security,ministry_of_social_cohesion_and_family,ministry_of_development,ministry_of_infrastructure_and_transport,ministry_of_maritime_affairs_and_insular_policy,ministry_of_tourism,ministry_of_digital_governance,ministry_of_migration_and_asylum,ministry_of_citizen_protection,ministry_of_climate_crisis_and_civil_protection) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
 
         try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -398,11 +394,10 @@ public class SQLinserter {
 
 
     void insertDecentralizedAdministrations2026() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO decentralized_administrations_2026(total_da,decentralized_administration_of_attica,decentralized_administration_of_thessaly_central_greece,decentralized_administration_of_epirus_western_macedonia,decentralized_administration_of_peloponnese_western_greece_and_ionian,decentralized_administration_of_aegean,decentralized_administration_of_crete,decentralized_administration_of_macedonia_thrace) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO decentralized_administrations_2026(total_da,decentralized_administration_of_attica,decentralized_administration_of_thessaly_central_greece,decentralized_administration_of_epirus_western_macedonia,decentralized_administration_of_peloponnese_western_greece_and_ionian,decentralized_administration_of_aegean,decentralized_administration_of_crete,decentralized_administration_of_macedonia_thrace) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
         
        try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -489,11 +484,10 @@ public class SQLinserter {
 
 
      static void insertBudgetSummary2026() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO budget_summary_2026(budget_result,total_revenue,total_expenses,total_ministries,total_da) VALUES(?, ?, ?, ?, ?)";
+String sql = "INSERT INTO budget_summary_2026(budget_result,total_revenue,total_expenses,total_ministries,total_da) VALUES(?, ?, ?, ?, ?)";
         
         try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -560,10 +554,8 @@ public class SQLinserter {
     // ------------------ 2025 ------------------ //
 
     void insertRevenue2025() throws Exception {
-         String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-         
          try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             String sql = "INSERT INTO revenue_2025(total_revenue,taxes,social_contributions,transfers,sales_of_goods_and_services,other_current_revenue,fixed_assets,debt_securities,loans,equity_securities_and_fund_shares,currency_and_deposit_liabilities,debt_securities_liabilities,loans_liabilities,financial_derivatives) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -677,11 +669,10 @@ public class SQLinserter {
 
 
     void insertExpenses2025() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO expenses_2025(total_expenses,employee_benefits,social_benefits,transfers,purchases_of_goods_and_services,subsidies,interest,other_expenditures,appropriations,fixed_assets,valuables,loans,equity_securities_and_fund_shares,debt_securities_liabilities,loans_liabilities) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO expenses_2025(total_expenses,employee_benefits,social_benefits,transfers,purchases_of_goods_and_services,subsidies,interest,other_expenditures,appropriations,fixed_assets,valuables,loans,equity_securities_and_fund_shares,debt_securities_liabilities,loans_liabilities) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -791,12 +782,11 @@ public class SQLinserter {
 
 
       void insertMinistries2025() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO ministries_2025(total_ministries,presidency_of_the_republic,hellenic_parliament,presidency_of_the_government,ministry_of_interior,ministry_of_foreign_affairs,ministry_of_national_defence,ministry_of_health,ministry_of_justice,ministry_of_education_religious_affairs_and_sports,ministry_of_culture,ministry_of_national_economy_and_finance,ministry_of_agricultural_development_and_food,ministry_of_environment_and_energy,ministry_of_labor_and_social_security,ministry_of_social_cohesion_and_family,ministry_of_development,ministry_of_infrastructure_and_transport,ministry_of_maritime_affairs_and_insular_policy,ministry_of_tourism,ministry_of_digital_governance,ministry_of_migration_and_asylum,ministry_of_citizen_protection,ministry_of_climate_crisis_and_civil_protection) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO ministries_2025(total_ministries,presidency_of_the_republic,hellenic_parliament,presidency_of_the_government,ministry_of_interior,ministry_of_foreign_affairs,ministry_of_national_defence,ministry_of_health,ministry_of_justice,ministry_of_education_religious_affairs_and_sports,ministry_of_culture,ministry_of_national_economy_and_finance,ministry_of_agricultural_development_and_food,ministry_of_environment_and_energy,ministry_of_labor_and_social_security,ministry_of_social_cohesion_and_family,ministry_of_development,ministry_of_infrastructure_and_transport,ministry_of_maritime_affairs_and_insular_policy,ministry_of_tourism,ministry_of_digital_governance,ministry_of_migration_and_asylum,ministry_of_citizen_protection,ministry_of_climate_crisis_and_civil_protection) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
 
         try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -948,11 +938,10 @@ public class SQLinserter {
 
 
      void insertDecentralizedAdministrations2025() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO decentralized_administrations_2025(total_da,decentralized_administration_of_attica,decentralized_administration_of_thessaly_central_greece,decentralized_administration_of_epirus_western_macedonia,decentralized_administration_of_peloponnese_western_greece_and_ionian,decentralized_administration_of_aegean,decentralized_administration_of_crete,decentralized_administration_of_macedonia_thrace) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO decentralized_administrations_2025(total_da,decentralized_administration_of_attica,decentralized_administration_of_thessaly_central_greece,decentralized_administration_of_epirus_western_macedonia,decentralized_administration_of_peloponnese_western_greece_and_ionian,decentralized_administration_of_aegean,decentralized_administration_of_crete,decentralized_administration_of_macedonia_thrace) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
         
        try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -1038,11 +1027,10 @@ public class SQLinserter {
 
 
      static void insertBudgetSummary2025() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO budget_summary_2025(budget_result,total_revenue,total_expenses,total_ministries,total_da) VALUES(?, ?, ?, ?, ?)";
+String sql = "INSERT INTO budget_summary_2025(budget_result,total_revenue,total_expenses,total_ministries,total_da) VALUES(?, ?, ?, ?, ?)";
         
         try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -1110,11 +1098,10 @@ public class SQLinserter {
     // ------------------ 2024 ------------------ //
 
      void insertRevenue2024() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO revenue_2024(total_revenue,taxes,social_contributions,transfers,sales_of_goods_and_services,other_current_revenue,fixed_assets,debt_securities,equity_securities_and_fund_shares,currency_and_deposit_liabilities,debt_securities_liabilities,loans_liabilities,financial_derivatives) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO revenue_2024(total_revenue,taxes,social_contributions,transfers,sales_of_goods_and_services,other_current_revenue,fixed_assets,debt_securities,equity_securities_and_fund_shares,currency_and_deposit_liabilities,debt_securities_liabilities,loans_liabilities,financial_derivatives) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
        
         try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql);
             
 
@@ -1213,11 +1200,10 @@ public class SQLinserter {
 
 
      void insertExpenses2024() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO expenses_2024(total_expenses,employee_benefits,social_benefits,transfers,purchases_of_goods_and_services,subsidies,interest,other_expenditures,appropriations,fixed_assets,valuables,loans,equity_securities_and_fund_shares,debt_securities_liabilities,loans_liabilities) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO expenses_2024(total_expenses,employee_benefits,social_benefits,transfers,purchases_of_goods_and_services,subsidies,interest,other_expenditures,appropriations,fixed_assets,valuables,loans,equity_securities_and_fund_shares,debt_securities_liabilities,loans_liabilities) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -1325,11 +1311,10 @@ public class SQLinserter {
 
 
      static void insertMinistries2024() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO ministries_2024(total_ministries,presidency_of_the_republic,hellenic_parliament,presidency_of_the_government,ministry_of_interior,ministry_of_foreign_affairs,ministry_of_national_defence,ministry_of_health,ministry_of_justice,ministry_of_education_religious_affairs_and_sports,ministry_of_culture,ministry_of_national_economy_and_finance,ministry_of_agricultural_development_and_food,ministry_of_environment_and_energy,ministry_of_labor_and_social_security,ministry_of_social_cohesion_and_family,ministry_of_development,ministry_of_infrastructure_and_transport,ministry_of_maritime_affairs_and_insular_policy,ministry_of_tourism,ministry_of_digital_governance,ministry_of_migration_and_asylum,ministry_of_citizen_protection,ministry_of_climate_crisis_and_civil_protection) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO ministries_2024(total_ministries,presidency_of_the_republic,hellenic_parliament,presidency_of_the_government,ministry_of_interior,ministry_of_foreign_affairs,ministry_of_national_defence,ministry_of_health,ministry_of_justice,ministry_of_education_religious_affairs_and_sports,ministry_of_culture,ministry_of_national_economy_and_finance,ministry_of_agricultural_development_and_food,ministry_of_environment_and_energy,ministry_of_labor_and_social_security,ministry_of_social_cohesion_and_family,ministry_of_development,ministry_of_infrastructure_and_transport,ministry_of_maritime_affairs_and_insular_policy,ministry_of_tourism,ministry_of_digital_governance,ministry_of_migration_and_asylum,ministry_of_citizen_protection,ministry_of_climate_crisis_and_civil_protection) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
        
         try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -1480,12 +1465,11 @@ public class SQLinserter {
 
 
     static void insertDecentralizedAdministrations2024() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO decentralized_administrations_2024(total_da,decentralized_administration_of_attica,decentralized_administration_of_thessaly_central_greece,decentralized_administration_of_epirus_western_macedonia,decentralized_administration_of_peloponnese_western_greece_and_ionian,decentralized_administration_of_aegean,decentralized_administration_of_crete,decentralized_administration_of_macedonia_thrace) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO decentralized_administrations_2024(total_da,decentralized_administration_of_attica,decentralized_administration_of_thessaly_central_greece,decentralized_administration_of_epirus_western_macedonia,decentralized_administration_of_peloponnese_western_greece_and_ionian,decentralized_administration_of_aegean,decentralized_administration_of_crete,decentralized_administration_of_macedonia_thrace) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
         
 
          try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -1571,11 +1555,10 @@ public class SQLinserter {
 
 
     void insertBudgetSummary2024() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO budget_summary_2024(budget_result,total_revenue,total_expenses,total_ministries,total_da) VALUES(?, ?, ?, ?, ?)";
+String sql = "INSERT INTO budget_summary_2024(budget_result,total_revenue,total_expenses,total_ministries,total_da) VALUES(?, ?, ?, ?, ?)";
         
         try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -1643,11 +1626,10 @@ public class SQLinserter {
     // ------------------ 2023 ------------------ //
 
     static void insertRevenue2023() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO revenue_2023(total_revenue,taxes,social_contributions,transfers,sales_of_goods_and_services,other_current_revenue,fixed_assets,debt_securities,equity_securities_and_fund_shares,currency_and_deposit_liabilities,debt_securities_liabilities,loans_liabilities,financial_derivatives) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO revenue_2023(total_revenue,taxes,social_contributions,transfers,sales_of_goods_and_services,other_current_revenue,fixed_assets,debt_securities,equity_securities_and_fund_shares,currency_and_deposit_liabilities,debt_securities_liabilities,loans_liabilities,financial_derivatives) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
          try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql);
             
 
@@ -1748,12 +1730,11 @@ public class SQLinserter {
 
 
     static void insertExpenses2023() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO expenses_2023(total_expenses,employee_benefits,social_benefits,transfers,purchases_of_goods_and_services,subsidies,interest,other_expenditures,appropriations,fixed_assets,valuables,loans,equity_securities_and_fund_shares,debt_securities_liabilities,loans_liabilities) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO expenses_2023(total_expenses,employee_benefits,social_benefits,transfers,purchases_of_goods_and_services,subsidies,interest,other_expenditures,appropriations,fixed_assets,valuables,loans,equity_securities_and_fund_shares,debt_securities_liabilities,loans_liabilities) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
 
         try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -1862,11 +1843,10 @@ public class SQLinserter {
 
  
     static void insertMinistries2023() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO ministries_2023(total_ministries,presidency_of_the_republic,hellenic_parliament,presidency_of_the_government,ministry_of_interior,ministry_of_foreign_affairs,ministry_of_national_defence,ministry_of_health,ministry_of_justice,ministry_of_education_religious_affairs_and_sports,ministry_of_culture,ministry_of_national_economy_and_finance,ministry_of_agricultural_development_and_food,ministry_of_environment_and_energy,ministry_of_labor_and_social_security,ministry_of_development,ministry_of_infrastructure_and_transport,ministry_of_maritime_affairs_and_insular_policy,ministry_of_tourism,ministry_of_digital_governance,ministry_of_migration_and_asylum,ministry_of_citizen_protection,ministry_of_climate_crisis_and_civil_protection) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO ministries_2023(total_ministries,presidency_of_the_republic,hellenic_parliament,presidency_of_the_government,ministry_of_interior,ministry_of_foreign_affairs,ministry_of_national_defence,ministry_of_health,ministry_of_justice,ministry_of_education_religious_affairs_and_sports,ministry_of_culture,ministry_of_national_economy_and_finance,ministry_of_agricultural_development_and_food,ministry_of_environment_and_energy,ministry_of_labor_and_social_security,ministry_of_development,ministry_of_infrastructure_and_transport,ministry_of_maritime_affairs_and_insular_policy,ministry_of_tourism,ministry_of_digital_governance,ministry_of_migration_and_asylum,ministry_of_citizen_protection,ministry_of_climate_crisis_and_civil_protection) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -2012,12 +1992,11 @@ public class SQLinserter {
     }
 
     static void insertDecentralizedAdministrations2023() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO decentralized_administrations_2023(total_da,decentralized_administration_of_attica,decentralized_administration_of_thessaly_central_greece,decentralized_administration_of_epirus_western_macedonia,decentralized_administration_of_peloponnese_western_greece_and_ionian,decentralized_administration_of_aegean,decentralized_administration_of_crete,decentralized_administration_of_macedonia_thrace) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+String sql = "INSERT INTO decentralized_administrations_2023(total_da,decentralized_administration_of_attica,decentralized_administration_of_thessaly_central_greece,decentralized_administration_of_epirus_western_macedonia,decentralized_administration_of_peloponnese_western_greece_and_ionian,decentralized_administration_of_aegean,decentralized_administration_of_crete,decentralized_administration_of_macedonia_thrace) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
 
 
          try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -2102,11 +2081,10 @@ public class SQLinserter {
     }
 
     static void insertBudgetSummary2023() throws Exception {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        String sql = "INSERT INTO budget_summary_2023(budget_result,total_revenue,total_expenses,total_ministries,total_da) VALUES(?, ?, ?, ?, ?)";
+String sql = "INSERT INTO budget_summary_2023(budget_result,total_revenue,total_expenses,total_ministries,total_da) VALUES(?, ?, ?, ?, ?)";
 
          try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
             
 
@@ -2203,11 +2181,10 @@ if (year==2025||year==2026){
         throw new IllegalArgumentException("Μη έγκυρη στήλη");
     }
 
-    String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
     String sql = "UPDATE revenue_" + year +
                  " SET " + change + " = ? WHERE total_revenue = ?";
 
-    try (Connection conn = DriverManager.getConnection(DB);
+    try (Connection conn = DatabaseConnection.getConnection();
          PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
         pstmt.setBigDecimal(collum, parseMoney(newValue));
@@ -2238,11 +2215,10 @@ if (year==2025||year==2026){
         throw new IllegalArgumentException("Μη έγκυρη στήλη");
     }
 
-    String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
     String sql = "UPDATE revenue_" + year +
                  " SET " + change + " = ? WHERE total_revenue = ?";
 
-    try (Connection conn = DriverManager.getConnection(DB);
+    try (Connection conn = DatabaseConnection.getConnection();
          PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
         pstmt.setBigDecimal(collum, parseMoney(newValue));

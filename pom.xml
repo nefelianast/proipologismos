@@ -95,7 +95,17 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>ui.MainGUI</mainClass>
+                    <jvmArgs>
+                        <jvmArg>-Xmx1024m</jvmArg>
+                        <jvmArg>-Xms512m</jvmArg>
+                    </jvmArgs>
                 </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-wrapper-plugin</artifactId>
+                <version>3.2.0</version>
             </plugin>
         </plugins>
     </build>

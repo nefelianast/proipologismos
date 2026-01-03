@@ -1,16 +1,14 @@
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import ui.DatabaseConnection;
 
 
 public class Comparisons {
     public void comparisons_of_two_years(int year1,int year2) {
-       String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-
        try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
 
 
