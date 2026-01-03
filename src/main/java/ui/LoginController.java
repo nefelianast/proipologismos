@@ -57,7 +57,7 @@ public class LoginController {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Σφάλμα", "Δεν ήταν δυνατή η πρόσβαση στην εφαρμογή.");
+            showError("Σφάλμα", "Δεν ήταν δυνατή η πρόσβαση στην εφαρμογή.\n\nΛεπτομέρειες: " + e.getMessage() + "\n\nΠαρακαλώ ελέγξτε τα logs για περισσότερες πληροφορίες.");
         }
     }
 
@@ -99,6 +99,20 @@ public class LoginController {
             usernameField.textProperty().addListener((obs, oldText, newText) -> {
                 usernamePrompt.setVisible(newText == null || newText.isEmpty());
             });
+            
+            // Username error label
+            Label usernameErrorLabel = new Label();
+            usernameErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
+            usernameErrorLabel.setVisible(false);
+            usernameErrorLabel.setWrapText(true);
+            usernameErrorLabel.setPrefWidth(300);
+            usernameErrorLabel.setMaxWidth(300);
+            
+            // Real-time validation for username
+            usernameField.textProperty().addListener((obs, oldText, newText) -> {
+                DataValidator.ValidationResult result = DataValidator.validateUsername(newText);
+                DataValidator.applyValidationStyle(usernameField, result.isValid(), usernameErrorLabel, result.getErrorMessage());
+            });
 
             // Password field with visible placeholder
             PasswordField passwordField = new PasswordField();
@@ -118,6 +132,20 @@ public class LoginController {
             passwordField.textProperty().addListener((obs, oldText, newText) -> {
                 passwordPrompt.setVisible(newText == null || newText.isEmpty());
             });
+            
+            // Password error label
+            Label passwordErrorLabel = new Label();
+            passwordErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
+            passwordErrorLabel.setVisible(false);
+            passwordErrorLabel.setWrapText(true);
+            passwordErrorLabel.setPrefWidth(300);
+            passwordErrorLabel.setMaxWidth(300);
+            
+            // Real-time validation for password
+            passwordField.textProperty().addListener((obs, oldText, newText) -> {
+                DataValidator.ValidationResult result = DataValidator.validatePassword(newText);
+                DataValidator.applyValidationStyle(passwordField, result.isValid(), passwordErrorLabel, result.getErrorMessage());
+            });
 
             javafx.scene.control.Button loginButton = new javafx.scene.control.Button("Σύνδεση");
             loginButton.setPrefWidth(300);
@@ -127,9 +155,16 @@ public class LoginController {
                 String username = usernameField.getText();
                 String password = passwordField.getText();
                 
-                // Accept any username and password for now
-                if (username != null && !username.trim().isEmpty() && 
-                    password != null && !password.trim().isEmpty()) {
+                // Validate username and password
+                DataValidator.ValidationResult usernameResult = DataValidator.validateUsername(username);
+                DataValidator.ValidationResult passwordResult = DataValidator.validatePassword(password);
+                
+                // Apply validation styles
+                DataValidator.applyValidationStyle(usernameField, usernameResult.isValid(), usernameErrorLabel, usernameResult.getErrorMessage());
+                DataValidator.applyValidationStyle(passwordField, passwordResult.isValid(), passwordErrorLabel, passwordResult.getErrorMessage());
+                
+                // Check if all validations pass
+                if (usernameResult.isValid() && passwordResult.isValid()) {
                     // Set user type to government
                     HomeController.setUserType(HomeController.UserType.GOVERNMENT);
                     
@@ -153,9 +188,9 @@ public class LoginController {
                 }
             });
 
-            loginPane.getChildren().addAll(titleLabel, usernamePane, passwordPane, loginButton);
+            loginPane.getChildren().addAll(titleLabel, usernamePane, usernameErrorLabel, passwordPane, passwordErrorLabel, loginButton);
 
-            Scene loginScene = new Scene(loginPane, 400, 300);
+            Scene loginScene = new Scene(loginPane, 400, 400);
             loginStage.setScene(loginScene);
             loginStage.initOwner(governmentCard.getScene().getWindow());
             loginStage.initModality(javafx.stage.Modality.WINDOW_MODAL);

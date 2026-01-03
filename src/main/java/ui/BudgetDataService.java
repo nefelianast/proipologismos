@@ -5,7 +5,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.*;
@@ -99,12 +98,11 @@ public class BudgetDataService {
      * Get total revenues for a year
      */
    public double getTotalRevenues(int year) {
-    String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
     long totalRevenue = 0;
 
     String sql = "SELECT total_revenue FROM budget_summary_" + year;
 
-    try (Connection connection = DriverManager.getConnection(DB);
+    try (Connection connection = DatabaseConnection.getConnection();
          Statement stmt = connection.createStatement();
          ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -124,12 +122,11 @@ public class BudgetDataService {
      * Get total expenses for a year
      */
     public double getTotalExpenses(int year) {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
         long totalExpenses = 0;
 
         String sql = "SELECT total_expenses FROM budget_summary_" + year;
 
-        try (Connection connection = DriverManager.getConnection(DB);
+        try (Connection connection = DatabaseConnection.getConnection();
              Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -150,7 +147,7 @@ public class BudgetDataService {
     public double getBalance(int year) {
         double revenues = getTotalRevenues(year);
         double expenses = getTotalExpenses(year);
-        return revenues - expenses;
+        return BudgetStatisticsCalculator.calculateBalance(revenues, expenses);
     }
     
     /**
@@ -159,22 +156,19 @@ public class BudgetDataService {
     public double getRevenuesChange(int year) {
         double current = getTotalRevenues(year);
         double previous = getTotalRevenues(year - 1);
-        if (previous == 0) return 0.0;
-        return ((current - previous) / previous) * 100;
+        return BudgetStatisticsCalculator.calculatePercentageChange(current, previous);
     }
     
     public double getExpensesChange(int year) {
         double current = getTotalExpenses(year);
         double previous = getTotalExpenses(year - 1);
-        if (previous == 0) return 0.0;
-        return ((current - previous) / previous) * 100;
+        return BudgetStatisticsCalculator.calculatePercentageChange(current, previous);
     }
     
     /**
      * Get category data for a year (from ministries table)
      */
     public List<CategoryInfo> getCategories(int year) {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
         List<CategoryInfo> categories = new ArrayList<>();
         
         // Get total expenses for percentage calculation (use total_expenses as the base)
@@ -209,7 +203,7 @@ public class BudgetDataService {
         };
         
         // Query all ministries
-        try (Connection connection = DriverManager.getConnection(DB);
+        try (Connection connection = DatabaseConnection.getConnection();
              Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM ministries_" + year)) {
             
@@ -268,7 +262,6 @@ public class BudgetDataService {
      * Get revenue breakdown for a year
      */
     public List<CategoryInfo> getRevenueBreakdown(int year) {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
         List<CategoryInfo> revenues = new ArrayList<>();
         
         double totalRevenue = getTotalRevenues(year);
@@ -290,7 +283,7 @@ public class BudgetDataService {
             {"financial_derivatives", "Χρηματοοικονομικά Παράγωγα"}
         };
         
-        try (Connection connection = DriverManager.getConnection(DB);
+        try (Connection connection = DatabaseConnection.getConnection();
              Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM revenue_" + year)) {
             
@@ -318,7 +311,6 @@ public class BudgetDataService {
      * Get expenses breakdown for a year
      */
     public List<CategoryInfo> getExpensesBreakdown(int year) {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
         List<CategoryInfo> expenses = new ArrayList<>();
         
         double totalExpenses = getTotalExpenses(year);
@@ -341,7 +333,7 @@ public class BudgetDataService {
             {"loans_liabilities", "Δάνεια (Υποχρεώσεις)"}
         };
         
-        try (Connection connection = DriverManager.getConnection(DB);
+        try (Connection connection = DatabaseConnection.getConnection();
              Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM expenses_" + year)) {
             
@@ -369,7 +361,6 @@ public class BudgetDataService {
      * Get decentralized administrations for a year
      */
     public List<CategoryInfo> getDecentralizedAdministrations(int year) {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
         List<CategoryInfo> administrations = new ArrayList<>();
         
         String[][] adminCategories = {
@@ -382,7 +373,7 @@ public class BudgetDataService {
             {"decentralized_administration_of_macedonia_thrace", "Αποκεντρωμένη Διοίκηση Μακεδονίας & Θράκης"}
         };
         
-        try (Connection connection = DriverManager.getConnection(DB);
+        try (Connection connection = DatabaseConnection.getConnection();
              Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM decentralized_administrations_" + year)) {
             

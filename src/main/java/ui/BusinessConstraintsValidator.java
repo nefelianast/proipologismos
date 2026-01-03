@@ -11,7 +11,7 @@ public class BusinessConstraintsValidator {
             return new ValidationResult(true, ""); // New entry, no previous data
         }
         
-        double changePercent = Math.abs(((newAmount - previousAmount) / previousAmount) * 100);
+        double changePercent = Math.abs(BudgetStatisticsCalculator.calculatePercentageChange(newAmount, previousAmount));
         
         if (changePercent > maxChangePercent) {
             return new ValidationResult(false, 

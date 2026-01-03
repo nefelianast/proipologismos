@@ -1,17 +1,14 @@
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import ui.DatabaseConnection;
 
 public class SQLmaker {
      public void make() {
-        String DBurl = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-       
-
         try {
-            Connection conn = DriverManager.getConnection(DBurl);
+            Connection conn = DatabaseConnection.getConnection();
             String sql1 = "CREATE TABLE IF NOT EXISTS revenue_2025 ("
         +"total_revenue MONEY PRIMARY KEY,"
         +"taxes MONEY,"
