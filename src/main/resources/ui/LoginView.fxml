@@ -7,6 +7,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
@@ -21,6 +22,7 @@
                 <!-- Title Section -->
                 <VBox spacing="0" alignment="CENTER">
                     <children>
+                        <Region prefHeight="20.0"/>
                         <ImageView fx:id="logoImageView">
                             <image>
                                 <Image url="@/images/logo.png"/>
@@ -28,6 +30,7 @@
                             <fitWidth>400.0</fitWidth>
                             <preserveRatio>true</preserveRatio>
                         </ImageView>
+                        <Region prefHeight="30.0"/>
                         <Label text="Σύστημα Ανάλυσης &amp; Οπτικοποίησης Κρατικού Προϋπολογισμού" styleClass="login-subtitle"/>
                     </children>
                 </VBox>

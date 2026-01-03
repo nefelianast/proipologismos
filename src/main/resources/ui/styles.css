@@ -845,3 +845,23 @@ Button.nav-button:hover {
     -fx-translate-y: 0;
 }
 
+/* Splash Screen Styles */
+.splash-pane {
+    -fx-background-color: #ffffff;
+}
+
+.splash-title {
+    -fx-font-size: 34px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1e40af;
+    -fx-text-alignment: center;
+    -fx-padding: 0;
+}
+
+.splash-subtitle {
+    -fx-font-size: 18px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #64748b;
+    -fx-letter-spacing: 0.5px;
+}
+

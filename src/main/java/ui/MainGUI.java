@@ -10,8 +10,8 @@ public class MainGUI extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        // Load login view first
-        Parent root = FXMLLoader.load(getClass().getResource("/ui/LoginView.fxml"));
+        // Load splash screen first
+        Parent root = FXMLLoader.load(getClass().getResource("/ui/SplashScreen.fxml"));
 
         Scene scene = new Scene(root, 1200, 700);
         scene.getStylesheets().add(

@@ -57,9 +57,10 @@
                         </children>
                     </HBox>
                     
-                    <!-- Logo absolute centered (mouse transparent so buttons work) -->
+                    <!-- Logo centered -->
                     <VBox spacing="0" alignment="CENTER" StackPane.alignment="CENTER" mouseTransparent="true">
                         <children>
+                            <Region prefHeight="15.0" mouseTransparent="true"/>
                             <ImageView fx:id="headerLogoImageView" mouseTransparent="true">
                                 <image>
                                     <Image url="@/images/logo.png"/>
@@ -67,6 +68,7 @@
                                 <fitWidth>300.0</fitWidth>
                                 <preserveRatio>true</preserveRatio>
                             </ImageView>
+                            <Region prefHeight="25.0" mouseTransparent="true"/>
                         </children>
                     </VBox>
                 </children>
@@ -150,7 +152,7 @@
                                                     <children>
                                                         <Label text="2" styleClass="quick-nav-number"/>
                                                         <Label text="Έσοδα" styleClass="quick-nav-title"/>
-                                                        <Label text="Λεπτομερής κατανομή των εσόδων" styleClass="quick-nav-description"/>
+                                                        <Label text="Κατανομή των εσόδων ανά είδος" styleClass="quick-nav-description"/>
                                                         <Label text="Δείτε περισσότερα →" styleClass="quick-nav-link"/>
                                                     </children>
                                                 </VBox>
@@ -159,7 +161,7 @@
                                                     <children>
                                                         <Label text="3" styleClass="quick-nav-number"/>
                                                         <Label text="Δαπάνες" styleClass="quick-nav-title"/>
-                                                        <Label text="Λεπτομερής κατανομή των δαπανών" styleClass="quick-nav-description"/>
+                                                        <Label text="Κατανομή των δαπανών ανά είδος" styleClass="quick-nav-description"/>
                                                         <Label text="Δείτε περισσότερα →" styleClass="quick-nav-link"/>
                                                     </children>
                                                 </VBox>
