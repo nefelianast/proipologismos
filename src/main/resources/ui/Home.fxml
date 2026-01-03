@@ -11,6 +11,10 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -102,43 +106,67 @@
 
                     <!-- CHARTS SECTION (Placeholder - Charts will be added when javafx-charts dependency is available) -->
                     <HBox spacing="20" styleClass="charts-row">
+    <children>
+        <VBox styleClass="section-card chart-card" spacing="12" HBox.hgrow="ALWAYS">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            <children>
+                <Label text="Ανάλυση Εσόδων" styleClass="section-title"/>
+                <PieChart fx:id="pieRevenue" title="Πηγές Εσόδων" prefHeight="300" legendVisible="false" VBox.vgrow="ALWAYS"/>
+            </children>
+        </VBox>
+
+        <VBox styleClass="section-card chart-card" spacing="12" HBox.hgrow="ALWAYS">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            <children>
+                <Label text="Ανάλυση Εξόδων" styleClass="section-title"/>
+                <PieChart fx:id="pieExpenses" title="Κατηγορίες Δαπανών" prefHeight="300" legendVisible="false" VBox.vgrow="ALWAYS"/>
+            </children>
+        </VBox>
+    </children>
+</HBox>
+<HBox spacing="20" styleClass="charts-row">
                         <children>
-                            <VBox styleClass="section-card chart-card" spacing="12">
+                            <VBox styleClass="section-card chart-card" spacing="12" HBox.hgrow="ALWAYS">
                                 <padding>
                                     <Insets top="20" right="20" bottom="20" left="20"/>
                                 </padding>
                                 <children>
-                                    <Label text="Κατανομή ανά Κατηγορία" styleClass="section-title"/>
-                                    <VBox prefWidth="400" prefHeight="300" styleClass="chart-placeholder">
-                                        <children>
-                                            <Region VBox.vgrow="ALWAYS"/>
-                                            <Label text="Γράφημα Pie Chart" styleClass="placeholder-text"/>
-                                            <Label text="(Θα προστεθεί όταν είναι διαθέσιμο javafx-charts)" styleClass="placeholder-subtext"/>
-                                            <Region VBox.vgrow="ALWAYS"/>
-                                        </children>
-                                    </VBox>
+                                    <Label text="Κατανομή ανά Υπουργείο" styleClass="section-title"/>
+                                    <PieChart fx:id="pieMinistries" title="Υπουργεία" prefHeight="300" legendVisible="false" VBox.vgrow="ALWAYS"/>
                                 </children>
                             </VBox>
 
-                            <VBox styleClass="section-card chart-card" spacing="12">
+                            <VBox styleClass="section-card chart-card" spacing="12" HBox.hgrow="ALWAYS">
                                 <padding>
                                     <Insets top="20" right="20" bottom="20" left="20"/>
                                 </padding>
                                 <children>
-                                    <Label text="Σύγκριση Ετών" styleClass="section-title"/>
-                                    <VBox prefWidth="400" prefHeight="300" styleClass="chart-placeholder">
-                                        <children>
-                                            <Region VBox.vgrow="ALWAYS"/>
-                                            <Label text="Γράφημα Bar Chart" styleClass="placeholder-text"/>
-                                            <Label text="(Θα προστεθεί όταν είναι διαθέσιμο javafx-charts)" styleClass="placeholder-subtext"/>
-                                            <Region VBox.vgrow="ALWAYS"/>
-                                        </children>
-                                    </VBox>
+                                    <Label text="Σύνολα (Έσοδα vs Έξοδα)" styleClass="section-title"/>
+                                    <PieChart fx:id="pieTotals" title="Ισοζύγιο" prefHeight="300" VBox.vgrow="ALWAYS"/>
                                 </children>
                             </VBox>
                         </children>
                     </HBox>
-
+<VBox styleClass="section-card chart-card" spacing="12">
+                        <padding>
+                            <Insets top="20" right="20" bottom="20" left="20"/>
+                        </padding>
+                        <children>
+                            <Label text="Διαχρονική Εξέλιξη Προϋπολογισμού" styleClass="section-title"/>
+                            <LineChart fx:id="lineHistory" title="Πορεία Προϋπολογισμού" prefHeight="400" VBox.vgrow="ALWAYS">
+                                <xAxis>
+                                    <CategoryAxis label="Έτος" />
+                                </xAxis>
+                                <yAxis>
+                                    <NumberAxis label="Ποσό (σε €)" />
+                                </yAxis>
+                            </LineChart>
+                        </children>
+                    </VBox>
                     <!-- TABLE SECTION -->
                     <VBox styleClass="section-card" spacing="12">
                         <padding>
