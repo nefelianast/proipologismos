@@ -865,3 +865,27 @@ Button.nav-button:hover {
     -fx-letter-spacing: 0.5px;
 }
 
+/* Data Validation Styles */
+.validation-error {
+    -fx-border-color: #dc2626 !important;
+    -fx-border-width: 2px !important;
+    -fx-background-color: #fef2f2;
+}
+
+.validation-error:focused {
+    -fx-border-color: #dc2626 !important;
+    -fx-border-width: 2px !important;
+}
+
+.validation-success {
+    -fx-border-color: #059669 !important;
+    -fx-border-width: 2px !important;
+}
+
+.validation-error-label {
+    -fx-text-fill: #dc2626;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-padding: 4 0 0 0;
+}
+

@@ -8,9 +8,12 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.Callback;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 
@@ -54,6 +57,7 @@ public class HomeController {
         private final StringProperty type;
         private final StringProperty status;
         private final DoubleProperty previousYearAmount;
+        private final StringProperty comments;
 
         public CategoryData(String category, double amount, double percentage, String change) {
             this(category, amount, percentage, change, extractTypeFromChange(change), 0.0);
@@ -67,6 +71,7 @@ public class HomeController {
             this.type = new SimpleStringProperty(type);
             this.previousYearAmount = new SimpleDoubleProperty(previousYearAmount);
             this.status = new SimpleStringProperty(calculateStatus(amount, previousYearAmount));
+            this.comments = new SimpleStringProperty("");
         }
         
         private static String extractTypeFromChange(String change) {
@@ -148,6 +153,18 @@ public class HomeController {
             double changePercent = (changeValue / previousYearAmount.get()) * 100;
             return String.format("%.2f%% (%.2f €)", changePercent, changeValue);
         }
+        
+        public String getComments() {
+            return comments.get();
+        }
+        
+        public StringProperty commentsProperty() {
+            return comments;
+        }
+        
+        public void setComments(String comments) {
+            this.comments.set(comments);
+        }
     }
 
     @FXML
@@ -192,7 +209,39 @@ public class HomeController {
     @FXML
     private Button homeEditButton;
     
-    // Data Management UI
+    // Data Management UI - Revenues Table
+    @FXML
+    private TableView<CategoryData> dmRevenuesTable;
+    @FXML
+    private TableColumn<CategoryData, String> revCategoryColumn;
+    @FXML
+    private TableColumn<CategoryData, Double> revAmountColumn;
+    @FXML
+    private TableColumn<CategoryData, Double> revPercentageColumn;
+    @FXML
+    private TableColumn<CategoryData, String> revChangeColumn;
+    @FXML
+    private TableColumn<CategoryData, String> revStatusColumn;
+    @FXML
+    private TableColumn<CategoryData, String> revCommentsColumn;
+    
+    // Data Management UI - Expenses Table
+    @FXML
+    private TableView<CategoryData> dmExpensesTable;
+    @FXML
+    private TableColumn<CategoryData, String> expCategoryColumn;
+    @FXML
+    private TableColumn<CategoryData, Double> expAmountColumn;
+    @FXML
+    private TableColumn<CategoryData, Double> expPercentageColumn;
+    @FXML
+    private TableColumn<CategoryData, String> expChangeColumn;
+    @FXML
+    private TableColumn<CategoryData, String> expStatusColumn;
+    @FXML
+    private TableColumn<CategoryData, String> expCommentsColumn;
+    
+    // Keep old table reference for backward compatibility (will be removed later)
     @FXML
     private TableView<CategoryData> dataManagementTable;
     @FXML
@@ -236,6 +285,8 @@ public class HomeController {
     
     // Filtered data for search/filter
     private ObservableList<CategoryData> allDataManagementItems = FXCollections.observableArrayList();
+    private ObservableList<CategoryData> revenuesItems = FXCollections.observableArrayList();
+    private ObservableList<CategoryData> expensesItems = FXCollections.observableArrayList();
     
     // Summary labels
     @FXML
@@ -326,6 +377,164 @@ public class HomeController {
         }
         return -1;
     }
+    
+    /**
+     * Setup table column formatting (amount, percentage, status)
+     */
+    private void setupTableColumnFormatting(TableColumn<CategoryData, Double> amountColumn, 
+                                           TableColumn<CategoryData, Double> percentageColumn,
+                                           TableColumn<CategoryData, String> statusColumn) {
+        // Format amount column
+        amountColumn.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+            @Override
+            protected void updateItem(Double amount, boolean empty) {
+                super.updateItem(amount, empty);
+                if (empty || amount == null) {
+                    setText(null);
+                } else {
+                    setText("€" + df.format(amount));
+                }
+            }
+        });
+        
+        // Format percentage column
+        percentageColumn.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+            @Override
+            protected void updateItem(Double percentage, boolean empty) {
+                super.updateItem(percentage, empty);
+                if (empty || percentage == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%.2f%%", percentage));
+                }
+            }
+        });
+        
+        // Format status column with visual badges and icons
+        statusColumn.setCellFactory(column -> new TableCell<CategoryData, String>() {
+            private final HBox container = new HBox(6);
+            private final Label iconLabel = new Label();
+            private final Label textLabel = new Label();
+            
+            {
+                container.setAlignment(Pos.CENTER_LEFT);
+                textLabel.getStyleClass().add("status-badge");
+                container.getChildren().addAll(iconLabel, textLabel);
+            }
+            
+            @Override
+            protected void updateItem(String status, boolean empty) {
+                super.updateItem(status, empty);
+                if (empty || status == null) {
+                    setGraphic(null);
+                    setText(null);
+                } else {
+                    textLabel.setText(status);
+                    iconLabel.setText("");
+                    textLabel.getStyleClass().removeAll("status-badge-increase", "status-badge-decrease", "status-badge-new", "status-badge-stable");
+                    
+                    switch (status) {
+                        case "Αύξηση":
+                            iconLabel.setText("↑");
+                            iconLabel.setStyle("-fx-text-fill: #065f46; -fx-font-weight: bold;");
+                            textLabel.getStyleClass().add("status-badge-increase");
+                            break;
+                        case "Μείωση":
+                            iconLabel.setText("↓");
+                            iconLabel.setStyle("-fx-text-fill: #991b1b; -fx-font-weight: bold;");
+                            textLabel.getStyleClass().add("status-badge-decrease");
+                            break;
+                        case "Νέο":
+                            iconLabel.setText("✨");
+                            iconLabel.setStyle("-fx-text-fill: #1e40af; -fx-font-weight: bold;");
+                            textLabel.getStyleClass().add("status-badge-new");
+                            break;
+                        default:
+                            iconLabel.setText("—");
+                            iconLabel.setStyle("-fx-text-fill: #4b5563;");
+                            textLabel.getStyleClass().add("status-badge-stable");
+                    }
+                    setGraphic(container);
+                }
+            }
+        });
+    }
+    
+    /**
+     * Setup table selection listeners
+     */
+    private void setupTableSelection(TableView<CategoryData> table) {
+        if (table == null) return;
+        
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            boolean hasSelection = newSelection != null;
+            boolean isEditable = false;
+            
+            if (hasSelection) {
+                int year = extractYearFromData(newSelection);
+                isEditable = isYearEditable(year);
+            }
+            
+            if (editDataButton != null) editDataButton.setDisable(!hasSelection || !isEditable);
+            if (deleteDataButton != null) deleteDataButton.setDisable(!hasSelection || !isEditable);
+            if (bulkEditButton != null) {
+                int selectedCount = getTotalSelectedCount();
+                bulkEditButton.setDisable(selectedCount == 0 || !isEditable);
+            }
+        });
+        
+        table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    }
+    
+    /**
+     * Get total selected count from both tables
+     */
+    private int getTotalSelectedCount() {
+        int count = 0;
+        if (dmRevenuesTable != null) {
+            count += dmRevenuesTable.getSelectionModel().getSelectedItems().size();
+        }
+        if (dmExpensesTable != null) {
+            count += dmExpensesTable.getSelectionModel().getSelectedItems().size();
+        }
+        if (dataManagementTable != null) {
+            count += dataManagementTable.getSelectionModel().getSelectedItems().size();
+        }
+        return count;
+    }
+    
+    /**
+     * Get selected item from either revenues or expenses table
+     */
+    private CategoryData getSelectedItemFromTables() {
+        if (dmRevenuesTable != null && dmRevenuesTable.getSelectionModel().getSelectedItem() != null) {
+            return dmRevenuesTable.getSelectionModel().getSelectedItem();
+        }
+        if (dmExpensesTable != null && dmExpensesTable.getSelectionModel().getSelectedItem() != null) {
+            return dmExpensesTable.getSelectionModel().getSelectedItem();
+        }
+        if (dataManagementTable != null) {
+            return dataManagementTable.getSelectionModel().getSelectedItem();
+        }
+        return null;
+    }
+    
+    /**
+     * Get all selected items from both tables
+     */
+    private ObservableList<CategoryData> getSelectedItemsFromTables() {
+        ObservableList<CategoryData> selected = FXCollections.observableArrayList();
+        if (dmRevenuesTable != null) {
+            selected.addAll(dmRevenuesTable.getSelectionModel().getSelectedItems());
+        }
+        if (dmExpensesTable != null) {
+            selected.addAll(dmExpensesTable.getSelectionModel().getSelectedItems());
+        }
+        if (dataManagementTable != null) {
+            selected.addAll(dataManagementTable.getSelectionModel().getSelectedItems());
+        }
+        return selected;
+    }
 
     @FXML
     private void initialize() {
@@ -384,7 +593,55 @@ public class HomeController {
         // Initialize home edit button visibility
         updateHomeEditButtonVisibility();
         
-        // Initialize data management table
+        // Initialize data management revenues table
+        if (dmRevenuesTable != null && revCategoryColumn != null) {
+            revCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
+            revAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
+            revPercentageColumn.setCellValueFactory(new PropertyValueFactory<>("percentage"));
+            revChangeColumn.setCellValueFactory(param -> {
+                CategoryData data = param.getValue();
+                return new javafx.beans.property.SimpleStringProperty(data.getChangeFromPrevious());
+            });
+            revStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+            if (revCommentsColumn != null) {
+                revCommentsColumn.setCellValueFactory(new PropertyValueFactory<>("comments"));
+                revCommentsColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+                revCommentsColumn.setOnEditCommit(event -> {
+                    CategoryData data = event.getRowValue();
+                    data.setComments(event.getNewValue());
+                });
+                dmRevenuesTable.setEditable(true);
+            }
+            
+            setupTableColumnFormatting(revAmountColumn, revPercentageColumn, revStatusColumn);
+            setupTableSelection(dmRevenuesTable);
+        }
+        
+        // Initialize data management expenses table
+        if (dmExpensesTable != null && expCategoryColumn != null) {
+            expCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
+            expAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
+            expPercentageColumn.setCellValueFactory(new PropertyValueFactory<>("percentage"));
+            expChangeColumn.setCellValueFactory(param -> {
+                CategoryData data = param.getValue();
+                return new javafx.beans.property.SimpleStringProperty(data.getChangeFromPrevious());
+            });
+            expStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+            if (expCommentsColumn != null) {
+                expCommentsColumn.setCellValueFactory(new PropertyValueFactory<>("comments"));
+                expCommentsColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+                expCommentsColumn.setOnEditCommit(event -> {
+                    CategoryData data = event.getRowValue();
+                    data.setComments(event.getNewValue());
+                });
+                dmExpensesTable.setEditable(true);
+            }
+            
+            setupTableColumnFormatting(expAmountColumn, expPercentageColumn, expStatusColumn);
+            setupTableSelection(dmExpensesTable);
+        }
+        
+        // Initialize old data management table (for backward compatibility)
         if (dataManagementTable != null) {
             dmCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
             dmAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
@@ -701,7 +958,7 @@ public class HomeController {
             Label titleLabel = new Label("Σύνδεση Κυβέρνησης");
             titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e40af;");
 
-            // Username field
+            // Username field with validation
             TextField usernameField = new TextField();
             usernameField.setPrefWidth(300);
             usernameField.setStyle("-fx-font-size: 14px; -fx-padding: 10;");
@@ -711,6 +968,12 @@ public class HomeController {
             usernamePrompt.setMouseTransparent(true);
             usernamePrompt.setPadding(new javafx.geometry.Insets(0, 0, 0, 10));
             
+            Label usernameErrorLabel = new Label();
+            usernameErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
+            usernameErrorLabel.setVisible(false);
+            usernameErrorLabel.setWrapText(true);
+            usernameErrorLabel.setPrefWidth(300);
+            
             javafx.scene.layout.StackPane usernamePane = new javafx.scene.layout.StackPane();
             usernamePane.setPrefWidth(300);
             usernamePane.getChildren().addAll(usernameField, usernamePrompt);
@@ -718,9 +981,12 @@ public class HomeController {
             
             usernameField.textProperty().addListener((obs, oldText, newText) -> {
                 usernamePrompt.setVisible(newText == null || newText.isEmpty());
+                // Real-time validation
+                DataValidator.ValidationResult result = DataValidator.validateUsername(newText);
+                DataValidator.applyValidationStyle(usernameField, result.isValid(), usernameErrorLabel, result.getErrorMessage());
             });
 
-            // Password field
+            // Password field with validation
             PasswordField passwordField = new PasswordField();
             passwordField.setPrefWidth(300);
             passwordField.setStyle("-fx-font-size: 14px; -fx-padding: 10;");
@@ -730,6 +996,12 @@ public class HomeController {
             passwordPrompt.setMouseTransparent(true);
             passwordPrompt.setPadding(new javafx.geometry.Insets(0, 0, 0, 10));
             
+            Label passwordErrorLabel = new Label();
+            passwordErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
+            passwordErrorLabel.setVisible(false);
+            passwordErrorLabel.setWrapText(true);
+            passwordErrorLabel.setPrefWidth(300);
+            
             javafx.scene.layout.StackPane passwordPane = new javafx.scene.layout.StackPane();
             passwordPane.setPrefWidth(300);
             passwordPane.getChildren().addAll(passwordField, passwordPrompt);
@@ -737,6 +1009,9 @@ public class HomeController {
             
             passwordField.textProperty().addListener((obs, oldText, newText) -> {
                 passwordPrompt.setVisible(newText == null || newText.isEmpty());
+                // Real-time validation
+                DataValidator.ValidationResult result = DataValidator.validatePassword(newText);
+                DataValidator.applyValidationStyle(passwordField, result.isValid(), passwordErrorLabel, result.getErrorMessage());
             });
 
             javafx.scene.control.Button loginButton = new javafx.scene.control.Button("Σύνδεση");
@@ -747,9 +1022,16 @@ public class HomeController {
                 String username = usernameField.getText();
                 String password = passwordField.getText();
                 
-                // Accept any username and password for now
-                if (username != null && !username.trim().isEmpty() && 
-                    password != null && !password.trim().isEmpty()) {
+                // Validate inputs
+                DataValidator.ValidationResult usernameResult = DataValidator.validateUsername(username);
+                DataValidator.ValidationResult passwordResult = DataValidator.validatePassword(password);
+                
+                // Apply validation styles
+                DataValidator.applyValidationStyle(usernameField, usernameResult.isValid(), usernameErrorLabel, usernameResult.getErrorMessage());
+                DataValidator.applyValidationStyle(passwordField, passwordResult.isValid(), passwordErrorLabel, passwordResult.getErrorMessage());
+                
+                // Check if all validations pass
+                if (usernameResult.isValid() && passwordResult.isValid()) {
                     // Set user type to government
                     currentUserType = UserType.GOVERNMENT;
                     updateAuthButton();
@@ -757,12 +1039,26 @@ public class HomeController {
                     
                     // Close login dialog
                     loginStage.close();
+                } else {
+                    // Show error alert if validation fails
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Σφάλμα Επικύρωσης");
+                    alert.setHeaderText("Παρακαλώ διορθώστε τα σφάλματα");
+                    StringBuilder errorMsg = new StringBuilder();
+                    if (!usernameResult.isValid()) {
+                        errorMsg.append("• ").append(usernameResult.getErrorMessage()).append("\n");
+                    }
+                    if (!passwordResult.isValid()) {
+                        errorMsg.append("• ").append(passwordResult.getErrorMessage()).append("\n");
+                    }
+                    alert.setContentText(errorMsg.toString());
+                    alert.showAndWait();
                 }
             });
 
-            loginPane.getChildren().addAll(titleLabel, usernamePane, passwordPane, loginButton);
+            loginPane.getChildren().addAll(titleLabel, usernamePane, usernameErrorLabel, passwordPane, passwordErrorLabel, loginButton);
 
-            Scene loginScene = new Scene(loginPane, 400, 300);
+            Scene loginScene = new Scene(loginPane, 400, 400);
             loginStage.setScene(loginScene);
             loginStage.initOwner(authButton != null ? authButton.getScene().getWindow() : null);
             loginStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
@@ -795,11 +1091,7 @@ public class HomeController {
     private void onYearSelected(javafx.event.ActionEvent event) {
         if (yearComboBox != null && yearComboBox.getValue() != null) {
             selectedYear = yearComboBox.getValue();
-            
-            // Update edit button visibility based on year and user type
             updateHomeEditButtonVisibility();
-            
-            // Update data
             updateDataForYear();
         }
     }
@@ -810,10 +1102,8 @@ public class HomeController {
             if (isGovernment && selectedYear != null) {
                 try {
                     int year = Integer.parseInt(selectedYear);
-                    // Button is always visible for government users
                     homeEditButton.setVisible(true);
                     homeEditButton.setManaged(true);
-                    // Button is enabled only for year >= 2026
                     boolean isEditable = year >= 2026;
                     homeEditButton.setDisable(!isEditable);
                 } catch (NumberFormatException e) {
@@ -835,7 +1125,6 @@ public class HomeController {
             headerTitleLabel.setText("Κρατικός Προϋπολογισμός του " + selectedYear);
         }
         
-        // Update welcome title with year
         // Update summary cards
         updateSummaryCards(selectedYear);
         
@@ -908,7 +1197,6 @@ public class HomeController {
         for (BudgetDataService.CategoryInfo cat : categories) {
             String changeText;
             if (!hasPreviousYearData || !prevYearMap.containsKey(cat.getName())) {
-                // No previous year data available - show dash
                 changeText = "-";
             } else {
                 double prevAmount = prevYearMap.get(cat.getName());
@@ -967,7 +1255,6 @@ public class HomeController {
         administrationsTable.setItems(tableData);
     }
 
-    // Navigation handlers (called from quick nav cards)
     @FXML
     private void onNavigateHome() {
         showView(homeView);
@@ -996,14 +1283,12 @@ public class HomeController {
     @FXML
     private void onNavigateDataManagement() {
         if (isGovernmentUser()) {
-            // Set the selected year in data management to match the home view selection
             if (selectedYear != null) {
                 try {
                     int year = Integer.parseInt(selectedYear);
                     if (isYearEditable(year)) {
                         dataManagementSelectedYear = year;
                     } else {
-                        // If selected year is not editable, use current year
                         dataManagementSelectedYear = Calendar.getInstance().get(Calendar.YEAR);
                     }
                 } catch (NumberFormatException e) {
@@ -1011,7 +1296,6 @@ public class HomeController {
                 }
             }
             
-            // Initialize year ComboBox if not already done
             if (dataManagementYearComboBox != null && dataManagementYearComboBox.getItems().isEmpty()) {
                 int currentYear = Calendar.getInstance().get(Calendar.YEAR);
                 dataManagementYearComboBox.getItems().addAll(
@@ -1032,7 +1316,7 @@ public class HomeController {
     
     @FXML
     private void onNavigateProjections() {
-        // Coming soon - no action for now
+        // Coming soon 
     }
     
 
@@ -1074,8 +1358,10 @@ public class HomeController {
     
     // Data Management Methods
     private void loadDataManagementTable() {
-        if (dataManagementTable != null && dataService != null) {
+        if (dataService != null) {
             allDataManagementItems.clear();
+            revenuesItems.clear();
+            expensesItems.clear();
             
             int selectedYear = dataManagementSelectedYear;
             int previousYear = selectedYear - 1;
@@ -1114,60 +1400,68 @@ public class HomeController {
                 return;
             }
             
-            // Load ministries (expenses by ministry)
-            List<BudgetDataService.CategoryInfo> ministries = dataService.getCategories(selectedYear);
-            for (BudgetDataService.CategoryInfo cat : ministries) {
-                double prevAmount = previousYearMap.getOrDefault(cat.getName() + "|Υπουργείο", 0.0);
-                allDataManagementItems.add(new CategoryData(
-                    cat.getName(), 
-                    cat.getAmount(), 
-                    cat.getPercentage(), 
-                    String.valueOf(selectedYear) + " | Υπουργείο",
-                    "Υπουργείο",
-                    prevAmount
-                ));
-            }
-            
-            // Load expense breakdown (by expense type)
-            List<BudgetDataService.CategoryInfo> expenses = dataService.getExpensesBreakdown(selectedYear);
-            for (BudgetDataService.CategoryInfo cat : expenses) {
-                double prevAmount = previousYearMap.getOrDefault(cat.getName() + "|Δαπάνη", 0.0);
-                allDataManagementItems.add(new CategoryData(
-                    cat.getName(), 
-                    cat.getAmount(), 
-                    cat.getPercentage(), 
-                    String.valueOf(selectedYear) + " | Δαπάνη",
-                    "Δαπάνη",
-                    prevAmount
-                ));
-            }
-            
-            // Load revenues (by revenue type)
+            // Load revenues (by revenue type) - ONLY revenues
             List<BudgetDataService.CategoryInfo> revenues = dataService.getRevenueBreakdown(selectedYear);
             for (BudgetDataService.CategoryInfo cat : revenues) {
                 double prevAmount = previousYearMap.getOrDefault(cat.getName() + "|Έσοδο", 0.0);
-                allDataManagementItems.add(new CategoryData(
+                CategoryData revenueData = new CategoryData(
                     cat.getName(), 
                     cat.getAmount(), 
                     cat.getPercentage(), 
                     String.valueOf(selectedYear) + " | Έσοδο",
                     "Έσοδο",
                     prevAmount
-                ));
+                );
+                revenuesItems.add(revenueData);
+                allDataManagementItems.add(revenueData);
             }
             
-            // Load decentralized administrations
+            // Load expense breakdown (by expense type) - ONLY expenses
+            List<BudgetDataService.CategoryInfo> expenses = dataService.getExpensesBreakdown(selectedYear);
+            for (BudgetDataService.CategoryInfo cat : expenses) {
+                double prevAmount = previousYearMap.getOrDefault(cat.getName() + "|Δαπάνη", 0.0);
+                CategoryData expenseData = new CategoryData(
+                    cat.getName(), 
+                    cat.getAmount(), 
+                    cat.getPercentage(), 
+                    String.valueOf(selectedYear) + " | Δαπάνη",
+                    "Δαπάνη",
+                    prevAmount
+                );
+                expensesItems.add(expenseData);
+                allDataManagementItems.add(expenseData);
+            }
+            
+            // Load ministries (expenses by ministry) - add to expenses
+            List<BudgetDataService.CategoryInfo> ministries = dataService.getCategories(selectedYear);
+            for (BudgetDataService.CategoryInfo cat : ministries) {
+                double prevAmount = previousYearMap.getOrDefault(cat.getName() + "|Υπουργείο", 0.0);
+                CategoryData ministryData = new CategoryData(
+                    cat.getName(), 
+                    cat.getAmount(), 
+                    cat.getPercentage(), 
+                    String.valueOf(selectedYear) + " | Υπουργείο",
+                    "Υπουργείο",
+                    prevAmount
+                );
+                expensesItems.add(ministryData);
+                allDataManagementItems.add(ministryData);
+            }
+            
+            // Load decentralized administrations - add to expenses
             List<BudgetDataService.CategoryInfo> administrations = dataService.getDecentralizedAdministrations(selectedYear);
             for (BudgetDataService.CategoryInfo cat : administrations) {
                 double prevAmount = previousYearMap.getOrDefault(cat.getName() + "|Αποκεντρωμένη Διοίκηση", 0.0);
-                allDataManagementItems.add(new CategoryData(
+                CategoryData adminData = new CategoryData(
                     cat.getName(), 
                     cat.getAmount(), 
                     cat.getPercentage(), 
                     String.valueOf(selectedYear) + " | Αποκεντρωμένη Διοίκηση",
                     "Αποκεντρωμένη Διοίκηση",
                     prevAmount
-                ));
+                );
+                expensesItems.add(adminData);
+                allDataManagementItems.add(adminData);
             }
             
             // Update statistics
@@ -1216,31 +1510,62 @@ public class HomeController {
     }
     
     private void applyFilters() {
-        if (dataManagementTable == null) return;
-        
         String searchText = dmSearchField != null ? dmSearchField.getText().toLowerCase() : "";
         String typeFilter = dmTypeFilter != null && dmTypeFilter.getValue() != null ? dmTypeFilter.getValue() : "Όλα";
         
-        ObservableList<CategoryData> filtered = FXCollections.observableArrayList();
-        
-        for (CategoryData item : allDataManagementItems) {
+        // Filter revenues
+        ObservableList<CategoryData> filteredRevenues = FXCollections.observableArrayList();
+        for (CategoryData item : revenuesItems) {
             boolean matchesSearch = searchText.isEmpty() || 
-                item.getCategory().toLowerCase().contains(searchText) ||
-                item.getType().toLowerCase().contains(searchText);
+                item.getCategory().toLowerCase().contains(searchText);
+            
+            if (matchesSearch) {
+                filteredRevenues.add(item);
+            }
+        }
+        filteredRevenues.sort((a, b) -> a.getCategory().compareTo(b.getCategory()));
+        if (revenuesTable != null) {
+            revenuesTable.setItems(filteredRevenues);
+        }
+        
+        // Filter expenses
+        ObservableList<CategoryData> filteredExpenses = FXCollections.observableArrayList();
+        for (CategoryData item : expensesItems) {
+            boolean matchesSearch = searchText.isEmpty() || 
+                item.getCategory().toLowerCase().contains(searchText);
             
             boolean matchesType = typeFilter.equals("Όλα") || 
                 typeFilter.equals(item.getType());
             
             if (matchesSearch && matchesType) {
-                filtered.add(item);
+                filteredExpenses.add(item);
             }
         }
-        
-        dataManagementTable.setItems(filtered);
+        filteredExpenses.sort((a, b) -> a.getCategory().compareTo(b.getCategory()));
+        if (expensesTable != null) {
+            expensesTable.setItems(filteredExpenses);
+        }
         
         // Update record count
         if (dmRecordCountLabel != null) {
-            dmRecordCountLabel.setText(filtered.size() + " εγγραφές");
+            int totalCount = filteredRevenues.size() + filteredExpenses.size();
+            dmRecordCountLabel.setText(totalCount + " εγγραφές");
+        }
+        
+        // Update tables
+        if (dmRevenuesTable != null) {
+            dmRevenuesTable.setItems(filteredRevenues);
+        }
+        if (dmExpensesTable != null) {
+            dmExpensesTable.setItems(filteredExpenses);
+        }
+        
+        // Keep old table for backward compatibility
+        if (dataManagementTable != null) {
+            ObservableList<CategoryData> filtered = FXCollections.observableArrayList();
+            filtered.addAll(filteredRevenues);
+            filtered.addAll(filteredExpenses);
+            dataManagementTable.setItems(filtered);
         }
     }
     
@@ -1275,25 +1600,64 @@ public class HomeController {
         
         TextField categoryField = new TextField();
         categoryField.setPromptText("Κατηγορία");
+        categoryField.setPrefWidth(300);
+        Label categoryErrorLabel = new Label();
+        categoryErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
+        categoryErrorLabel.setVisible(false);
+        categoryErrorLabel.setWrapText(true);
+        categoryErrorLabel.setPrefWidth(300);
+        categoryErrorLabel.setMaxWidth(300);
+        
         TextField amountField = new TextField();
-        amountField.setPromptText("Ποσό");
-        int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-        int maxYear = currentYear + 1;
-        ComboBox<String> yearCombo = new ComboBox<>();
-        yearCombo.getItems().addAll(String.valueOf(currentYear), String.valueOf(maxYear));
-        yearCombo.setValue(String.valueOf(currentYear));
+        amountField.setPromptText("Ποσό (π.χ. 1000.50)");
+        amountField.setPrefWidth(300);
+        Label amountErrorLabel = new Label();
+        amountErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
+        amountErrorLabel.setVisible(false);
+        amountErrorLabel.setWrapText(true);
+        amountErrorLabel.setPrefWidth(300);
+        amountErrorLabel.setMaxWidth(300);
+        
+        int yearValue = dataManagementSelectedYear;
+        if (dataManagementYearComboBox != null && dataManagementYearComboBox.getValue() != null) {
+            try {
+                yearValue = Integer.parseInt(dataManagementYearComboBox.getValue());
+            } catch (NumberFormatException e) {
+                // Keep default value
+            }
+        }
+        final int selectedYear = yearValue;
+        
+        // Show selected year as read-only label
+        Label yearLabel = new Label("Έτος: " + selectedYear);
+        yearLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748b;");
+        
         ComboBox<String> typeCombo = new ComboBox<>();
         typeCombo.getItems().addAll("Έσοδο", "Δαπάνη");
         typeCombo.setPromptText("Τύπος");
+        typeCombo.setPrefWidth(300);
+        
+        // Real-time validation for category
+        categoryField.textProperty().addListener((obs, oldText, newText) -> {
+            DataValidator.ValidationResult result = DataValidator.validateCategory(newText);
+            DataValidator.applyValidationStyle(categoryField, result.isValid(), categoryErrorLabel, result.getErrorMessage());
+        });
+        
+        // Real-time validation for amount
+        amountField.textProperty().addListener((obs, oldText, newText) -> {
+            DataValidator.ValidationResult result = DataValidator.validateAmount(newText);
+            DataValidator.applyValidationStyle(amountField, result.isValid(), amountErrorLabel, result.getErrorMessage());
+        });
         
         grid.add(new Label("Κατηγορία:"), 0, 0);
         grid.add(categoryField, 1, 0);
-        grid.add(new Label("Ποσό:"), 0, 1);
-        grid.add(amountField, 1, 1);
-        grid.add(new Label("Έτος:"), 0, 2);
-        grid.add(yearCombo, 1, 2);
-        grid.add(new Label("Τύπος:"), 0, 3);
-        grid.add(typeCombo, 1, 3);
+        grid.add(categoryErrorLabel, 1, 1);
+        grid.add(new Label("Ποσό:"), 0, 2);
+        grid.add(amountField, 1, 2);
+        grid.add(amountErrorLabel, 1, 3);
+        grid.add(yearLabel, 0, 4, 2, 1);
+        grid.add(new Label("Τύπος:"), 0, 5);
+        grid.add(typeCombo, 1, 5);
         
         dialog.getDialogPane().setContent(grid);
         
@@ -1302,28 +1666,57 @@ public class HomeController {
         
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButton) {
+                // Validate all fields
+                String category = categoryField.getText();
+                String amountText = amountField.getText();
+                String type = typeCombo.getValue();
+                
+                DataValidator.ValidationResult categoryResult = DataValidator.validateCategory(category);
+                DataValidator.ValidationResult amountResult = DataValidator.validateAmount(amountText);
+                DataValidator.ValidationResult typeResult = DataValidator.validateComboBoxSelection(type, "τύπος");
+                
+                // Apply validation styles
+                DataValidator.applyValidationStyle(categoryField, categoryResult.isValid(), categoryErrorLabel, categoryResult.getErrorMessage());
+                DataValidator.applyValidationStyle(amountField, amountResult.isValid(), amountErrorLabel, amountResult.getErrorMessage());
+                
+                // Check if all validations pass
+                if (!categoryResult.isValid() || !amountResult.isValid() || !typeResult.isValid()) {
+                    StringBuilder errorMsg = new StringBuilder("Παρακαλώ διορθώστε τα ακόλουθα σφάλματα:\n\n");
+                    if (!categoryResult.isValid()) {
+                        errorMsg.append("• ").append(categoryResult.getErrorMessage()).append("\n");
+                    }
+                    if (!amountResult.isValid()) {
+                        errorMsg.append("• ").append(amountResult.getErrorMessage()).append("\n");
+                    }
+                    if (!typeResult.isValid()) {
+                        errorMsg.append("• ").append(typeResult.getErrorMessage()).append("\n");
+                    }
+                    
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Σφάλμα Επικύρωσης");
+                    alert.setHeaderText("Μη έγκυρα δεδομένα");
+                    alert.setContentText(errorMsg.toString());
+                    alert.showAndWait();
+                    return null;
+                }
+                
+                // Check if the selected year is editable
+                if (!isYearEditable(selectedYear)) {
+                    int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+                    int maxYear = currentYear + 1;
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Μη Επιτρεπτή Αλλαγή");
+                    alert.setHeaderText("Δεν επιτρέπονται αλλαγές για προηγούμενα έτη");
+                    alert.setContentText("Μπορείτε να προσθέσετε δεδομένα μόνο για το τρέχον έτος (" + currentYear + ") και το επόμενο έτος (" + maxYear + ").");
+                    alert.showAndWait();
+                    return null;
+                }
+                
+                // Business constraints validation
                 try {
-                    String yearStr = yearCombo.getValue();
-                    if (yearStr == null) {
-                        Alert alert = new Alert(Alert.AlertType.WARNING);
-                        alert.setTitle("Σφάλμα");
-                        alert.setHeaderText("Επιλέξτε έτος");
-                        alert.setContentText("Παρακαλώ επιλέξτε έτος.");
-                        alert.showAndWait();
-                        return null;
-                    }
-                    int year = Integer.parseInt(yearStr);
-                    if (!isYearEditable(year)) {
-                        Alert alert = new Alert(Alert.AlertType.WARNING);
-                        alert.setTitle("Μη Επιτρεπτή Αλλαγή");
-                        alert.setHeaderText("Δεν επιτρέπονται αλλαγές για προηγούμενα έτη");
-                        alert.setContentText("Μπορείτε να προσθέσετε δεδομένα μόνο για το τρέχον έτος (" + currentYear + ") και το επόμενο έτος (" + maxYear + ").");
-                        alert.showAndWait();
-                        return null;
-                    }
-                    double amount = Double.parseDouble(amountField.getText());
-                    String type = typeCombo.getValue() != null ? typeCombo.getValue() : "Έσοδο";
-                    return new CategoryData(categoryField.getText(), amount, 0.0, year + " | " + type);
+                    double amount = Double.parseDouble(amountText);
+                    
+                    return new CategoryData(category, amount, 0.0, selectedYear + " | " + type);
                 } catch (NumberFormatException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Σφάλμα");
@@ -1346,7 +1739,7 @@ public class HomeController {
     
     @FXML
     private void onEditData() {
-        CategoryData selected = dataManagementTable.getSelectionModel().getSelectedItem();
+        CategoryData selected = getSelectedItemFromTables();
         if (selected == null) return;
         
         // Check if the year allows editing
@@ -1371,12 +1764,41 @@ public class HomeController {
         grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
         
         TextField categoryField = new TextField(selected.getCategory());
+        categoryField.setPrefWidth(300);
+        Label categoryErrorLabel = new Label();
+        categoryErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
+        categoryErrorLabel.setVisible(false);
+        categoryErrorLabel.setWrapText(true);
+        categoryErrorLabel.setPrefWidth(300);
+        categoryErrorLabel.setMaxWidth(300);
+        
         TextField amountField = new TextField(String.valueOf(selected.getAmount()));
+        amountField.setPrefWidth(300);
+        Label amountErrorLabel = new Label();
+        amountErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
+        amountErrorLabel.setVisible(false);
+        amountErrorLabel.setWrapText(true);
+        amountErrorLabel.setPrefWidth(300);
+        amountErrorLabel.setMaxWidth(300);
+        
+        // Real-time validation for category
+        categoryField.textProperty().addListener((obs, oldText, newText) -> {
+            DataValidator.ValidationResult result = DataValidator.validateCategory(newText);
+            DataValidator.applyValidationStyle(categoryField, result.isValid(), categoryErrorLabel, result.getErrorMessage());
+        });
+        
+        // Real-time validation for amount
+        amountField.textProperty().addListener((obs, oldText, newText) -> {
+            DataValidator.ValidationResult result = DataValidator.validateAmount(newText);
+            DataValidator.applyValidationStyle(amountField, result.isValid(), amountErrorLabel, result.getErrorMessage());
+        });
         
         grid.add(new Label("Κατηγορία:"), 0, 0);
         grid.add(categoryField, 1, 0);
-        grid.add(new Label("Ποσό:"), 0, 1);
-        grid.add(amountField, 1, 1);
+        grid.add(categoryErrorLabel, 1, 1);
+        grid.add(new Label("Ποσό:"), 0, 2);
+        grid.add(amountField, 1, 2);
+        grid.add(amountErrorLabel, 1, 3);
         
         dialog.getDialogPane().setContent(grid);
         
@@ -1385,13 +1807,64 @@ public class HomeController {
         
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == saveButton) {
+                // Validate all fields
+                String category = categoryField.getText();
+                String amountText = amountField.getText();
+                
+                DataValidator.ValidationResult categoryResult = DataValidator.validateCategory(category);
+                DataValidator.ValidationResult amountResult = DataValidator.validateAmount(amountText);
+                
+                // Apply validation styles
+                DataValidator.applyValidationStyle(categoryField, categoryResult.isValid(), categoryErrorLabel, categoryResult.getErrorMessage());
+                DataValidator.applyValidationStyle(amountField, amountResult.isValid(), amountErrorLabel, amountResult.getErrorMessage());
+                
+                // Check if all validations pass
+                if (!categoryResult.isValid() || !amountResult.isValid()) {
+                    StringBuilder errorMsg = new StringBuilder("Παρακαλώ διορθώστε τα ακόλουθα σφάλματα:\n\n");
+                    if (!categoryResult.isValid()) {
+                        errorMsg.append("• ").append(categoryResult.getErrorMessage()).append("\n");
+                    }
+                    if (!amountResult.isValid()) {
+                        errorMsg.append("• ").append(amountResult.getErrorMessage()).append("\n");
+                    }
+                    
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Σφάλμα Επικύρωσης");
+                    alert.setHeaderText("Μη έγκυρα δεδομένα");
+                    alert.setContentText(errorMsg.toString());
+                    alert.showAndWait();
+                    return null;
+                }
+                
                 try {
-                    double amount = Double.parseDouble(amountField.getText());
-                    selected.categoryProperty().set(categoryField.getText());
+                    double amount = Double.parseDouble(amountText);
+                    
+                    // Business constraints validation
+                    // Check if amount change is reasonable
+                    double previousAmount = selected.getPreviousYearAmount();
+                    BusinessConstraintsValidator.ValidationResult amountChangeResult = 
+                        BusinessConstraintsValidator.validateAmountChange(amount, previousAmount);
+                    if (!amountChangeResult.isValid()) {
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        alert.setTitle("Περιορισμός Επιχειρηματικής Λογικής");
+                        alert.setHeaderText("Μεγάλη Αλλαγή Ποσού");
+                        alert.setContentText(amountChangeResult.getErrorMessage());
+                        alert.showAndWait();
+                        return null;
+                    }
+                    
+                    selected.categoryProperty().set(category);
                     selected.amountProperty().set(amount);
-                    dataManagementTable.refresh();
+                    if (dmRevenuesTable != null) dmRevenuesTable.refresh();
+                    if (dmExpensesTable != null) dmExpensesTable.refresh();
+                    if (dataManagementTable != null) dataManagementTable.refresh();
                     return selected;
                 } catch (NumberFormatException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Σφάλμα");
+                    alert.setHeaderText("Μη έγκυρο ποσό");
+                    alert.setContentText("Παρακαλώ εισάγετε έγκυρο ποσό.");
+                    alert.showAndWait();
                     return null;
                 }
             }
@@ -1403,7 +1876,7 @@ public class HomeController {
     
     @FXML
     private void onDeleteData() {
-        CategoryData selected = dataManagementTable.getSelectionModel().getSelectedItem();
+        CategoryData selected = getSelectedItemFromTables();
         if (selected == null) return;
         
         // Check if the year allows deletion
@@ -1425,7 +1898,23 @@ public class HomeController {
         
         java.util.Optional<ButtonType> result = confirmDialog.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            dataManagementTable.getItems().remove(selected);
+            // Remove from appropriate list and table
+            String type = selected.getType();
+            if (type.equals("Έσοδο")) {
+                revenuesItems.remove(selected);
+                if (dmRevenuesTable != null) {
+                    dmRevenuesTable.getItems().remove(selected);
+                }
+            } else {
+                expensesItems.remove(selected);
+                if (dmExpensesTable != null) {
+                    dmExpensesTable.getItems().remove(selected);
+                }
+            }
+            allDataManagementItems.remove(selected);
+            if (dataManagementTable != null) {
+                dataManagementTable.getItems().remove(selected);
+            }
         }
     }
     
@@ -1610,7 +2099,7 @@ public class HomeController {
     
     @FXML
     private void onBulkEdit() {
-        ObservableList<CategoryData> selected = dataManagementTable.getSelectionModel().getSelectedItems();
+        ObservableList<CategoryData> selected = getSelectedItemsFromTables();
         if (selected == null || selected.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Μαζική Επεξεργασία");
@@ -1636,12 +2125,51 @@ public class HomeController {
         
         TextField valueField = new TextField();
         valueField.setPromptText("Τιμή");
+        valueField.setPrefWidth(300);
+        Label valueErrorLabel = new Label();
+        valueErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
+        valueErrorLabel.setVisible(false);
+        valueErrorLabel.setWrapText(true);
+        valueErrorLabel.setPrefWidth(300);
+        valueErrorLabel.setMaxWidth(300);
+        
+        // Real-time validation for value field
+        valueField.textProperty().addListener((obs, oldText, newText) -> {
+            if (actionCombo.getValue() != null) {
+                String action = actionCombo.getValue();
+                DataValidator.ValidationResult result;
+                
+                if (action.contains("%")) {
+                    // Percentage validation
+                    result = DataValidator.validatePercentage(newText);
+                } else {
+                    // Amount validation
+                    result = DataValidator.validateAmount(newText);
+                }
+                
+                DataValidator.applyValidationStyle(valueField, result.isValid(), valueErrorLabel, result.getErrorMessage());
+            }
+        });
+        
+        // Also validate when action changes
+        actionCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !valueField.getText().isEmpty()) {
+                DataValidator.ValidationResult result;
+                if (newVal.contains("%")) {
+                    result = DataValidator.validatePercentage(valueField.getText());
+                } else {
+                    result = DataValidator.validateAmount(valueField.getText());
+                }
+                DataValidator.applyValidationStyle(valueField, result.isValid(), valueErrorLabel, result.getErrorMessage());
+            }
+        });
         
         grid.add(infoLabel, 0, 0, 2, 1);
         grid.add(new Label("Ενέργεια:"), 0, 1);
         grid.add(actionCombo, 1, 1);
         grid.add(new Label("Τιμή:"), 0, 2);
         grid.add(valueField, 1, 2);
+        grid.add(valueErrorLabel, 1, 3);
         
         dialog.getDialogPane().setContent(grid);
         
@@ -1652,6 +2180,38 @@ public class HomeController {
             if (dialogButton == applyButton) {
                 String action = actionCombo.getValue();
                 String value = valueField.getText();
+                
+                // Validate action selection
+                DataValidator.ValidationResult actionResult = DataValidator.validateComboBoxSelection(action, "ενέργεια");
+                
+                if (!actionResult.isValid()) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Σφάλμα Επικύρωσης");
+                    alert.setHeaderText("Μη έγκυρα δεδομένα");
+                    alert.setContentText(actionResult.getErrorMessage());
+                    alert.showAndWait();
+                    return null;
+                }
+                
+                // Validate value based on action type
+                DataValidator.ValidationResult valueResult;
+                if (action.contains("%")) {
+                    valueResult = DataValidator.validatePercentage(value);
+                } else {
+                    valueResult = DataValidator.validateAmount(value);
+                }
+                
+                DataValidator.applyValidationStyle(valueField, valueResult.isValid(), valueErrorLabel, valueResult.getErrorMessage());
+                
+                if (!valueResult.isValid()) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Σφάλμα Επικύρωσης");
+                    alert.setHeaderText("Μη έγκυρα δεδομένα");
+                    alert.setContentText(valueResult.getErrorMessage());
+                    alert.showAndWait();
+                    return null;
+                }
+                
                 if (action != null && value != null && !value.trim().isEmpty()) {
                     return action + "|" + value;
                 }
@@ -1677,7 +2237,9 @@ public class HomeController {
                 item.amountProperty().set(newAmount);
             }
             
-            dataManagementTable.refresh();
+            if (dmRevenuesTable != null) dmRevenuesTable.refresh();
+            if (dmExpensesTable != null) dmExpensesTable.refresh();
+            if (dataManagementTable != null) dataManagementTable.refresh();
             updateDataManagementStatistics(Calendar.getInstance().get(Calendar.YEAR), Calendar.getInstance().get(Calendar.YEAR) - 1);
             
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -1698,7 +2260,9 @@ public class HomeController {
     @FXML
     private void onDeselectAll() {
         if (dataManagementTable != null) {
-            dataManagementTable.getSelectionModel().clearSelection();
+            if (dmRevenuesTable != null) dmRevenuesTable.getSelectionModel().clearSelection();
+            if (dmExpensesTable != null) dmExpensesTable.getSelectionModel().clearSelection();
+            if (dataManagementTable != null) dataManagementTable.getSelectionModel().clearSelection();
         }
     }
 

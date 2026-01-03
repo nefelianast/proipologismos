@@ -390,16 +390,37 @@
                                             </children>
                                         </HBox>
                                         
-                                        <TableView fx:id="dataManagementTable" prefHeight="450">
-                                            <columns>
-                                                <TableColumn fx:id="dmCategoryColumn" text="Κατηγορία" prefWidth="250" sortable="true"/>
-                                                <TableColumn fx:id="dmAmountColumn" text="Ποσό (€)" prefWidth="150" sortable="true"/>
-                                                <TableColumn fx:id="dmPercentageColumn" text="Συμμετοχή (%)" prefWidth="120" sortable="true"/>
-                                                <TableColumn fx:id="dmTypeColumn" text="Τύπος" prefWidth="150" sortable="true"/>
-                                                <TableColumn fx:id="dmChangeColumn" text="Αλλαγή από Προηγ. Έτος" prefWidth="150" sortable="true"/>
-                                                <TableColumn fx:id="dmStatusColumn" text="Κατάσταση" prefWidth="120" sortable="true"/>
-                                            </columns>
-                                        </TableView>
+                                        <!-- Revenues Table -->
+                                        <VBox spacing="12" styleClass="revenues-table-container">
+                                            <Label text="Έσοδα" styleClass="section-title" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
+                                            <TableView fx:id="dmRevenuesTable" prefHeight="200" styleClass="table-view">
+                                                <columns>
+                                                    <TableColumn fx:id="revCategoryColumn" text="Κατηγορία" prefWidth="300" sortable="true"/>
+                                                    <TableColumn fx:id="revAmountColumn" text="Ποσό (€)" prefWidth="180" sortable="true"/>
+                                                    <TableColumn fx:id="revPercentageColumn" text="Συμμετοχή (%)" prefWidth="150" sortable="true"/>
+                                                    <TableColumn fx:id="revChangeColumn" text="Αλλαγή από Προηγ. Έτος" prefWidth="200" sortable="true"/>
+                                                    <TableColumn fx:id="revStatusColumn" text="Κατάσταση" prefWidth="150" sortable="true"/>
+                                                    <TableColumn fx:id="revCommentsColumn" text="Σχόλια" prefWidth="250" sortable="false"/>
+                                                </columns>
+                                            </TableView>
+                                        </VBox>
+                                        
+                                        <Region prefHeight="24" VBox.vgrow="NEVER"/>
+                                        
+                                        <!-- Expenses Table -->
+                                        <VBox spacing="12" styleClass="expenses-table-container">
+                                            <Label text="Δαπάνες" styleClass="section-title" style="-fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: #1e293b;"/>
+                                            <TableView fx:id="dmExpensesTable" prefHeight="200" styleClass="table-view">
+                                                <columns>
+                                                    <TableColumn fx:id="expCategoryColumn" text="Κατηγορία" prefWidth="300" sortable="true"/>
+                                                    <TableColumn fx:id="expAmountColumn" text="Ποσό (€)" prefWidth="180" sortable="true"/>
+                                                    <TableColumn fx:id="expPercentageColumn" text="Συμμετοχή (%)" prefWidth="150" sortable="true"/>
+                                                    <TableColumn fx:id="expChangeColumn" text="Αλλαγή από Προηγ. Έτος" prefWidth="200" sortable="true"/>
+                                                    <TableColumn fx:id="expStatusColumn" text="Κατάσταση" prefWidth="150" sortable="true"/>
+                                                    <TableColumn fx:id="expCommentsColumn" text="Σχόλια" prefWidth="250" sortable="false"/>
+                                                </columns>
+                                            </TableView>
+                                        </VBox>
                                         
                                         <HBox spacing="12" alignment="CENTER_LEFT">
                                             <children>
