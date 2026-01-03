@@ -376,27 +376,65 @@ Button.nav-button:hover {
 }
 
 .year-combo-box {
-    -fx-background-color: white;
-    -fx-border-color: rgba(30, 64, 175, 0.3);
-    -fx-border-radius: 12;
-    -fx-background-radius: 12;
+    -fx-background-color: rgba(255, 255, 255, 0.95);
+    -fx-border-color: transparent;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
     -fx-padding: 10 24;
-    -fx-font-size: 14px;
+    -fx-font-size: 16px;
     -fx-font-weight: 700;
     -fx-text-fill: #1e40af;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.2), 8, 0, 0, 3);
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.2), 20, 0, 0, 6);
+    -fx-alignment: CENTER;
+}
+
+.year-combo-box .list-cell {
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-text-fill: #1e40af;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+}
+
+.year-combo-box .list-cell:selected {
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-text-fill: #1e40af;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+}
+
+.year-combo-box .arrow-button {
+    -fx-padding: 0 8 0 0;
+}
+
+.year-combo-box .arrow {
+    -fx-background-color: #1e40af;
+}
+
+/* Center the selected text in ComboBox */
+.year-combo-box > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+}
+
+/* Center the button cell (selected item display) */
+.year-combo-box > .list-cell {
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-padding: 0;
 }
 
 .year-combo-box:hover {
-    -fx-border-color: #1e40af;
-    -fx-border-width: 2;
-    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.4), 12, 0, 0, 5);
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.4), 25, 0, 0, 8);
+    -fx-translate-y: -4;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
 }
 
 .year-combo-box:focused {
-    -fx-border-color: #1e40af;
-    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.4), 25, 0, 0, 8);
 }
 
 .scroll-pane {
@@ -627,24 +665,53 @@ Button.nav-button:hover {
 }
 
 .auth-button {
-    -fx-background-color: white;
-    -fx-border-color: #1e40af;
-    -fx-border-width: 2;
-    -fx-border-radius: 12;
-    -fx-background-radius: 12;
-    -fx-padding: 8 16;
+    -fx-background-color: rgba(255, 255, 255, 0.95);
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 10 20;
     -fx-font-size: 13px;
     -fx-font-weight: 600;
     -fx-text-fill: #1e40af;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.3), 8, 0, 0, 3);
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.2), 20, 0, 0, 6);
+    -fx-content-display: CENTER;
+    -fx-alignment: CENTER;
+}
+
+.auth-button .label {
+    -fx-font-style: normal;
+}
+
+.auth-button .label:last-child {
+    -fx-font-style: italic;
+    -fx-font-size: 16px;
 }
 
 .auth-button:hover {
-    -fx-background-color: #f8fafc;
-    -fx-border-color: #1e3a8a;
-    -fx-border-width: 2;
-    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.5), 12, 0, 0, 5);
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.4), 25, 0, 0, 8);
+    -fx-translate-y: -4;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.auth-button:disabled {
+    -fx-opacity: 0.5;
+    -fx-text-fill: #94a3b8;
+    -fx-cursor: default;
+    -fx-effect: dropshadow(gaussian, rgba(148, 163, 184, 0.1), 10, 0, 0, 3);
+}
+
+.auth-button:disabled .label {
+    -fx-text-fill: #94a3b8;
+}
+
+.auth-button:disabled:hover {
+    -fx-translate-y: 0;
+    -fx-scale-x: 1.0;
+    -fx-scale-y: 1.0;
+    -fx-effect: dropshadow(gaussian, rgba(148, 163, 184, 0.1), 10, 0, 0, 3);
 }
 
 .tab-pane .tab:selected {

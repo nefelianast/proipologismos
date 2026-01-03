@@ -8,6 +8,7 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.collections.FXCollections?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
@@ -34,13 +35,6 @@
                             <!-- Αριστερά: Κουμπιά -->
                             <HBox alignment="CENTER_LEFT" HBox.hgrow="NEVER" spacing="12">
                                 <children>
-                                    <!-- Κουμπί Διαχείριση Δεδομένων (μόνο για κυβέρνηση) -->
-                                    <HBox alignment="CENTER_LEFT" fx:id="dataManagementButtonContainer" visible="false" managed="false" HBox.hgrow="NEVER">
-                                        <children>
-                                            <Button text="Διαχείριση Δεδομένων" onAction="#onNavigateDataManagement" styleClass="auth-button" fx:id="dataManagementButton"/>
-                                        </children>
-                                    </HBox>
-                                    
                                     <!-- Κουμπί Προεπισκοπήσεις Αλλαγών (για όλους) - Coming soon -->
                                     <Button text="Προεπισκοπήσεις Αλλαγών" onAction="#onNavigateProjections" styleClass="auth-button" fx:id="projectionsButton"/>
                                 </children>
@@ -96,7 +90,15 @@
                                 <!-- YEAR SELECTION DROPDOWN -->
                                 <HBox spacing="12" alignment="CENTER" styleClass="year-buttons-container">
                                     <children>
-                                        <ComboBox fx:id="yearComboBox" onAction="#onYearSelected" styleClass="year-combo-box" prefWidth="150.0"/>
+                                        <ComboBox fx:id="yearComboBox" onAction="#onYearSelected" styleClass="year-combo-box" prefWidth="170.0" prefHeight="50" minHeight="50" maxHeight="50"/>
+                                        <Button fx:id="homeEditButton" onAction="#onNavigateDataManagement" styleClass="auth-button" visible="false" managed="false" prefWidth="170.0" prefHeight="50" minHeight="50" maxHeight="50">
+                                            <graphic>
+                                                <HBox spacing="6" alignment="CENTER">
+                                                    <Label text="Επεξεργασία" style="-fx-font-size: 15px; -fx-font-weight: 600; -fx-text-fill: #1e40af;"/>
+                                                    <Label text="✎" style="-fx-font-size: 20px; -fx-text-fill: #1e40af; -fx-rotate: -8;"/>
+                                                </HBox>
+                                            </graphic>
+                                        </Button>
                                     </children>
                                 </HBox>
 
@@ -302,6 +304,65 @@
                         <!-- DATA MANAGEMENT VIEW (Government Only) -->
                         <VBox fx:id="dataManagementView" spacing="24" alignment="TOP_CENTER" visible="false" managed="false">
                             <children>
+                                <!-- Back Button -->
+                                <HBox spacing="12" alignment="CENTER_LEFT" styleClass="section-card">
+                                    <padding>
+                                        <Insets top="12" right="24" bottom="12" left="24"/>
+                                    </padding>
+                                    <children>
+                                        <Button text="← Επιστροφή στην Αρχική" onAction="#onNavigateHome" styleClass="auth-button" prefWidth="200" prefHeight="35"/>
+                                    </children>
+                                </HBox>
+                                
+                                <!-- Year Selection -->
+                                <StackPane styleClass="section-card">
+                                    <padding>
+                                        <Insets top="20" right="24" bottom="20" left="24"/>
+                                    </padding>
+                                    <children>
+                                        <!-- Background HBox for left content -->
+                                        <HBox spacing="12" alignment="CENTER_LEFT">
+                                            <children>
+                                                <ComboBox fx:id="dataManagementYearComboBox" prefWidth="120" prefHeight="35" onAction="#onDataManagementYearSelected" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-color: #f3f4f6; -fx-border-color: #1e40af; -fx-border-width: 2px; -fx-border-radius: 5px;"/>
+                                            </children>
+                                        </HBox>
+                                        
+                                        <!-- Centered title -->
+                                        <Label fx:id="dataManagementYearTitleLabel" text="Διαχείριση Δεδομένων Έτους 2026" styleClass="section-title" StackPane.alignment="CENTER" mouseTransparent="true"/>
+                                    </children>
+                                </StackPane>
+                                
+                                <!-- Statistics Summary Card -->
+                                <VBox spacing="12" styleClass="section-card">
+                                    <padding>
+                                        <Insets top="20" right="24" bottom="20" left="24"/>
+                                    </padding>
+                                    <children>
+                                        <Label text="Σύνοψη Προϋπολογισμού" styleClass="section-title"/>
+                                        <HBox spacing="32" alignment="CENTER_LEFT">
+                                            <children>
+                                                <VBox spacing="4">
+                                                    <Label text="Συνολικά Έσοδα" styleClass="section-subtitle"/>
+                                                    <Label fx:id="dmTotalRevenuesLabel" text="0 €" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #059669;"/>
+                                                </VBox>
+                                                <VBox spacing="4">
+                                                    <Label text="Συνολικές Δαπάνες" styleClass="section-subtitle"/>
+                                                    <Label fx:id="dmTotalExpensesLabel" text="0 €" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #dc2626;"/>
+                                                </VBox>
+                                                <VBox spacing="4">
+                                                    <Label text="Υπόλοιπο" styleClass="section-subtitle"/>
+                                                    <Label fx:id="dmBalanceLabel" text="0 €" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+                                                </VBox>
+                                                <VBox spacing="4">
+                                                    <Label text="Αλλαγή από Προηγούμενο Έτος" styleClass="section-subtitle"/>
+                                                    <Label fx:id="dmYearChangeLabel" text="0%" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                                
+                                <!-- Main Data Table Card -->
                                 <VBox spacing="16" styleClass="section-card">
                                     <padding>
                                         <Insets top="24" right="24" bottom="24" left="24"/>
@@ -309,26 +370,43 @@
                                     <children>
                                         <HBox spacing="12" alignment="CENTER_LEFT">
                                             <children>
-                                                <Label text="Διαχείριση Δεδομένων" styleClass="section-title"/>
                                                 <Region HBox.hgrow="ALWAYS"/>
                                                 <Button text="+ Προσθήκη" onAction="#onAddData" styleClass="primary-button"/>
                                                 <Button text="Εισαγωγή από Αρχείο" onAction="#onImportData" styleClass="button"/>
+                                                <Button text="Εξαγωγή" onAction="#onExportData" styleClass="button"/>
                                             </children>
                                         </HBox>
                                         
-                                        <TableView fx:id="dataManagementTable" prefHeight="400">
+                                        <!-- Search and Filter Bar -->
+                                        <HBox spacing="12" alignment="CENTER_LEFT">
+                                            <children>
+                                                <TextField fx:id="dmSearchField" promptText="Αναζήτηση..." prefWidth="250" onKeyReleased="#onSearchData"/>
+                                                <ComboBox fx:id="dmTypeFilter" promptText="Όλοι οι τύποι" prefWidth="150" onAction="#onFilterData"/>
+                                                <Button text="Καθαρισμός Φίλτρων" onAction="#onClearFilters" styleClass="button"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Label fx:id="dmRecordCountLabel" text="0 εγγραφές" styleClass="section-subtitle"/>
+                                            </children>
+                                        </HBox>
+                                        
+                                        <TableView fx:id="dataManagementTable" prefHeight="450">
                                             <columns>
-                                                <TableColumn fx:id="dmCategoryColumn" text="Κατηγορία" prefWidth="300"/>
-                                                <TableColumn fx:id="dmAmountColumn" text="Ποσό (€)" prefWidth="200"/>
-                                                <TableColumn fx:id="dmYearColumn" text="Έτος" prefWidth="100"/>
-                                                <TableColumn fx:id="dmTypeColumn" text="Τύπος" prefWidth="150"/>
+                                                <TableColumn fx:id="dmCategoryColumn" text="Κατηγορία" prefWidth="250" sortable="true"/>
+                                                <TableColumn fx:id="dmAmountColumn" text="Ποσό (€)" prefWidth="150" sortable="true"/>
+                                                <TableColumn fx:id="dmPercentageColumn" text="Συμμετοχή (%)" prefWidth="120" sortable="true"/>
+                                                <TableColumn fx:id="dmTypeColumn" text="Τύπος" prefWidth="150" sortable="true"/>
+                                                <TableColumn fx:id="dmChangeColumn" text="Αλλαγή από Προηγ. Έτος" prefWidth="150" sortable="true"/>
+                                                <TableColumn fx:id="dmStatusColumn" text="Κατάσταση" prefWidth="120" sortable="true"/>
                                             </columns>
                                         </TableView>
                                         
-                                        <HBox spacing="12" alignment="CENTER_RIGHT">
+                                        <HBox spacing="12" alignment="CENTER_LEFT">
                                             <children>
                                                 <Button text="Επεξεργασία" onAction="#onEditData" styleClass="button" fx:id="editDataButton" disable="true"/>
                                                 <Button text="Διαγραφή" onAction="#onDeleteData" styleClass="button" fx:id="deleteDataButton" disable="true"/>
+                                                <Button text="Μαζική Επεξεργασία" onAction="#onBulkEdit" styleClass="button" fx:id="bulkEditButton" disable="true"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Button text="Επιλογή Όλων" onAction="#onSelectAll" styleClass="button"/>
+                                                <Button text="Αποεπιλογή Όλων" onAction="#onDeselectAll" styleClass="button"/>
                                             </children>
                                         </HBox>
                                     </children>
