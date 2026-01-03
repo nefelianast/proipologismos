@@ -1,0 +1,7 @@
+/target/
+/.vscode/
+*.class
+*.db
+*.pdf
+*.csv
+.DS_Store

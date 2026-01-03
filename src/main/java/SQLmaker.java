@@ -340,7 +340,14 @@ public class SQLmaker {
     + "FOREIGN KEY (total_ministries) REFERENCES ministries_2025(total_ministries),"
     + "FOREIGN KEY (total_da) REFERENCES decentralized_administrations_2025(total_da)"
     + ");";
-    
+    //Μ
+    String sqlUsers =
+    "CREATE TABLE IF NOT EXISTS users ("
+    + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+    + "username TEXT UNIQUE NOT NULL,"
+    + "password TEXT NOT NULL"
+    + ");";
+    //Μ
         try (Statement stmt = conn.createStatement()) {
             stmt.execute(sql1);
             stmt.execute(sql2);
@@ -362,6 +369,8 @@ public class SQLmaker {
             stmt.execute(sql18);
             stmt.execute(sql19);
             stmt.execute(sql20);
+            stmt.execute(sqlUsers); //Μ ΓΡΑΜΜΗ
+
 
             System.out.println("Table created successfully!");
         } catch (SQLException e) {
@@ -374,7 +383,7 @@ public class SQLmaker {
         
         SQLinserter test = new SQLinserter();
         try {
-            test.insertRevenue2025();
+            /*test.insertRevenue2025();
              
             test.insertExpenses2025();
            
@@ -408,7 +417,7 @@ public class SQLmaker {
    test.insertMinistries2026();
    test.insertDecentralizedAdministrations2026();
    
-   test.insertBudgetSummary2026();
+   test.insertBudgetSummary2026();/
    /* 
    String sc="social_contributions";
    test.updateRevenue(2025, 3, sc, "10");*/
