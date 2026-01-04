@@ -706,6 +706,114 @@
                                 </VBox>
                             </children>
                         </VBox>
+                        
+                        <!-- PROJECTIONS/SIMULATIONS VIEW -->
+                        <VBox fx:id="projectionsView" spacing="16" visible="false" managed="false">
+                            <children>
+                                <Button text="← Αρχική" onAction="#onNavigateHome" styleClass="back-button"/>
+                                
+                                <VBox spacing="20">
+                                    <padding>
+                                        <Insets top="20" right="80" bottom="20" left="80"/>
+                                    </padding>
+                                    <children>
+                                        <!-- Title -->
+                                        <Label text="📈 Προσομοιώσεις Προϋπολογισμού" styleClass="section-title" style="-fx-font-size: 24px;"/>
+                                        <Label text="Δημιούργησε υποθετικά σενάρια για να δεις πώς θα επηρεάσουν τον προϋπολογισμό" styleClass="section-subtitle"/>
+                                        
+                                        <!-- Year Selection -->
+                                        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="section-card">
+                                            <padding>
+                                                <Insets top="16" right="20" bottom="16" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Βασικό Έτος:" styleClass="section-subtitle"/>
+                                                <ComboBox fx:id="simulationBaseYearComboBox" prefWidth="120"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Button text="🔄 Φόρτωση Δεδομένων" onAction="#onLoadSimulationData" styleClass="action-button" fx:id="loadSimulationDataButton"/>
+                                            </children>
+                                        </HBox>
+                                        
+                                        <!-- Simulation Scenarios -->
+                                        <GridPane hgap="20" vgap="20">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" prefWidth="300"/>
+                                                <ColumnConstraints hgrow="ALWAYS" prefWidth="300"/>
+                                            </columnConstraints>
+                                            
+                                            <!-- Scenario 1: Revenue Increase -->
+                                            <VBox spacing="12" styleClass="section-card" GridPane.columnIndex="0">
+                                                <padding>
+                                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                                </padding>
+                                                <children>
+                                                    <Label text="💰 Αύξηση Εσόδων" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                    <Label text="Ποσοστό Αύξησης:" styleClass="section-subtitle"/>
+                                                    <TextField fx:id="revenueIncreasePercentField" promptText="π.χ. 5.0 για 5%"/>
+                                                    <Button text="▶️ Εκτέλεση Σενάριου" onAction="#onSimulateRevenueIncrease" styleClass="action-button"/>
+                                                </children>
+                                            </VBox>
+                                            
+                                            <!-- Scenario 2: Expense Decrease -->
+                                            <VBox spacing="12" styleClass="section-card" GridPane.columnIndex="1">
+                                                <padding>
+                                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                                </padding>
+                                                <children>
+                                                    <Label text="💸 Μείωση Δαπανών" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                    <Label text="Ποσοστό Μείωσης:" styleClass="section-subtitle"/>
+                                                    <TextField fx:id="expenseDecreasePercentField" promptText="π.χ. 10.0 για 10%"/>
+                                                    <Button text="▶️ Εκτέλεση Σενάριου" onAction="#onSimulateExpenseDecrease" styleClass="action-button"/>
+                                                </children>
+                                            </VBox>
+                                            
+                                            <!-- Scenario 3: Combined -->
+                                            <VBox spacing="12" styleClass="section-card" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                                <padding>
+                                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                                </padding>
+                                                <children>
+                                                    <Label text="🔄 Συνδυασμένο Σενάριο" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                    <Label text="Αλλαγή Εσόδων (%):" styleClass="section-subtitle"/>
+                                                    <TextField fx:id="combinedRevenueChangeField" promptText="π.χ. 3.0 ή -2.0"/>
+                                                    <Label text="Αλλαγή Δαπανών (%):" styleClass="section-subtitle"/>
+                                                    <TextField fx:id="combinedExpenseChangeField" promptText="π.χ. -5.0 ή 1.0"/>
+                                                    <Button text="▶️ Εκτέλεση Σενάριου" onAction="#onSimulateCombined" styleClass="action-button"/>
+                                                </children>
+                                            </VBox>
+                                            
+                                            <!-- Scenario 4: Future Year -->
+                                            <VBox spacing="12" styleClass="section-card" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                                <padding>
+                                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                                </padding>
+                                                <children>
+                                                    <Label text="📅 Προβολή Μελλοντικού Έτους" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                    <Label text="Μελλοντικό Έτος:" styleClass="section-subtitle"/>
+                                                    <ComboBox fx:id="simulationFutureYearComboBox" prefWidth="120"/>
+                                                    <Label text="Τάση Εσόδων/Έτος (€):" styleClass="section-subtitle"/>
+                                                    <TextField fx:id="revenueTrendField" promptText="π.χ. 1000000"/>
+                                                    <Label text="Τάση Δαπανών/Έτος (€):" styleClass="section-subtitle"/>
+                                                    <TextField fx:id="expenseTrendField" promptText="π.χ. -500000"/>
+                                                    <Button text="▶️ Εκτέλεση Σενάριου" onAction="#onSimulateFutureYear" styleClass="action-button"/>
+                                                </children>
+                                            </VBox>
+                                        </GridPane>
+                                        
+                                        <!-- Results Display -->
+                                        <VBox spacing="12" styleClass="section-card">
+                                            <padding>
+                                                <Insets top="24" right="24" bottom="24" left="24"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="📊 Αποτελέσματα Προσομοίωσης" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                <TextArea fx:id="simulationResultsArea" prefHeight="300" editable="false" wrapText="true" styleClass="simulation-results"/>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
 
                     </children>
                 </VBox>

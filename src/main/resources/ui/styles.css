@@ -1580,3 +1580,16 @@ Button.nav-button:hover {
     -fx-text-fill: #1e40af !important;
 }
 
+/* Simulation Results */
+.simulation-results {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 2px;
+    -fx-border-radius: 12px;
+    -fx-padding: 16px;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 14px;
+    -fx-text-fill: #1e293b;
+    -fx-line-spacing: 4px;
+}
+

@@ -335,6 +335,8 @@ public class HomeController {
     @FXML
     private VBox statisticsView;
     @FXML
+    private VBox projectionsView;
+    @FXML
     private Button exploreTotalButton;
     @FXML
     private Button exploreMinistryButton;
@@ -434,6 +436,32 @@ public class HomeController {
     private TableColumn<Map<String, Object>, Double> statsOutlierValueColumn;
     @FXML
     private TableColumn<Map<String, Object>, Double> statsOutlierZScoreColumn;
+    
+    // Projections/Simulations View
+    @FXML
+    private ComboBox<String> simulationBaseYearComboBox;
+    @FXML
+    private Button loadSimulationDataButton;
+    @FXML
+    private TextField revenueIncreasePercentField;
+    @FXML
+    private TextField expenseDecreasePercentField;
+    @FXML
+    private TextField combinedRevenueChangeField;
+    @FXML
+    private TextField combinedExpenseChangeField;
+    @FXML
+    private ComboBox<String> simulationFutureYearComboBox;
+    @FXML
+    private TextField revenueTrendField;
+    @FXML
+    private TextField expenseTrendField;
+    @FXML
+    private TextArea simulationResultsArea;
+    
+    private int simulationBaseYear = Calendar.getInstance().get(Calendar.YEAR);
+    private double simulationBaseRevenue = 0;
+    private double simulationBaseExpense = 0;
     
     // Filtered data for search/filter
     private ObservableList<CategoryData> allDataManagementItems = FXCollections.observableArrayList();
@@ -2439,7 +2467,174 @@ public class HomeController {
     
     @FXML
     private void onNavigateProjections() {
-        // Coming soon 
+        if (projectionsView == null) {
+            return;
+        }
+        showView(projectionsView);
+        
+        // Initialize year combo boxes if empty
+        if (simulationBaseYearComboBox != null && simulationBaseYearComboBox.getItems().isEmpty()) {
+            List<String> availableYears = getAvailableYearsFromDatabase();
+            simulationBaseYearComboBox.getItems().addAll(availableYears);
+            simulationFutureYearComboBox.getItems().addAll(availableYears);
+            
+            if (!availableYears.isEmpty()) {
+                int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+                simulationBaseYearComboBox.setValue(String.valueOf(currentYear));
+                if (availableYears.contains(String.valueOf(currentYear + 1))) {
+                    simulationFutureYearComboBox.setValue(String.valueOf(currentYear + 1));
+                } else if (!availableYears.isEmpty()) {
+                    simulationFutureYearComboBox.setValue(availableYears.get(0));
+                }
+            }
+        }
+        
+        // Clear results
+        if (simulationResultsArea != null) {
+            simulationResultsArea.clear();
+        }
+    }
+    
+    @FXML
+    private void onLoadSimulationData() {
+        if (simulationBaseYearComboBox == null || simulationBaseYearComboBox.getValue() == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Παρακαλώ επιλέξτε έτος");
+            alert.setContentText("Πρέπει να επιλέξετε ένα έτος για να φορτώσουν τα βασικά δεδομένα.");
+            alert.showAndWait();
+            return;
+        }
+        
+        try {
+            int year = Integer.parseInt(simulationBaseYearComboBox.getValue());
+            BudgetDataService service = BudgetDataService.getInstance();
+            
+            simulationBaseYear = year;
+            simulationBaseRevenue = service.getTotalRevenues(year);
+            simulationBaseExpense = service.getTotalExpenses(year);
+            
+            if (simulationResultsArea != null) {
+                simulationResultsArea.setText("✅ Δεδομένα φορτώθηκαν επιτυχώς!\n\n" +
+                    "Έτος: " + year + "\n" +
+                    "Συνολικά Έσοδα: " + BudgetAmountFormatter.formatCurrency(simulationBaseRevenue) + "\n" +
+                    "Συνολικές Δαπάνες: " + BudgetAmountFormatter.formatCurrency(simulationBaseExpense) + "\n" +
+                    "Ισοζύγιο: " + BudgetAmountFormatter.formatCurrency(simulationBaseRevenue - simulationBaseExpense) + "\n\n" +
+                    "Επιλέξτε ένα σενάριο για να δείτε τα αποτελέσματα.");
+            }
+        } catch (NumberFormatException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Μη έγκυρο έτος");
+            alert.setContentText("Παρακαλώ επιλέξτε έγκυρο έτος.");
+            alert.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Σφάλμα φόρτωσης δεδομένων");
+            alert.setContentText("Δεν ήταν δυνατή η φόρτωση των δεδομένων: " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+    
+    @FXML
+    private void onSimulateRevenueIncrease() {
+        if (simulationBaseRevenue == 0 || simulationBaseExpense == 0) {
+            showSimulationError("Παρακαλώ φορτώστε πρώτα τα βασικά δεδομένα.");
+            return;
+        }
+        
+        try {
+            double percent = Double.parseDouble(revenueIncreasePercentField.getText());
+            String result = BudgetSimulations.simulateRevenueIncrease(
+                simulationBaseRevenue, simulationBaseExpense, percent
+            );
+            if (simulationResultsArea != null) {
+                simulationResultsArea.setText(result);
+            }
+        } catch (NumberFormatException e) {
+            showSimulationError("Παρακαλώ εισάγετε έγκυρο ποσοστό (π.χ. 5.0 για 5%).");
+        }
+    }
+    
+    @FXML
+    private void onSimulateExpenseDecrease() {
+        if (simulationBaseRevenue == 0 || simulationBaseExpense == 0) {
+            showSimulationError("Παρακαλώ φορτώστε πρώτα τα βασικά δεδομένα.");
+            return;
+        }
+        
+        try {
+            double percent = Double.parseDouble(expenseDecreasePercentField.getText());
+            String result = BudgetSimulations.simulateExpenseDecrease(
+                simulationBaseRevenue, simulationBaseExpense, percent
+            );
+            if (simulationResultsArea != null) {
+                simulationResultsArea.setText(result);
+            }
+        } catch (NumberFormatException e) {
+            showSimulationError("Παρακαλώ εισάγετε έγκυρο ποσοστό (π.χ. 10.0 για 10%).");
+        }
+    }
+    
+    @FXML
+    private void onSimulateCombined() {
+        if (simulationBaseRevenue == 0 || simulationBaseExpense == 0) {
+            showSimulationError("Παρακαλώ φορτώστε πρώτα τα βασικά δεδομένα.");
+            return;
+        }
+        
+        try {
+            double revenueChange = Double.parseDouble(combinedRevenueChangeField.getText());
+            double expenseChange = Double.parseDouble(combinedExpenseChangeField.getText());
+            String result = BudgetSimulations.simulateCombinedScenario(
+                simulationBaseRevenue, simulationBaseExpense, revenueChange, expenseChange
+            );
+            if (simulationResultsArea != null) {
+                simulationResultsArea.setText(result);
+            }
+        } catch (NumberFormatException e) {
+            showSimulationError("Παρακαλώ εισάγετε έγκυρα ποσοστά (π.χ. 3.0 ή -2.0).");
+        }
+    }
+    
+    @FXML
+    private void onSimulateFutureYear() {
+        if (simulationBaseRevenue == 0 || simulationBaseExpense == 0) {
+            showSimulationError("Παρακαλώ φορτώστε πρώτα τα βασικά δεδομένα.");
+            return;
+        }
+        
+        if (simulationFutureYearComboBox == null || simulationFutureYearComboBox.getValue() == null) {
+            showSimulationError("Παρακαλώ επιλέξτε μελλοντικό έτος.");
+            return;
+        }
+        
+        try {
+            int futureYear = Integer.parseInt(simulationFutureYearComboBox.getValue());
+            double revenueTrend = Double.parseDouble(revenueTrendField.getText());
+            double expenseTrend = Double.parseDouble(expenseTrendField.getText());
+            
+            String result = BudgetSimulations.simulateFutureYear(
+                simulationBaseYear, futureYear,
+                simulationBaseRevenue, simulationBaseExpense,
+                revenueTrend, expenseTrend
+            );
+            if (simulationResultsArea != null) {
+                simulationResultsArea.setText(result);
+            }
+        } catch (NumberFormatException e) {
+            showSimulationError("Παρακαλώ εισάγετε έγκυρες τιμές για τις τάσεις (σε €).");
+        }
+    }
+    
+    private void showSimulationError(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Σφάλμα");
+        alert.setHeaderText("Σφάλμα Προσομοίωσης");
+        alert.setContentText(message);
+        alert.showAndWait();
     }
     
     @FXML
@@ -2733,6 +2928,10 @@ public class HomeController {
         if (statisticsView != null) {
             statisticsView.setVisible(false);
             statisticsView.setManaged(false);
+        }
+        if (projectionsView != null) {
+            projectionsView.setVisible(false);
+            projectionsView.setManaged(false);
         }
         
         // Show selected view
