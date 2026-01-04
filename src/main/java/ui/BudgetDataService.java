@@ -424,5 +424,223 @@ public class BudgetDataService {
         public double getAmount() { return amount; }
         public double getPercentage() { return percentage; }
     }
+    
+    /**
+     * Get revenue values across multiple years for statistical analysis.
+     * 
+     * @param startYear Starting year (inclusive)
+     * @param endYear Ending year (inclusive)
+     * @return Array of revenue values, or null if insufficient data    
+     */
+    public double[] getRevenuesAcrossYears(int startYear, int endYear) {
+        List<Double> revenues = new ArrayList<>();
+        for (int year = startYear; year <= endYear; year++) {
+            double revenue = getTotalRevenues(year);
+            if (revenue > 0) {
+                revenues.add(revenue);
+            }
+        }
+        
+        if (revenues.size() < 2) {
+            return null;
+        }
+        
+        return revenues.stream().mapToDouble(Double::doubleValue).toArray();
+    }
+    
+    /**
+     * Get expense values across multiple years for statistical analysis.
+     * 
+     * @param startYear Starting year (inclusive)
+     * @param endYear Ending year (inclusive)
+     * @return Array of expense values, or null if insufficient data    
+     */
+    public double[] getExpensesAcrossYears(int startYear, int endYear) {
+        List<Double> expenses = new ArrayList<>();
+        for (int year = startYear; year <= endYear; year++) {
+            double expense = getTotalExpenses(year);
+            if (expense > 0) {
+                expenses.add(expense);
+            }
+        }
+        
+        if (expenses.size() < 2) {
+            return null;
+        }
+        
+        return expenses.stream().mapToDouble(Double::doubleValue).toArray();
+    }
+    
+    /**
+     * Calculate correlation between revenues and expenses across years.
+     * 
+     * @param startYear Starting year (inclusive)
+     * @param endYear Ending year (inclusive)
+     * @return Correlation coefficient, or Double.NaN if insufficient data
+     */
+    public double calculateRevenueExpenseCorrelation(int startYear, int endYear) {
+        double[] revenues = getRevenuesAcrossYears(startYear, endYear); 
+        double[] expenses = getExpensesAcrossYears(startYear, endYear); 
+        
+        if (revenues == null || expenses == null || 
+            revenues.length != expenses.length || 
+            revenues.length < 2) {
+            return Double.NaN;
+        }
+        
+        return StatisticalAnalysis.calculateCorrelation(revenues, expenses);
+    }
+    
+    /**
+     * Get statistical summary for revenues across multiple years.      
+     * 
+     * @param startYear Starting year (inclusive)
+     * @param endYear Ending year (inclusive)
+     * @return Statistical summary string, or null if insufficient data
+     */
+    public String getRevenuesStatisticalSummary(int startYear, int endYear) {
+        double[] revenues = getRevenuesAcrossYears(startYear, endYear); 
+        if (revenues == null) {
+            return null;
+        }
+        return StatisticalAnalysis.generateStatisticalSummary(revenues);
+    }
+    
+    /**
+     * Get statistical summary for expenses across multiple years.      
+     * 
+     * @param startYear Starting year (inclusive)
+     * @param endYear Ending year (inclusive)
+     * @return Statistical summary string, or null if insufficient data 
+     */
+    public String getExpensesStatisticalSummary(int startYear, int endYear) {
+        double[] expenses = getExpensesAcrossYears(startYear, endYear); 
+        if (expenses == null) {
+            return null;
+        }
+        return StatisticalAnalysis.generateStatisticalSummary(expenses);
+    }
+    
+    /**
+     * Identify outliers in revenue changes across years.
+     * 
+     * @param startYear Starting year (inclusive)
+     * @param endYear Ending year (inclusive)
+     * @return List of outlier revenue values, or empty list if insufficient data
+     */
+    public List<Double> identifyRevenueOutliers(int startYear, int endYear) {
+        double[] revenues = getRevenuesAcrossYears(startYear, endYear); 
+        if (revenues == null) {
+            return new ArrayList<>();
+        }
+        return StatisticalAnalysis.identifyOutliers(revenues);
+    }
+    
+    /**
+     * Identify outliers in expense changes across years.
+     * 
+     * @param startYear Starting year (inclusive)
+     * @param endYear Ending year (inclusive)
+     * @return List of outlier expense values, or empty list if insufficient data
+     */
+    public List<Double> identifyExpenseOutliers(int startYear, int endYear) {
+        double[] expenses = getExpensesAcrossYears(startYear, endYear); 
+        if (expenses == null) {
+            return new ArrayList<>();
+        }
+        return StatisticalAnalysis.identifyOutliers(expenses);
+    }
+    
+    /**
+     * Calculate linear regression for revenue trends across years.     
+     * Returns slope and intercept for predicting future revenues.      
+     * 
+     * @param startYear Starting year (inclusive)
+     * @param endYear Ending year (inclusive)
+     * @return Array with [slope, intercept], or null if insufficient data
+     */
+    public double[] calculateRevenueTrend(int startYear, int endYear) { 
+        List<Double> revenues = new ArrayList<>();
+        List<Double> years = new ArrayList<>();
+        
+        for (int year = startYear; year <= endYear; year++) {
+            double revenue = getTotalRevenues(year);
+            if (revenue > 0) {
+                revenues.add(revenue);
+                years.add((double) year);
+            }
+        }
+        
+        if (revenues.size() < 2) {
+            return null;
+        }
+        
+        double[] yearArray = years.stream().mapToDouble(Double::doubleValue).toArray();
+        double[] revenueArray = revenues.stream().mapToDouble(Double::doubleValue).toArray();
+        
+        return StatisticalAnalysis.calculateLinearRegression(yearArray, revenueArray);
+    }
+    
+    /**
+     * Calculate linear regression for expense trends across years.     
+     * Returns slope and intercept for predicting future expenses.      
+     * 
+     * @param startYear Starting year (inclusive)
+     * @param endYear Ending year (inclusive)
+     * @return Array with [slope, intercept], or null if insufficient data
+     */
+    public double[] calculateExpenseTrend(int startYear, int endYear) { 
+        List<Double> expenses = new ArrayList<>();
+        List<Double> years = new ArrayList<>();
+        
+        for (int year = startYear; year <= endYear; year++) {
+            double expense = getTotalExpenses(year);
+            if (expense > 0) {
+                expenses.add(expense);
+                years.add((double) year);
+            }
+        }
+        
+        if (expenses.size() < 2) {
+            return null;
+        }
+        
+        double[] yearArray = years.stream().mapToDouble(Double::doubleValue).toArray();
+        double[] expenseArray = expenses.stream().mapToDouble(Double::doubleValue).toArray();
+        
+        return StatisticalAnalysis.calculateLinearRegression(yearArray, expenseArray);
+    }
+    
+    /**
+     * Get coefficient of variation for revenues across years.
+     * Higher CV indicates more variability in revenue.
+     * 
+     * @param startYear Starting year (inclusive)
+     * @param endYear Ending year (inclusive)
+     * @return Coefficient of variation as percentage, or Double.NaN if insufficient data
+     */
+    public double getRevenuesCoefficientOfVariation(int startYear, int endYear) {
+        double[] revenues = getRevenuesAcrossYears(startYear, endYear); 
+        if (revenues == null) {
+            return Double.NaN;
+        }
+        return StatisticalAnalysis.calculateCoefficientOfVariation(revenues);
+    }
+    
+    /**
+     * Get coefficient of variation for expenses across years.
+     * Higher CV indicates more variability in expenses.
+     * 
+     * @param startYear Starting year (inclusive)
+     * @param endYear Ending year (inclusive)
+     * @return Coefficient of variation as percentage, or Double.NaN if insufficient data
+     */
+    public double getExpensesCoefficientOfVariation(int startYear, int endYear) {
+        double[] expenses = getExpensesAcrossYears(startYear, endYear); 
+        if (expenses == null) {
+            return Double.NaN;
+        }
+        return StatisticalAnalysis.calculateCoefficientOfVariation(expenses);
+    }
 }
 
