@@ -11,10 +11,22 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Set;
 
+/**
+ * Class responsible for inserting budget data into the database.
+ * Reads data from CSV files and inserts it into the appropriate database tables.
+ * Supports data insertion for years 2023, 2024, 2025, and 2026.
+ * Handles revenues, expenses, ministries, decentralized administrations, and budget summaries.
+ */
 public class SQLinserter {
   
     // ------------------ 2026 ------------------ //
 
+    /**
+     * Inserts revenue data for year 2026 into the database.
+     * Reads data from proipologismos2026.csv file.
+     * 
+     * @throws Exception if there is an error reading the CSV file or inserting data
+     */
     void insertRevenue2026() throws Exception {
          try {
             Connection connection = DatabaseConnection.getConnection();

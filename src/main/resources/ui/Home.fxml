@@ -401,6 +401,8 @@
                                                 <Button text="➕ Προσθήκη" onAction="#onAddData" styleClass="action-button primary-action" prefWidth="140" prefHeight="40"/>
                                                 <Button text="📥 Εισαγωγή" onAction="#onImportData" styleClass="action-button" prefWidth="130" prefHeight="40"/>
                                                 <Button text="📤 Εξαγωγή" onAction="#onExportData" styleClass="action-button" prefWidth="120" prefHeight="40"/>
+                                                <Button text="💾 Αποθήκευση Scenario" onAction="#onSaveScenario" styleClass="action-button" prefWidth="180" prefHeight="40"/>
+                                                <Button text="📂 Φόρτωση Scenario" onAction="#onLoadScenario" styleClass="action-button" prefWidth="170" prefHeight="40"/>
                                                 <Region HBox.hgrow="ALWAYS"/>
                                             </children>
                                         </HBox>

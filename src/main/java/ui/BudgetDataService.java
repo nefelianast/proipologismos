@@ -9,6 +9,12 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.*;
 
+/**
+ * Singleton service class for managing budget data.
+ * Provides access to budget data for different years, including revenues, expenses,
+ * categories, ministries, and decentralized administrations.
+ * Loads data from JSON files or uses sample data as fallback.
+ */
 public class BudgetDataService {
     
     private static BudgetDataService instance;

@@ -31,28 +31,59 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.DoubleProperty;
 
+/**
+ * Main controller for the home screen of the Budget Analysis System.
+ * Manages data display, user interactions, and navigation between different views.
+ * Supports both citizen and government user types with different access levels.
+ */
 public class HomeController {
     
+    /**
+     * Enum representing the type of user accessing the system.
+     */
     public enum UserType {
+        /** Regular citizen user with read-only access */
         CITIZEN,
+        /** Government user with full access including editing capabilities */
         GOVERNMENT
     }
     
-    private static UserType currentUserType = UserType.CITIZEN; // Default to citizen
+    /**
+     * Current user type (defaults to CITIZEN)
+     */
+    private static UserType currentUserType = UserType.CITIZEN;
     
+    /**
+     * Sets the current user type.
+     * 
+     * @param userType The user type to set (CITIZEN or GOVERNMENT)
+     */
     public static void setUserType(UserType userType) {
         currentUserType = userType;
     }
     
+    /**
+     * Gets the current user type.
+     * 
+     * @return The current UserType
+     */
     public static UserType getUserType() {
         return currentUserType;
     }
     
+    /**
+     * Checks if the current user is a government user.
+     * 
+     * @return true if the user is a government user, false otherwise
+     */
     public static boolean isGovernmentUser() {
         return currentUserType == UserType.GOVERNMENT;
     }
 
-    // Inner class for table data
+    /**
+     * Inner class representing category data for table display.
+     * Contains information about budget categories including amounts, percentages, and changes.
+     */
     public static class CategoryData {
         private final StringProperty category;
         private final DoubleProperty amount;
@@ -406,6 +437,8 @@ public class HomeController {
     
 
     private BudgetDataService dataService;
+    private DataPersistenceService persistenceService;
+    private DataExportImportService exportImportService;
     
     /**
      * Check if a year allows modifications (current year or future years only)
@@ -532,6 +565,29 @@ public class HomeController {
             if (hasSelection) {
                 int year = extractYearFromData(newSelection);
                 isEditable = isYearEditable(year);
+                
+                // Load comments for selected category
+                if (internalCommentsArea != null && persistenceService != null) {
+                    String categoryName = newSelection.getCategory();
+                    String comments = persistenceService.getComment(categoryName, year);
+                    if (comments != null) {
+                        internalCommentsArea.setText(comments);
+                        newSelection.setComments(comments);
+                    } else {
+                        // Load from CategoryData if exists
+                        String existingComments = newSelection.getComments();
+                        if (existingComments != null && !existingComments.isEmpty()) {
+                            internalCommentsArea.setText(existingComments);
+                        } else {
+                            internalCommentsArea.clear();
+                        }
+                    }
+                }
+            } else {
+                // Clear comments area when no selection
+                if (internalCommentsArea != null) {
+                    internalCommentsArea.clear();
+                }
             }
             
             if (editDataButton != null) editDataButton.setDisable(!hasSelection || !isEditable);
@@ -599,6 +655,8 @@ public class HomeController {
     private void initialize() {
         // Initialize data service
         dataService = BudgetDataService.getInstance();
+        persistenceService = DataPersistenceService.getInstance();
+        exportImportService = DataExportImportService.getInstance();
         
         // Initialize published years table
         initializePublishedYearsTable();
@@ -2669,6 +2727,8 @@ public class HomeController {
         fileChooser.setTitle("Επιλέξτε Αρχείο για Εισαγωγή");
         fileChooser.getExtensionFilters().addAll(
             new FileChooser.ExtensionFilter("CSV Files", "*.csv"),
+            new FileChooser.ExtensionFilter("JSON Files", "*.json"),
+            new FileChooser.ExtensionFilter("XML Files", "*.xml"),
             new FileChooser.ExtensionFilter("Excel Files", "*.xlsx", "*.xls"),
             new FileChooser.ExtensionFilter("All Files", "*.*")
         );
@@ -2680,8 +2740,34 @@ public class HomeController {
             try {
                 String fileName = file.getName().toLowerCase();
                 int importedCount = 0;
+                boolean isUserDataImport = false;
                 
-                if (fileName.endsWith(".csv")) {
+                if (fileName.endsWith(".json")) {
+                    // Import user data (comments, scenarios, preferences)
+                    boolean success = exportImportService.importFromJSON(file.getAbsolutePath());
+                    if (success) {
+                        isUserDataImport = true;
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Εισαγωγή Δεδομένων");
+                        alert.setHeaderText("Επιτυχής Εισαγωγή");
+                        alert.setContentText("Εισήχθησαν επιτυχώς τα δεδομένα (σχόλια, scenarios, preferences) από το αρχείο " + file.getName() + ".\nΠαρακαλώ ανανεώστε την προβολή για να δείτε τις αλλαγές.");
+                        alert.showAndWait();
+                        
+                        // Refresh data if needed
+                        if (selectedYear != null) {
+                            onYearSelected(null);
+                        }
+                    } else {
+                        throw new Exception("Αποτυχία εισαγωγής JSON");
+                    }
+                } else if (fileName.endsWith(".xml")) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Εισαγωγή Δεδομένων");
+                    alert.setHeaderText("Μη υποστηριζόμενη μορφή");
+                    alert.setContentText("Η εισαγωγή από XML δεν είναι ακόμα διαθέσιμη. Παρακαλώ χρησιμοποιήστε JSON.");
+                    alert.showAndWait();
+                    return;
+                } else if (fileName.endsWith(".csv")) {
                     importedCount = importFromCSV(file);
                 } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
                     // For Excel files, we'll show a message that it's not fully implemented yet
@@ -2695,25 +2781,27 @@ public class HomeController {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Σφάλμα");
                     alert.setHeaderText("Μη υποστηριζόμενος τύπος αρχείου");
-                    alert.setContentText("Παρακαλώ επιλέξτε CSV αρχείο (.csv)");
+                    alert.setContentText("Παρακαλώ επιλέξτε CSV, JSON ή XML αρχείο");
                     alert.showAndWait();
                     return;
                 }
                 
-                if (importedCount > 0) {
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Εισαγωγή Αρχείου");
-                    alert.setHeaderText("Επιτυχής Εισαγωγή");
-                    alert.setContentText("Εισήχθησαν " + importedCount + " εγγραφές από το αρχείο " + file.getName());
-                    alert.showAndWait();
-                    
-                    loadDataManagementTable();
-                } else {
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setTitle("Εισαγωγή Αρχείου");
-                    alert.setHeaderText("Καμία εγγραφή");
-                    alert.setContentText("Δεν βρέθηκαν δεδομένα προς εισαγωγή στο αρχείο.");
-                    alert.showAndWait();
+                if (!isUserDataImport) {
+                    if (importedCount > 0) {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Εισαγωγή Αρχείου");
+                        alert.setHeaderText("Επιτυχής Εισαγωγή");
+                        alert.setContentText("Εισήχθησαν " + importedCount + " εγγραφές από το αρχείο " + file.getName());
+                        alert.showAndWait();
+                        
+                        loadDataManagementTable();
+                    } else {
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        alert.setTitle("Εισαγωγή Αρχείου");
+                        alert.setHeaderText("Καμία εγγραφή");
+                        alert.setContentText("Δεν βρέθηκαν δεδομένα προς εισαγωγή στο αρχείο.");
+                        alert.showAndWait();
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -2773,12 +2861,49 @@ public class HomeController {
     
     @FXML
     private void onSaveComments() {
-        if (internalCommentsArea != null) {
-            String comments = internalCommentsArea.getText();
+        if (internalCommentsArea == null) {
+            return;
+        }
+        
+        CategoryData selected = getSelectedItemFromTables();
+        if (selected == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Αποθήκευση Σχολίων");
+            alert.setHeaderText("Καμία επιλογή");
+            alert.setContentText("Παρακαλώ επιλέξτε μια κατηγορία για να αποθηκεύσετε σχόλια.");
+            alert.showAndWait();
+            return;
+        }
+        
+        String comments = internalCommentsArea.getText();
+        String categoryName = selected.getCategory();
+        int year = extractYearFromData(selected);
+        
+        if (year == -1) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Δεν ήταν δυνατή η αποθήκευση");
+            alert.setContentText("Δεν ήταν δυνατή η εξαγωγή του έτους από τα δεδομένα.");
+            alert.showAndWait();
+            return;
+        }
+        
+        boolean success = persistenceService.saveComment(categoryName, year, comments);
+        
+        if (success) {
+            // Update the CategoryData object as well
+            selected.setComments(comments);
+            
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Αποθήκευση Σχολίων");
             alert.setHeaderText("Επιτυχής Αποθήκευση");
-            alert.setContentText("Τα εσωτερικά σχόλια (" + comments.length() + " χαρακτήρες) αποθηκεύτηκαν επιτυχώς.");
+            alert.setContentText("Τα εσωτερικά σχόλια (" + comments.length() + " χαρακτήρες) αποθηκεύτηκαν επιτυχώς στη βάση δεδομένων.");
+            alert.showAndWait();
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Δεν ήταν δυνατή η αποθήκευση");
+            alert.setContentText("Προέκυψε σφάλμα κατά την αποθήκευση των σχολίων στη βάση δεδομένων.");
             alert.showAndWait();
         }
     }
@@ -2798,6 +2923,8 @@ public class HomeController {
         fileChooser.setTitle("Εξαγωγή Δεδομένων");
         fileChooser.getExtensionFilters().addAll(
             new FileChooser.ExtensionFilter("CSV Files", "*.csv"),
+            new FileChooser.ExtensionFilter("JSON Files", "*.json"),
+            new FileChooser.ExtensionFilter("XML Files", "*.xml"),
             new FileChooser.ExtensionFilter("All Files", "*.*")
         );
         
@@ -2805,32 +2932,60 @@ public class HomeController {
         java.io.File file = fileChooser.showSaveDialog(stage);
         
         if (file != null) {
+            String fileName = file.getName().toLowerCase();
             try {
-                java.io.FileWriter writer = new java.io.FileWriter(file);
-                
-                // Write header
-                writer.append("Κατηγορία,Ποσό (€),Συμμετοχή (%),Τύπος,Αλλαγή από Προηγ. Έτος,Κατάσταση\n");
-                
-                // Write data
-                for (CategoryData item : dataManagementTable.getItems()) {
-                    writer.append(String.format("\"%s\",%.2f,%.2f,\"%s\",\"%s\",\"%s\"\n",
-                        item.getCategory(),
-                        item.getAmount(),
-                        item.getPercentage(),
-                        item.getType(),
-                        item.getChangeFromPrevious(),
-                        item.getStatus()
-                    ));
+                if (fileName.endsWith(".json")) {
+                    // Export to JSON using export service
+                    boolean success = exportImportService.exportToJSON(file.getAbsolutePath());
+                    if (success) {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Εξαγωγή Δεδομένων");
+                        alert.setHeaderText("Επιτυχής Εξαγωγή");
+                        alert.setContentText("Εξήχθησαν όλα τα δεδομένα (σχόλια, scenarios, preferences) στο αρχείο " + file.getName());
+                        alert.showAndWait();
+                    } else {
+                        throw new Exception("Αποτυχία εξαγωγής JSON");
+                    }
+                } else if (fileName.endsWith(".xml")) {
+                    // Export to XML using export service
+                    boolean success = exportImportService.exportToXML(file.getAbsolutePath());
+                    if (success) {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Εξαγωγή Δεδομένων");
+                        alert.setHeaderText("Επιτυχής Εξαγωγή");
+                        alert.setContentText("Εξήχθησαν όλα τα δεδομένα (σχόλια, scenarios, preferences) στο αρχείο " + file.getName());
+                        alert.showAndWait();
+                    } else {
+                        throw new Exception("Αποτυχία εξαγωγής XML");
+                    }
+                } else {
+                    // Default CSV export
+                    java.io.FileWriter writer = new java.io.FileWriter(file);
+                    
+                    // Write header
+                    writer.append("Κατηγορία,Ποσό (€),Συμμετοχή (%),Τύπος,Αλλαγή από Προηγ. Έτος,Κατάσταση\n");
+                    
+                    // Write data
+                    for (CategoryData item : dataManagementTable.getItems()) {
+                        writer.append(String.format("\"%s\",%.2f,%.2f,\"%s\",\"%s\",\"%s\"\n",
+                            item.getCategory(),
+                            item.getAmount(),
+                            item.getPercentage(),
+                            item.getType(),
+                            item.getChangeFromPrevious(),
+                            item.getStatus()
+                        ));
+                    }
+                    
+                    writer.flush();
+                    writer.close();
+                    
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Εξαγωγή Δεδομένων");
+                    alert.setHeaderText("Επιτυχής Εξαγωγή");
+                    alert.setContentText("Εξήχθησαν " + dataManagementTable.getItems().size() + " εγγραφές στο αρχείο " + file.getName());
+                    alert.showAndWait();
                 }
-                
-                writer.flush();
-                writer.close();
-                
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Εξαγωγή Δεδομένων");
-                alert.setHeaderText("Επιτυχής Εξαγωγή");
-                alert.setContentText("Εξήχθησαν " + dataManagementTable.getItems().size() + " εγγραφές στο αρχείο " + file.getName());
-                alert.showAndWait();
             } catch (Exception e) {
                 e.printStackTrace();
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -2840,6 +2995,219 @@ public class HomeController {
                 alert.showAndWait();
             }
         }
+    }
+    
+    /**
+     * Handles saving a scenario
+     */
+    @FXML
+    private void onSaveScenario() {
+        if (selectedYear == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Αποθήκευση Scenario");
+            alert.setHeaderText("Καμία επιλογή");
+            alert.setContentText("Παρακαλώ επιλέξτε ένα έτος πρώτα.");
+            alert.showAndWait();
+            return;
+        }
+        
+        Dialog<Map<String, String>> dialog = new Dialog<>();
+        dialog.setTitle("Αποθήκευση Scenario");
+        dialog.setHeaderText("Αποθηκεύστε το τρέχον scenario");
+        
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+        
+        TextField nameField = new TextField();
+        nameField.setPromptText("Όνομα scenario (π.χ. 'Αύξηση Φόρων 10%')");
+        TextArea descriptionField = new TextArea();
+        descriptionField.setPromptText("Περιγραφή scenario");
+        descriptionField.setPrefRowCount(3);
+        descriptionField.setWrapText(true);
+        
+        grid.add(new Label("Όνομα:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Περιγραφή:"), 0, 1);
+        grid.add(descriptionField, 1, 1);
+        
+        dialog.getDialogPane().setContent(grid);
+        
+        ButtonType saveButton = new ButtonType("Αποθήκευση", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButton, ButtonType.CANCEL);
+        
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButton) {
+                String name = nameField.getText().trim();
+                if (name.isEmpty()) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Σφάλμα");
+                    alert.setHeaderText("Κενό όνομα");
+                    alert.setContentText("Το όνομα του scenario δεν μπορεί να είναι κενό.");
+                    alert.showAndWait();
+                    return null;
+                }
+                
+                Map<String, String> result = new HashMap<>();
+                result.put("name", name);
+                result.put("description", descriptionField.getText().trim());
+                return result;
+            }
+            return null;
+        });
+        
+        java.util.Optional<Map<String, String>> result = dialog.showAndWait();
+        result.ifPresent(data -> {
+            String scenarioName = data.get("name");
+            String description = data.get("description");
+            int year = Integer.parseInt(selectedYear);
+            
+            // Create JSON data for the scenario
+            // This would contain the current state of the budget data
+            try {
+                org.json.JSONObject scenarioData = new org.json.JSONObject();
+                scenarioData.put("year", year);
+                scenarioData.put("totalRevenues", dataService.getTotalRevenues(year));
+                scenarioData.put("totalExpenses", dataService.getTotalExpenses(year));
+                
+                // Add current table data if available
+                if (dataManagementTable != null && !dataManagementTable.getItems().isEmpty()) {
+                    org.json.JSONArray items = new org.json.JSONArray();
+                    for (CategoryData item : dataManagementTable.getItems()) {
+                        org.json.JSONObject itemObj = new org.json.JSONObject();
+                        itemObj.put("category", item.getCategory());
+                        itemObj.put("amount", item.getAmount());
+                        itemObj.put("percentage", item.getPercentage());
+                        items.put(itemObj);
+                    }
+                    scenarioData.put("items", items);
+                }
+                
+                boolean success = persistenceService.saveScenario(scenarioName, description, year, scenarioData.toString());
+                
+                if (success) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Αποθήκευση Scenario");
+                    alert.setHeaderText("Επιτυχής Αποθήκευση");
+                    alert.setContentText("Το scenario '" + scenarioName + "' αποθηκεύτηκε επιτυχώς.");
+                    alert.showAndWait();
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Σφάλμα");
+                    alert.setHeaderText("Δεν ήταν δυνατή η αποθήκευση");
+                    alert.setContentText("Πιθανώς υπάρχει ήδη scenario με αυτό το όνομα. Παρακαλώ επιλέξτε διαφορετικό όνομα.");
+                    alert.showAndWait();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Σφάλμα");
+                alert.setHeaderText("Δεν ήταν δυνατή η αποθήκευση");
+                alert.setContentText("Σφάλμα: " + e.getMessage());
+                alert.showAndWait();
+            }
+        });
+    }
+    
+    /**
+     * Handles loading a saved scenario
+     */
+    @FXML
+    private void onLoadScenario() {
+        List<DataPersistenceService.SavedScenario> scenarios = persistenceService.getAllScenarios();
+        
+        if (scenarios.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Φόρτωση Scenario");
+            alert.setHeaderText("Καμία αποθήκευση");
+            alert.setContentText("Δεν υπάρχουν αποθηκευμένα scenarios.");
+            alert.showAndWait();
+            return;
+        }
+        
+        Dialog<DataPersistenceService.SavedScenario> dialog = new Dialog<>();
+        dialog.setTitle("Φόρτωση Scenario");
+        dialog.setHeaderText("Επιλέξτε scenario προς φόρτωση");
+        
+        ListView<DataPersistenceService.SavedScenario> listView = new ListView<>();
+        ObservableList<DataPersistenceService.SavedScenario> items = FXCollections.observableArrayList(scenarios);
+        listView.setItems(items);
+        listView.setCellFactory(param -> new ListCell<DataPersistenceService.SavedScenario>() {
+            @Override
+            protected void updateItem(DataPersistenceService.SavedScenario item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getScenarioName() + " (" + item.getYear() + ") - " + 
+                           (item.getDescription() != null && !item.getDescription().isEmpty() ? 
+                            item.getDescription() : "Χωρίς περιγραφή"));
+                }
+            }
+        });
+        
+        dialog.getDialogPane().setContent(listView);
+        dialog.getDialogPane().setPrefSize(500, 400);
+        
+        ButtonType loadButton = new ButtonType("Φόρτωση", ButtonBar.ButtonData.OK_DONE);
+        ButtonType deleteButton = new ButtonType("Διαγραφή", ButtonBar.ButtonData.LEFT);
+        dialog.getDialogPane().getButtonTypes().addAll(loadButton, deleteButton, ButtonType.CANCEL);
+        
+        dialog.setResultConverter(dialogButton -> {
+            DataPersistenceService.SavedScenario selected = listView.getSelectionModel().getSelectedItem();
+            if (selected == null) {
+                return null;
+            }
+            
+            if (dialogButton == deleteButton) {
+                // Delete scenario
+                boolean success = persistenceService.deleteScenario(selected.getScenarioName());
+                if (success) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Διαγραφή Scenario");
+                    alert.setHeaderText("Επιτυχής Διαγραφή");
+                    alert.setContentText("Το scenario '" + selected.getScenarioName() + "' διαγράφηκε.");
+                    alert.showAndWait();
+                    // Refresh list
+                    items.remove(selected);
+                }
+                return null;
+            } else if (dialogButton == loadButton) {
+                return selected;
+            }
+            return null;
+        });
+        
+        java.util.Optional<DataPersistenceService.SavedScenario> result = dialog.showAndWait();
+        result.ifPresent(scenario -> {
+            try {
+                // Parse scenario data and apply it
+                org.json.JSONObject scenarioData = new org.json.JSONObject(scenario.getScenarioData());
+                
+                // Update selected year if different
+                int scenarioYear = scenarioData.getInt("year");
+                if (yearComboBox != null && !String.valueOf(scenarioYear).equals(selectedYear)) {
+                    yearComboBox.setValue(String.valueOf(scenarioYear));
+                    selectedYear = String.valueOf(scenarioYear);
+                    onYearSelected(null);
+                }
+                
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Φόρτωση Scenario");
+                alert.setHeaderText("Επιτυχής Φόρτωση");
+                alert.setContentText("Το scenario '" + scenario.getScenarioName() + "' φορτώθηκε επιτυχώς.\n" +
+                                   "Σημείωση: Οι αλλαγές στα δεδομένα θα πρέπει να γίνουν χειροκίνητα.");
+                alert.showAndWait();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Σφάλμα");
+                alert.setHeaderText("Δεν ήταν δυνατή η φόρτωση");
+                alert.setContentText("Σφάλμα: " + e.getMessage());
+                alert.showAndWait();
+            }
+        });
     }
     
     @FXML
