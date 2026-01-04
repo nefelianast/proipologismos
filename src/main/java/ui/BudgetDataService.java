@@ -5,12 +5,9 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.*;
-import java.util.HashMap;
-import java.util.Map;
 import java.math.BigDecimal;
 
 /**
@@ -437,10 +434,9 @@ public class BudgetDataService {
      */
     public Map<String, Double> getRevenueBreakdownForGraphs(int year) {
         Map<String, Double> data = new HashMap<>();
-        String DB_URL = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
         String sql = "SELECT * FROM revenue_" + year; 
 
-        try (Connection conn = DriverManager.getConnection(DB_URL);
+        try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -465,10 +461,9 @@ public class BudgetDataService {
      */
     public Map<String, Double> getExpenseBreakdownForGraphs(int year) {
         Map<String, Double> data = new HashMap<>();
-        String DB_URL = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
         String sql = "SELECT * FROM expenses_" + year;
 
-        try (Connection conn = DriverManager.getConnection(DB_URL);
+        try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -493,10 +488,9 @@ public class BudgetDataService {
      */
     public Map<String, Double> getMinistriesBreakdown(int year) {
         Map<String, Double> data = new HashMap<>();
-        String DB_URL = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
         String sql = "SELECT * FROM ministries_" + year;
 
-        try (Connection conn = DriverManager.getConnection(DB_URL);
+        try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -521,11 +515,10 @@ public class BudgetDataService {
      * Used for pie chart 4 and linear chart.
      */
     public double getTotalAmount(int year, String type) {
-        String DB_URL = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
         String sql = "SELECT " + type + " FROM budget_summary_" + year;
         double amount = 0;
 
-        try (Connection conn = DriverManager.getConnection(DB_URL);
+        try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
