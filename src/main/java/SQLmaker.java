@@ -1,17 +1,44 @@
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import ui.DatabaseConnection;
 
+/**
+ * Class responsible for creating database tables for budget data.
+ * Creates tables for revenues, expenses, ministries, decentralized administrations,
+ * and budget summaries for years 2023, 2024, 2025, and 2026.
+ * After creating tables, automatically populates them with data using SQLinserter.
+ */
 public class SQLmaker {
+    
+    /**
+     * Creates all necessary database tables for budget data storage.
+     * Creates tables for multiple years (2023-2026) including:
+     * - Revenue tables
+     * - Expense tables
+     * - Ministry tables
+     * - Decentralized administration tables
+     * - Budget summary tables
+     * After table creation, automatically inserts data into all tables.
+     */
      public void make() {
-        String DBurl = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-       
-
         try {
-            Connection conn = DriverManager.getConnection(DBurl);
+            Connection conn = DatabaseConnection.getConnection();
+
+            // Check if tables already exist to avoid re-initialization 
+            DatabaseMetaData meta = conn.getMetaData();
+            ResultSet tables = meta.getTables(null, null, "revenue_2025", null);
+            if (tables.next()) {
+                tables.close();
+                System.out.println("Database already initialized. Skipping table creation.");
+                return;
+            }
+            tables.close();
+
+            System.out.println("Initializing database tables...");
             String sql1 = "CREATE TABLE IF NOT EXISTS revenue_2025 ("
         +"total_revenue MONEY PRIMARY KEY,"
         +"taxes MONEY,"
@@ -362,6 +389,38 @@ public class SQLmaker {
             stmt.execute(sql18);
             stmt.execute(sql19);
             stmt.execute(sql20);
+            
+            // Create tables for data persistence (comments, scenarios, preferences)
+            String sql21 = "CREATE TABLE IF NOT EXISTS user_comments (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "category_name TEXT NOT NULL," +
+                "year INTEGER NOT NULL," +
+                "comments TEXT," +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+            
+            String sql22 = "CREATE TABLE IF NOT EXISTS saved_scenarios (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "scenario_name TEXT NOT NULL UNIQUE," +
+                "description TEXT," +
+                "year INTEGER NOT NULL," +
+                "scenario_data TEXT NOT NULL," + // JSON format
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+            
+            String sql23 = "CREATE TABLE IF NOT EXISTS user_preferences (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "preference_key TEXT NOT NULL UNIQUE," +
+                "preference_value TEXT," +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+            
+            stmt.execute(sql21);
+            stmt.execute(sql22);
+            stmt.execute(sql23);
 
             System.out.println("Table created successfully!");
         } catch (SQLException e) {

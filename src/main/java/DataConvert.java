@@ -5,10 +5,24 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Utility class for converting budget PDF files to CSV format.
+ * Extracts text and numbers from PDF pages and applies year-specific fixes
+ * to handle formatting inconsistencies in the source documents.
+ */
 public class DataConvert {
 
+    /**
+     * StringBuilder used to build the CSV output
+     */
     private static StringBuilder csvBuilder;
 
+    /**
+     * Converts a budget PDF file to CSV format for the specified year.
+     * Extracts text and numbers from each page and applies year-specific formatting fixes.
+     * 
+     * @param yearof The year of the budget document to convert (e.g., 2023, 2024, 2025, 2026)
+     */
     public static void convertiontool(int yearof) {
         try {
             File pdfFile = new File("proipologismos" + yearof + ".pdf");

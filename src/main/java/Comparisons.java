@@ -1,16 +1,27 @@
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import ui.DatabaseConnection;
 
-
+/**
+ * Class for comparing budget data between two different years.
+ * Retrieves and displays detailed comparisons of revenues, expenses,
+ * ministries, and decentralized administrations between two specified years.
+ */
 public class Comparisons {
+    
+    /**
+     * Compares budget data between two years and prints detailed comparison tables.
+     * Compares revenues, expenses, ministries, decentralized administrations, and budget summaries.
+     * Displays differences in absolute values and percentages.
+     * 
+     * @param year1 The first year to compare
+     * @param year2 The second year to compare
+     */
     public void comparisons_of_two_years(int year1,int year2) {
-       String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-
        try {
-            Connection connection = DriverManager.getConnection(DB);
+            Connection connection = DatabaseConnection.getConnection();
 
 
 
