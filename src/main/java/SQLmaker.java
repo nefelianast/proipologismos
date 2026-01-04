@@ -5,7 +5,24 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import ui.DatabaseConnection;
 
+/**
+ * Class responsible for creating database tables for budget data.
+ * Creates tables for revenues, expenses, ministries, decentralized administrations,
+ * and budget summaries for years 2023, 2024, 2025, and 2026.
+ * After creating tables, automatically populates them with data using SQLinserter.
+ */
 public class SQLmaker {
+    
+    /**
+     * Creates all necessary database tables for budget data storage.
+     * Creates tables for multiple years (2023-2026) including:
+     * - Revenue tables
+     * - Expense tables
+     * - Ministry tables
+     * - Decentralized administration tables
+     * - Budget summary tables
+     * After table creation, automatically inserts data into all tables.
+     */
      public void make() {
         try {
             Connection conn = DatabaseConnection.getConnection();

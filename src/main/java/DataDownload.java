@@ -4,13 +4,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-//import java.util.Scanner;
-//η κλάση main ειναι γραμμενη προαιρετικά μην μπερδεύεστε
+
+/**
+ * Class responsible for downloading budget PDF files from the Ministry of Finance website.
+ * Downloads budget documents for years 2023, 2024, 2025, and 2026.
+ * After downloading, automatically converts the PDF to CSV format using DataConvert.
+ */
 public class DataDownload 
 {
+    /**
+     * Static field to store the year of the downloaded budget document
+     */
     public static int yearof;
 
-
+    /**
+     * Downloads budget PDF files for all available years (2023-2026) from the Ministry of Finance website.
+     * Each PDF is saved locally and then automatically converted to CSV format.
+     * 
+     * @throws IOException if there is an error during the download or file operations
+     */
 	public void Download() throws IOException
 	{
 		//Scanner scan = new Scanner(System.in);

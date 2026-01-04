@@ -31,28 +31,59 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.DoubleProperty;
 
+/**
+ * Main controller for the home screen of the Budget Analysis System.
+ * Manages data display, user interactions, and navigation between different views.
+ * Supports both citizen and government user types with different access levels.
+ */
 public class HomeController {
     
+    /**
+     * Enum representing the type of user accessing the system.
+     */
     public enum UserType {
+        /** Regular citizen user with read-only access */
         CITIZEN,
+        /** Government user with full access including editing capabilities */
         GOVERNMENT
     }
     
-    private static UserType currentUserType = UserType.CITIZEN; // Default to citizen
+    /**
+     * Current user type (defaults to CITIZEN)
+     */
+    private static UserType currentUserType = UserType.CITIZEN;
     
+    /**
+     * Sets the current user type.
+     * 
+     * @param userType The user type to set (CITIZEN or GOVERNMENT)
+     */
     public static void setUserType(UserType userType) {
         currentUserType = userType;
     }
     
+    /**
+     * Gets the current user type.
+     * 
+     * @return The current UserType
+     */
     public static UserType getUserType() {
         return currentUserType;
     }
     
+    /**
+     * Checks if the current user is a government user.
+     * 
+     * @return true if the user is a government user, false otherwise
+     */
     public static boolean isGovernmentUser() {
         return currentUserType == UserType.GOVERNMENT;
     }
 
-    // Inner class for table data
+    /**
+     * Inner class representing category data for table display.
+     * Contains information about budget categories including amounts, percentages, and changes.
+     */
     public static class CategoryData {
         private final StringProperty category;
         private final DoubleProperty amount;

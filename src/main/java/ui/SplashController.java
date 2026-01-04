@@ -14,6 +14,10 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * Controller for the splash screen.
+ * Displays animated logo and title, then automatically transitions to the login screen.
+ */
 public class SplashController {
     
     @FXML

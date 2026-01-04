@@ -15,6 +15,11 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Controller for the login screen.
+ * Handles user type selection (citizen or government) and authentication.
+ * Citizens can access the application directly, while government users must provide credentials.
+ */
 public class LoginController {
 
     @FXML
