@@ -4294,5 +4294,5 @@ public class HomeController {
             if (dataManagementTable != null) dataManagementTable.getSelectionModel().clearSelection();
         }
     }
-
 }
+

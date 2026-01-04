@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.*;
+import java.math.BigDecimal;
 
 /**
  * Singleton service class for managing budget data.
@@ -425,6 +426,125 @@ public class BudgetDataService {
         public double getPercentage() { return percentage; }
     }
     
+    // ========== METHODS FOR GRAPHS (from graphs branch) ==========
+    
+    /**
+     * Get revenue breakdown as Map for graphs/charts.
+     * Returns Map: Category -> Amount
+     */
+    public Map<String, Double> getRevenueBreakdownForGraphs(int year) {
+        Map<String, Double> data = new HashMap<>();
+        String sql = "SELECT * FROM revenue_" + year; 
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                data.put("Φόροι", safeGet(rs, "taxes"));
+                data.put("Εισφορές", safeGet(rs, "social_contributions"));
+                data.put("Μεταβιβάσεις", safeGet(rs, "transfers"));
+                data.put("Πωλήσεις Αγαθών", safeGet(rs, "sales_of_goods_and_services"));
+                data.put("Άλλα Έσοδα", safeGet(rs, "other_current_revenue"));
+                data.put("Πάγια", safeGet(rs, "fixed_assets"));
+                data.put("Δάνεια", safeGet(rs, "loans"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading revenues for " + year + ": " + e.getMessage());
+        }
+        return data;
+    }
+
+    /**
+     * Get expense breakdown as Map for graphs/charts.
+     * Returns Map: Category -> Amount
+     */
+    public Map<String, Double> getExpenseBreakdownForGraphs(int year) {
+        Map<String, Double> data = new HashMap<>();
+        String sql = "SELECT * FROM expenses_" + year;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                data.put("Μισθοί", safeGet(rs, "employee_benefits"));
+                data.put("Κοινωνικές Παροχές", safeGet(rs, "social_benefits"));
+                data.put("Μεταβιβάσεις", safeGet(rs, "transfers"));
+                data.put("Αγορές Αγαθών", safeGet(rs, "purchases_of_goods_and_services"));
+                data.put("Επιδοτήσεις", safeGet(rs, "subsidies"));
+                data.put("Τόκοι", safeGet(rs, "interest"));
+                data.put("Πάγια", safeGet(rs, "fixed_assets"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading expenses for " + year + ": " + e.getMessage());
+        }
+        return data;
+    }
+
+    /**
+     * Get ministries breakdown as Map for graphs/charts.
+     * Returns Map: Ministry -> Amount
+     */
+    public Map<String, Double> getMinistriesBreakdown(int year) {
+        Map<String, Double> data = new HashMap<>();
+        String sql = "SELECT * FROM ministries_" + year;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                data.put("Άμυνας", safeGet(rs, "ministry_of_national_defence"));
+                data.put("Υγείας", safeGet(rs, "ministry_of_health"));
+                data.put("Παιδείας", safeGet(rs, "ministry_of_education_religious_affairs_and_sports"));
+                data.put("Εσωτερικών", safeGet(rs, "ministry_of_interior"));
+                data.put("Υποδομών", safeGet(rs, "ministry_of_infrastructure_and_transport"));
+                data.put("Εργασίας", safeGet(rs, "ministry_of_labor_and_social_security"));
+                data.put("Οικονομικών", safeGet(rs, "ministry_of_national_economy_and_finance"));
+                data.put("Προστασίας Πολίτη", safeGet(rs, "ministry_of_citizen_protection"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading ministries for " + year + ": " + e.getMessage());
+        }
+        return data;
+    }
+
+    /**
+     * Get total amount for a specific type from budget summary.
+     * Used for pie chart 4 and linear chart.
+     */
+    public double getTotalAmount(int year, String type) {
+        String sql = "SELECT " + type + " FROM budget_summary_" + year;
+        double amount = 0;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                amount = safeGet(rs, type);
+            }
+        } catch (Exception e) {
+             // Return 0 if year not found
+        }
+        return amount;
+    }
+
+    /**
+     * Helper method for safe conversion from database to double.
+     */
+    private double safeGet(ResultSet rs, String column) {
+        try {
+            BigDecimal bd = rs.getBigDecimal(column);
+            return bd != null ? bd.doubleValue() : 0.0;
+        } catch (Exception e) {
+            return 0.0;
+        }
+    }
+    
+    // ========== STATISTICAL ANALYSIS METHODS (from main) ==========
+    
     /**
      * Get revenue values across multiple years for statistical analysis.
      * 
@@ -642,55 +762,4 @@ public class BudgetDataService {
         }
         return StatisticalAnalysis.calculateCoefficientOfVariation(expenses);
     }
-    
-    // ========== CHART METHODS (from graphs branch) ==========
-    
-    /**
-     * Get revenue breakdown as Map for charts (returns Map<String, Double> instead of List<CategoryInfo>).
-     */
-    public Map<String, Double> getRevenueBreakdownForGraphs(int year) {
-        Map<String, Double> result = new HashMap<>();
-        List<CategoryInfo> revenues = getRevenueBreakdown(year);
-        for (CategoryInfo info : revenues) {
-            result.put(info.getName(), info.getAmount());
-        }
-        return result;
-    }
-    
-    /**
-     * Get expense breakdown as Map for charts (returns Map<String, Double> instead of List<CategoryInfo>).
-     */
-    public Map<String, Double> getExpenseBreakdownForGraphs(int year) {
-        Map<String, Double> result = new HashMap<>();
-        List<CategoryInfo> expenses = getExpensesBreakdown(year);
-        for (CategoryInfo info : expenses) {
-            result.put(info.getName(), info.getAmount());
-        }
-        return result;
-    }
-    
-    /**
-     * Get ministries breakdown as Map for charts.
-     */
-    public Map<String, Double> getMinistriesBreakdown(int year) {
-        Map<String, Double> result = new HashMap<>();
-        List<CategoryInfo> ministries = getCategories(year);
-        for (CategoryInfo info : ministries) {
-            result.put(info.getName(), info.getAmount());
-        }
-        return result;
-    }
-    
-    /**
-     * Helper method to get total amount for a specific type (revenue/expense) and year.
-     */
-    public double getTotalAmount(int year, String type) {
-        if ("total_revenue".equals(type)) {
-            return getTotalRevenues(year);
-        } else if ("total_expenses".equals(type)) {
-            return getTotalExpenses(year);
-        }
-        return 0.0;
-    }
 }
-
