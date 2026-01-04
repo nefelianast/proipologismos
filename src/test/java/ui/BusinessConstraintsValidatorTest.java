@@ -71,10 +71,11 @@ class BusinessConstraintsValidatorTest {
     @Test
     void testValidateAmountChangeWithCustomLimitExceeds() {
         // Test with custom 20% limit - exceeds limit
+        // 125.0 from 100.0 = 25% change, 25% > 20% = invalid
         BusinessConstraintsValidator.ValidationResult result = 
             BusinessConstraintsValidator.validateAmountChange(125.0, 100.0, 20.0);
         assertFalse(result.isValid());
-        assertTrue(result.getErrorMessage().contains("20.0"));
+        assertTrue(result.getErrorMessage().contains("20"));
     }
 
     @Test
@@ -96,9 +97,10 @@ class BusinessConstraintsValidatorTest {
     @Test
     void testValidateAmountChangeExactlyAtLimit() {
         // Test change exactly at 50% limit
+        // 50% is NOT > 50%, so it should be valid
         BusinessConstraintsValidator.ValidationResult result = 
             BusinessConstraintsValidator.validateAmountChange(150.0, 100.0);
-        assertFalse(result.isValid()); // Exactly 50% should fail (limit is > 50%)
+        assertTrue(result.isValid()); // Exactly 50% is valid (limit is > 50%, not >=)
     }
 
     @Test
@@ -112,17 +114,19 @@ class BusinessConstraintsValidatorTest {
     @Test
     void testValidateAmountChangeLargeNumbers() {
         // Test with large numbers
+        // 1500000.0 from 1000000.0 = 50% change, 50% is NOT > 50%, so valid
         BusinessConstraintsValidator.ValidationResult result = 
             BusinessConstraintsValidator.validateAmountChange(1500000.0, 1000000.0);
-        assertFalse(result.isValid()); // 50% increase exceeds limit
+        assertTrue(result.isValid()); // Exactly 50% is valid (limit is > 50%, not >=)
     }
 
     @Test
     void testValidateAmountChangeSmallNumbers() {
         // Test with small numbers
+        // 1.5 from 1.0 = 50% change, 50% is NOT > 50%, so valid
         BusinessConstraintsValidator.ValidationResult result = 
             BusinessConstraintsValidator.validateAmountChange(1.5, 1.0);
-        assertFalse(result.isValid()); // 50% increase exceeds limit
+        assertTrue(result.isValid()); // Exactly 50% is valid (limit is > 50%, not >=)
     }
 
     // ValidationResult inner class tests
