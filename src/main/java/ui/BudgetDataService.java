@@ -642,5 +642,55 @@ public class BudgetDataService {
         }
         return StatisticalAnalysis.calculateCoefficientOfVariation(expenses);
     }
+    
+    // ========== CHART METHODS (from graphs branch) ==========
+    
+    /**
+     * Get revenue breakdown as Map for charts (returns Map<String, Double> instead of List<CategoryInfo>).
+     */
+    public Map<String, Double> getRevenueBreakdownForGraphs(int year) {
+        Map<String, Double> result = new HashMap<>();
+        List<CategoryInfo> revenues = getRevenueBreakdown(year);
+        for (CategoryInfo info : revenues) {
+            result.put(info.getName(), info.getAmount());
+        }
+        return result;
+    }
+    
+    /**
+     * Get expense breakdown as Map for charts (returns Map<String, Double> instead of List<CategoryInfo>).
+     */
+    public Map<String, Double> getExpenseBreakdownForGraphs(int year) {
+        Map<String, Double> result = new HashMap<>();
+        List<CategoryInfo> expenses = getExpensesBreakdown(year);
+        for (CategoryInfo info : expenses) {
+            result.put(info.getName(), info.getAmount());
+        }
+        return result;
+    }
+    
+    /**
+     * Get ministries breakdown as Map for charts.
+     */
+    public Map<String, Double> getMinistriesBreakdown(int year) {
+        Map<String, Double> result = new HashMap<>();
+        List<CategoryInfo> ministries = getCategories(year);
+        for (CategoryInfo info : ministries) {
+            result.put(info.getName(), info.getAmount());
+        }
+        return result;
+    }
+    
+    /**
+     * Helper method to get total amount for a specific type (revenue/expense) and year.
+     */
+    public double getTotalAmount(int year, String type) {
+        if ("total_revenue".equals(type)) {
+            return getTotalRevenues(year);
+        } else if ("total_expenses".equals(type)) {
+            return getTotalExpenses(year);
+        }
+        return 0.0;
+    }
 }
 

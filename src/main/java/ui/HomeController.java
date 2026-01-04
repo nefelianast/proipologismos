@@ -34,6 +34,9 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 
 /**
  * Main controller for the home screen of the Budget Analysis System.
@@ -436,6 +439,18 @@ public class HomeController {
     private TableColumn<Map<String, Object>, Double> statsOutlierValueColumn;
     @FXML
     private TableColumn<Map<String, Object>, Double> statsOutlierZScoreColumn;
+    
+    // Charts (from graphs branch)
+    @FXML
+    private PieChart pieRevenue;
+    @FXML 
+    private PieChart pieExpenses;
+    @FXML 
+    private PieChart pieMinistries;
+    @FXML 
+    private PieChart pieTotals;
+    @FXML 
+    private LineChart<String, Number> lineHistory;
     
     // Projections/Simulations View
     @FXML
@@ -1508,6 +1523,7 @@ public class HomeController {
         updateRevenuesTable();
         updateExpensesTable();
         updateAdministrationsTable();
+        updateCharts(Integer.parseInt(selectedYear));
     }
 
     private void updateSummaryCards(String year) {
@@ -1931,6 +1947,77 @@ public class HomeController {
             }
         }
         return 0;
+    }
+    
+    // ========== CHART METHODS (from graphs branch) ==========
+    
+    /**
+     * Update all charts for the selected year.
+     */
+    private void updateCharts(int year) {
+        // If FXML hasn't loaded the charts yet, stop
+        if (pieRevenue == null) return;
+
+        // 1. Revenue Pie Chart
+        fillPie(pieRevenue, dataService.getRevenueBreakdownForGraphs(year), "Έσοδα " + year);
+
+        // 2. Expenses Pie Chart
+        fillPie(pieExpenses, dataService.getExpenseBreakdownForGraphs(year), "Έξοδα " + year);
+
+        // 3. Ministries Pie Chart
+        fillPie(pieMinistries, dataService.getMinistriesBreakdown(year), "Υπουργεία " + year);
+
+        // 4. Totals Pie Chart (Revenues vs Expenses)
+        double totalRev = dataService.getTotalAmount(year, "total_revenue");
+        double totalExp = dataService.getTotalAmount(year, "total_expenses");
+        
+        ObservableList<PieChart.Data> totals = FXCollections.observableArrayList(
+            new PieChart.Data("Έσοδα", totalRev),
+            new PieChart.Data("Έξοδα", totalExp)
+        );
+        pieTotals.setData(totals);
+        pieTotals.setTitle("Ισοζύγιο " + year);
+
+        // 5. Line Chart (2023-2025)
+        loadLineChart();
+    }
+
+    /**
+     * Helper method to fill a pie chart with data.
+     */
+    private void fillPie(PieChart chart, Map<String, Double> data, String title) {
+        ObservableList<PieChart.Data> list = FXCollections.observableArrayList();
+        data.forEach((k, v) -> {
+            if (v > 0) list.add(new PieChart.Data(k, v));
+        });
+        chart.setData(list);
+        chart.setTitle(title);
+    }
+
+    /**
+     * Helper method to load line chart with historical data.
+     */
+    private void loadLineChart() {
+        if (lineHistory == null) return;
+        lineHistory.getData().clear();
+        
+        XYChart.Series<String, Number> revSeries = new XYChart.Series<>();
+        revSeries.setName("Έσοδα");
+        
+        XYChart.Series<String, Number> expSeries = new XYChart.Series<>();
+        expSeries.setName("Έξοδα");
+
+        int[] years = {2023, 2024, 2025};
+        for (int y : years) {
+            double rev = dataService.getTotalAmount(y, "total_revenue");
+            double exp = dataService.getTotalAmount(y, "total_expenses");
+            
+            revSeries.getData().add(new XYChart.Data<>(String.valueOf(y), rev));
+            expSeries.getData().add(new XYChart.Data<>(String.valueOf(y), exp));
+        }
+        @SuppressWarnings("unchecked")
+        ObservableList<XYChart.Series<String, Number>> chartData = FXCollections.observableArrayList(revSeries, expSeries);
+        lineHistory.getData().addAll(chartData);
     }
     
     private void loadRevenueCategoryView() {
