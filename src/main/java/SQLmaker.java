@@ -376,6 +376,38 @@ public class SQLmaker {
             stmt.execute(sql18);
             stmt.execute(sql19);
             stmt.execute(sql20);
+            
+            // Create tables for data persistence (comments, scenarios, preferences)
+            String sql21 = "CREATE TABLE IF NOT EXISTS user_comments (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "category_name TEXT NOT NULL," +
+                "year INTEGER NOT NULL," +
+                "comments TEXT," +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+            
+            String sql22 = "CREATE TABLE IF NOT EXISTS saved_scenarios (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "scenario_name TEXT NOT NULL UNIQUE," +
+                "description TEXT," +
+                "year INTEGER NOT NULL," +
+                "scenario_data TEXT NOT NULL," + // JSON format
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+            
+            String sql23 = "CREATE TABLE IF NOT EXISTS user_preferences (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "preference_key TEXT NOT NULL UNIQUE," +
+                "preference_value TEXT," +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+            
+            stmt.execute(sql21);
+            stmt.execute(sql22);
+            stmt.execute(sql23);
 
             System.out.println("Table created successfully!");
         } catch (SQLException e) {
