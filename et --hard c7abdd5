@@ -1,0 +1,46 @@
+[33mc7abdd5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mnefelianast-patch-1[m[33m, [m[1;31morigin/nefelianast-patch-1[m[33m)[m Fix CheckStyle configuration compatibility issue
+[33mcde2b0a[m Add data persistence and retrieval functionality
+[33m56076b6[m Add SpotBugs & CheckStyle
+[33m041338e[m add documentation
+[33m85c8a7c[m Add more unit testing
+[33m79eb1d1[m Add more unit testing
+[33md1ac99d[m delete duplicate file
+[33m05bc764[m add centralized logic
+[33m752ecb9[m add data validation, improve ui
+[33m81246f0[m add splash screen
+[33mfe46487[m update gui for more detailed editing options and to include years 2026 and 2027
+[33mcb8142f[m fix gui issues
+[33mbd37144[m update gui
+[33m4318954[m update gui
+[33ma9905a9[m Merge pull request #10 from nefelianast/comparisons_of_years
+[33m5f42f79[m updated with real revenue data ps deite to gia na to ftiajete olooooo
+[33mdf87208[m κλάση για συγκρίσεις Comparisons.java
+[33m5d63eea[m Merge pull request #8 from nefelianast/sqlitemaker
+[33m2a5455c[m[33m ([m[1;31morigin/sqlitemaker[m[33m)[m αλλαγες στην κλαση SQLmaker
+[33mb8db0d6[m Sql_tutorial για να δείτε πως δουλευει, για να το ανοιξετε 'cat Sql_tutorial.md'
+[33m3f9fb06[m κλαση για insertions λειτουργική για 23.24.25.26 udated
+[33m06aac4c[m κλαση για insertions λειτουργική για 23.24.25.26
+[33mfff4e0b[m  debuging στις download και convert
+[33mda47dc7[m προσθήκη προυπολογισμού του 2026
+[33m60903b5[m Update DataDownload to use yearof in conversion
+[33m8dd9aaa[m Implement manual fixes for CSV conversion
+[33m56e4c39[m Update DataConvert.java
+[33m1d71497[m the SQLinserter will make the insertions to the budget tables of 2023,2024,2025
+[33m835015d[m αλλαγες σε κλασεις convert testmain
+[33m27850dc[m δημιουργία κλάσης SQLmaker.java η οποία φτιάχνει tables για τα χρόνια 2023,2024,2025
+[33m032c177[m αλλαγη στο pom
+[33mda83e20[m Δημιουργία της κλάσης testmain.java και συνδεση της με τις DataDownload, DataConvert
+[33m7271221[m μικροαλλαγές στον κώδικα
+[33m1dd0824[m επεξεργασία της κλασης DataStorer
+[33m8b65b9e[m προσθήκη dependency για το SQLITE
+[33m1535488[m δημιουργία κλασης DataStorer και βασης BudgetData.db
+[33m4f10fa2[m fix the old converting system
+[33m6d7c465[m Merge pull request #3 from nefelianast/my-changes
+[33m05ea4f9[m Merge pull request #4 from nefelianast/nefelianast-patch-1
+[33m5317ffa[m Fix typo in output message for JSON conversion
+[33mb576e24[m  διόρθωση ορθογραφικού λάθους
+[33me816484[m Update comments in HomeController and styles
+[33m82fc2bf[m Clean up comments in BudgetDataService
+[33m5528ac1[m add of calculations
+[33mf4319fc[m add of BudgetYear class and imports
+[33madaaffc[m Add JavaFX GUI for budget visualization and analysis

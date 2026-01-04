@@ -714,6 +714,190 @@ Button.nav-button:hover {
     -fx-effect: dropshadow(gaussian, rgba(148, 163, 184, 0.1), 10, 0, 0, 3);
 }
 
+/* Menu Bar Styling */
+.header-menu-bar {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-border-width: 0;
+}
+
+.header-menu-bar .menu {
+    -fx-background-color: rgba(255, 255, 255, 0.95);
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 10 32;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #1e40af;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.2), 20, 0, 0, 6);
+}
+
+.header-menu-bar .menu .label {
+    -fx-text-fill: #1e40af;
+}
+
+.header-menu-bar .menu:hover {
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.4), 25, 0, 0, 8);
+    -fx-translate-y: -2;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.header-menu-bar .menu:hover .label {
+    -fx-text-fill: #1e3a8a;
+}
+
+.header-menu-bar .menu:showing {
+    -fx-background-color: #1e40af;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.5), 25, 0, 0, 8);
+}
+
+.header-menu-bar .menu:showing .label {
+    -fx-text-fill: white;
+}
+
+/* Context Menu Styling */
+.context-menu {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: rgba(30, 64, 175, 0.2);
+    -fx-border-width: 1;
+    -fx-padding: 8;
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.3), 20, 0, 0, 8);
+}
+
+.context-menu .menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 10 16;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #1e293b;
+    -fx-cursor: hand;
+}
+
+.context-menu .menu-item .label {
+    -fx-text-fill: #1e293b !important;
+}
+
+.context-menu .menu-item:hover {
+    -fx-background-color: linear-gradient(to right, rgba(30, 64, 175, 0.1) 0%, rgba(30, 64, 175, 0.15) 100%);
+}
+
+.context-menu .menu-item:hover .label {
+    -fx-text-fill: #1e40af !important;
+}
+
+.context-menu .menu-item:focused {
+    -fx-background-color: linear-gradient(to right, rgba(30, 64, 175, 0.15) 0%, rgba(30, 64, 175, 0.2) 100%);
+}
+
+.context-menu .menu-item:focused .label {
+    -fx-text-fill: #1e40af !important;
+}
+
+/* General MenuItem styling */
+.menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 10 16;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #1e293b;
+    -fx-cursor: hand;
+}
+
+.menu-item .label {
+    -fx-text-fill: #1e293b !important;
+}
+
+.menu-item:hover {
+    -fx-background-color: linear-gradient(to right, rgba(30, 64, 175, 0.1) 0%, rgba(30, 64, 175, 0.15) 100%);
+}
+
+.menu-item:hover .label {
+    -fx-text-fill: #1e40af !important;
+}
+
+.menu-item:focused {
+    -fx-background-color: linear-gradient(to right, rgba(30, 64, 175, 0.15) 0%, rgba(30, 64, 175, 0.2) 100%);
+}
+
+.menu-item:focused .label {
+    -fx-text-fill: #1e40af !important;
+}
+
+.separator-menu-item {
+    -fx-padding: 4 0;
+}
+
+.separator-menu-item .line {
+    -fx-border-color: rgba(30, 64, 175, 0.2);
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0;
+}
+
+/* Force text color for all menu items in context menu - JavaFX MenuItem uses different structure */      
+.context-menu {
+    -fx-text-fill: #1e293b;
+}
+
+.context-menu .menu-item {
+    -fx-text-fill: #1e293b;
+}
+
+.context-menu .menu-item .label {
+    -fx-text-fill: #1e293b !important;
+}
+
+.context-menu .menu-item:hover {
+    -fx-text-fill: #1e40af;
+}
+
+.context-menu .menu-item:hover .label {
+    -fx-text-fill: #1e40af !important;
+}
+
+.context-menu .menu-item:focused {
+    -fx-text-fill: #1e40af;
+}
+
+.context-menu .menu-item:focused .label {
+    -fx-text-fill: #1e40af !important;
+}
+
+/* General menu item styling */
+.menu-item {
+    -fx-text-fill: #1e293b;
+}
+
+.menu-item .label {
+    -fx-text-fill: #1e293b !important;
+}
+
+.menu-item:hover {
+    -fx-text-fill: #1e40af;
+}
+
+.menu-item:hover .label {
+    -fx-text-fill: #1e40af !important;
+}
+
+.menu-item:focused {
+    -fx-text-fill: #1e40af;
+}
+
+.menu-item:focused .label {
+    -fx-text-fill: #1e40af !important;
+}
+
 .publish-button {
     -fx-background-color: #1e40af;
     -fx-background-radius: 8;
@@ -892,13 +1076,13 @@ Button.nav-button:hover {
 /* Data Validation Styles */
 .validation-error {
     -fx-border-color: #dc2626 !important;
-    -fx-border-width: 2px !important;
+    -fx-border-width: 1px !important;
     -fx-background-color: #fef2f2;
 }
 
 .validation-error:focused {
     -fx-border-color: #dc2626 !important;
-    -fx-border-width: 2px !important;
+    -fx-border-width: 1px !important;
 }
 
 .validation-success {
@@ -1375,5 +1559,24 @@ Button.nav-button:hover {
     -fx-font-weight: 600;
     -fx-text-fill: #64748b;
     -fx-padding: 0 0 4 0;
+}
+
+/* Force MenuItem text color - override any default JavaFX styling */
+.menu-item > .label {
+    -fx-text-fill: #1e293b !important;
+}
+
+.context-menu .menu-item > .label {
+    -fx-text-fill: #1e293b !important;
+}
+
+.menu-item:hover > .label,
+.context-menu .menu-item:hover > .label {
+    -fx-text-fill: #1e40af !important;
+}
+
+.menu-item:focused > .label,
+.context-menu .menu-item:focused > .label {
+    -fx-text-fill: #1e40af !important;
 }
 

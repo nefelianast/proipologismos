@@ -15,15 +15,19 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.geometry.Pos;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.stage.FileChooser;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Calendar;
 import java.util.Set;
 import java.util.HashSet;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
 import javafx.beans.property.SimpleStringProperty;
@@ -79,6 +83,7 @@ public class HomeController {
     public static boolean isGovernmentUser() {
         return currentUserType == UserType.GOVERNMENT;
     }
+
 
     /**
      * Inner class representing category data for table display.
@@ -207,7 +212,7 @@ public class HomeController {
     @FXML
     private Label headerTitleLabel;
     @FXML
-    private javafx.scene.control.Button authButton;
+    private MenuItem authMenuItem;
     @FXML
     private ComboBox<String> yearComboBox;
     @FXML
@@ -240,7 +245,11 @@ public class HomeController {
     @FXML
     private VBox quickNavAdministrations;
     @FXML
-    private Button projectionsButton;
+    private MenuItem projectionsMenuItem;
+    @FXML
+    private MenuItem dataExplorationMenuItem;
+    @FXML
+    private MenuItem statisticsMenuItem;
     @FXML
     private Button homeEditButton;
     
@@ -324,6 +333,8 @@ public class HomeController {
     @FXML
     private VBox dataExplorationView;
     @FXML
+    private VBox statisticsView;
+    @FXML
     private Button exploreTotalButton;
     @FXML
     private Button exploreMinistryButton;
@@ -332,7 +343,7 @@ public class HomeController {
     @FXML
     private Button exploreExpenseCategoryButton;
     @FXML
-    private Button exploreYearComparisonButton;
+    private Button exploreComparisonButton;
     @FXML
     private Button exploreTrendsButton;
     @FXML
@@ -352,6 +363,16 @@ public class HomeController {
     @FXML
     private ComboBox<String> exploreExpenseCategoryComboBox;
     @FXML
+    private Label exploreYear1Label;
+    @FXML
+    private ComboBox<String> exploreYear1ComboBox;
+    @FXML
+    private Label exploreYear2Label;
+    @FXML
+    private ComboBox<String> exploreYear2ComboBox;
+    @FXML
+    private Button exploreLoadComparisonButton;
+    @FXML
     private Label exploreViewTitleLabel;
     @FXML
     private Label exploreViewDescriptionLabel;
@@ -369,6 +390,50 @@ public class HomeController {
     private TableColumn<CategoryData, String> exploreColumn5;
     
     private String currentExplorationView = "";
+    
+    // Statistics View
+    @FXML
+    private ComboBox<String> statisticsStartYearComboBox;
+    @FXML
+    private ComboBox<String> statisticsEndYearComboBox;
+    @FXML
+    private Button calculateStatisticsButton;
+    @FXML
+    private Label statsRevenueMeanLabel;
+    @FXML
+    private Label statsRevenueMedianLabel;
+    @FXML
+    private Label statsRevenueStdDevLabel;
+    @FXML
+    private Label statsRevenueVarianceLabel;
+    @FXML
+    private Label statsRevenueCoeffVarLabel;
+    @FXML
+    private Label statsExpenseMeanLabel;
+    @FXML
+    private Label statsExpenseMedianLabel;
+    @FXML
+    private Label statsExpenseStdDevLabel;
+    @FXML
+    private Label statsExpenseVarianceLabel;
+    @FXML
+    private Label statsExpenseCoeffVarLabel;
+    @FXML
+    private Label statsCorrelationLabel;
+    @FXML
+    private Label statsRevenueTrendLabel;
+    @FXML
+    private Label statsExpenseTrendLabel;
+    @FXML
+    private TableView<Map<String, Object>> statisticsOutliersTable;
+    @FXML
+    private TableColumn<Map<String, Object>, String> statsOutlierYearColumn;
+    @FXML
+    private TableColumn<Map<String, Object>, String> statsOutlierTypeColumn;
+    @FXML
+    private TableColumn<Map<String, Object>, Double> statsOutlierValueColumn;
+    @FXML
+    private TableColumn<Map<String, Object>, Double> statsOutlierZScoreColumn;
     
     // Filtered data for search/filter
     private ObservableList<CategoryData> allDataManagementItems = FXCollections.observableArrayList();
@@ -1008,11 +1073,11 @@ public class HomeController {
     }
     
     private void updateAuthButton() {
-        if (authButton != null) {
+        if (authMenuItem != null) {
             if (currentUserType == UserType.CITIZEN) {
-                authButton.setText("Σύνδεση ως Κυβέρνηση");
+                authMenuItem.setText("Σύνδεση ως Κυβέρνηση");
             } else {
-                authButton.setText("Αποσύνδεση");
+                authMenuItem.setText("Αποσύνδεση");
             }
         }
     }
@@ -1123,6 +1188,50 @@ public class HomeController {
         return getPublishedYears().contains(year);
     }
     
+    /**
+     * Gets the list of years that have data in the database by checking which revenue tables exist.
+     * @return List of year strings (e.g., ["2023", "2024", "2025"])
+     */
+    private List<String> getAvailableYearsFromDatabase() {
+        List<String> availableYears = new ArrayList<>();
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            DatabaseMetaData meta = connection.getMetaData();
+            
+            // Check for revenue tables (revenue_YYYY) from 2020 to 2030
+            for (int year = 2020; year <= 2030; year++) {
+                String tableName = "revenue_" + year;
+                try (ResultSet tables = meta.getTables(null, null, tableName, null)) {
+                    if (tables.next()) {
+                        // Table exists, verify it has data
+                        try (Statement stmt = connection.createStatement();
+                             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM " + tableName)) {
+                            if (rs.next() && rs.getInt("count") > 0) {
+                                availableYears.add(String.valueOf(year));
+                            }
+                        } catch (SQLException e) {
+                            // Table exists but might be empty or have issues, skip it
+                            continue;
+                        }
+                    }
+                } catch (SQLException e) {
+                    // Table doesn't exist, continue to next year
+                    continue;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // If there's an error, return at least the current year and previous year as fallback
+            int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+            availableYears.add(String.valueOf(currentYear - 1));
+            availableYears.add(String.valueOf(currentYear));
+        }
+        
+        // Sort years in descending order (newest first)
+        availableYears.sort((a, b) -> Integer.compare(Integer.parseInt(b), Integer.parseInt(a)));
+        
+        return availableYears;
+    }
+    
     private void publishYear(int year) {
         try (Connection connection = DatabaseConnection.getConnection();
              Statement stmt = connection.createStatement()) {
@@ -1156,7 +1265,14 @@ public class HomeController {
                 Scene scene = new Scene(root, 1200, 700);
                 scene.getStylesheets().add(getClass().getResource("/ui/styles.css").toExternalForm());
                 
-                Stage stage = (Stage) (authButton != null ? authButton.getScene().getWindow() : (yearComboBox != null ? yearComboBox.getScene().getWindow() : null));
+                Stage stage = null;
+                if (authMenuItem != null && authMenuItem.getParentPopup() != null) {
+                    stage = (Stage) authMenuItem.getParentPopup().getOwnerWindow();
+                } else if (yearComboBox != null && yearComboBox.getScene() != null) {
+                    stage = (Stage) yearComboBox.getScene().getWindow();
+                } else if (homeView != null && homeView.getScene() != null) {
+                    stage = (Stage) homeView.getScene().getWindow();
+                }
                 stage.setScene(scene);
                 stage.setTitle("Κρατικός Προϋπολογισμός - Σύστημα Ανάλυσης");
                 stage.show();
@@ -1283,7 +1399,15 @@ public class HomeController {
 
             Scene loginScene = new Scene(loginPane, 400, 400);
             loginStage.setScene(loginScene);
-            loginStage.initOwner(authButton != null ? authButton.getScene().getWindow() : null);
+            Window ownerWindow = null;
+            if (authMenuItem != null && authMenuItem.getParentPopup() != null) {
+                ownerWindow = authMenuItem.getParentPopup().getOwnerWindow();
+            } else if (yearComboBox != null && yearComboBox.getScene() != null) {
+                ownerWindow = yearComboBox.getScene().getWindow();
+            } else if (homeView != null && homeView.getScene() != null) {
+                ownerWindow = homeView.getScene().getWindow();
+            }
+            loginStage.initOwner(ownerWindow);
             loginStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
             loginStage.show();
         } catch (Exception e) {
@@ -1563,7 +1687,7 @@ public class HomeController {
         if (exploreMinistryButton != null) exploreMinistryButton.getStyleClass().remove("exploration-category-button-active");
         if (exploreRevenueCategoryButton != null) exploreRevenueCategoryButton.getStyleClass().remove("exploration-category-button-active");
         if (exploreExpenseCategoryButton != null) exploreExpenseCategoryButton.getStyleClass().remove("exploration-category-button-active");
-        if (exploreYearComparisonButton != null) exploreYearComparisonButton.getStyleClass().remove("exploration-category-button-active");
+        if (exploreComparisonButton != null) exploreComparisonButton.getStyleClass().remove("exploration-category-button-active");
         if (exploreTrendsButton != null) exploreTrendsButton.getStyleClass().remove("exploration-category-button-active");
     }
     
@@ -1586,6 +1710,18 @@ public class HomeController {
         if (exploreRevenueCategoryComboBox != null) exploreRevenueCategoryComboBox.setVisible(false);
         if (exploreExpenseCategoryLabel != null) exploreExpenseCategoryLabel.setVisible(false);
         if (exploreExpenseCategoryComboBox != null) exploreExpenseCategoryComboBox.setVisible(false);
+        if (exploreYear1Label != null) exploreYear1Label.setVisible(false);
+        if (exploreYear1ComboBox != null) exploreYear1ComboBox.setVisible(false);
+        if (exploreYear2Label != null) exploreYear2Label.setVisible(false);
+        if (exploreYear2ComboBox != null) exploreYear2ComboBox.setVisible(false);
+        if (exploreLoadComparisonButton != null) exploreLoadComparisonButton.setVisible(false);
+        if (exploreLoadComparisonButton != null) exploreLoadComparisonButton.setManaged(false);
+        
+        // Restore year ComboBox visibility for non-comparison views
+        if (exploreYearComboBox != null && !viewType.contains("Σύγκριση")) {
+            exploreYearComboBox.setVisible(true);
+            exploreYearComboBox.setManaged(true);
+        }
         
         if (viewType.contains("Συνολικά")) {
             currentExplorationView = "total";
@@ -1600,8 +1736,8 @@ public class HomeController {
             currentExplorationView = "expense_category";
             loadExpenseCategoryView();
         } else if (viewType.contains("Σύγκριση Ετών")) {
-            currentExplorationView = "year_comparison";
-            loadYearComparisonView();
+            currentExplorationView = "comparison";
+            loadComparisonView();
         } else if (viewType.contains("Τάσεις")) {
             currentExplorationView = "trends";
             loadTrendsView();
@@ -1624,7 +1760,7 @@ public class HomeController {
             case "ministry": loadMinistryView(); break;
             case "revenue_category": loadRevenueCategoryView(); break;
             case "expense_category": loadExpenseCategoryView(); break;
-            case "year_comparison": loadYearComparisonView(); break;
+            case "comparison": loadComparisonView(); break;
             case "trends": loadTrendsView(); break;
         }
     }
@@ -1635,6 +1771,20 @@ public class HomeController {
         }
         if (exploreViewDescriptionLabel != null) {
             exploreViewDescriptionLabel.setText("Προβολή συνολικών εσόδων και δαπανών για κάθε έτος");
+        }
+        
+        // Restore original column mappings
+        if (exploreColumn2 != null) {
+            exploreColumn2.setCellValueFactory(new PropertyValueFactory<>("amount"));
+        }
+        if (exploreColumn3 != null) {
+            exploreColumn3.setCellValueFactory(new PropertyValueFactory<>("change"));
+        }
+        if (exploreColumn4 != null) {
+            exploreColumn4.setCellValueFactory(new PropertyValueFactory<>("percentage"));
+        }
+        if (exploreColumn5 != null) {
+            exploreColumn5.setCellValueFactory(new PropertyValueFactory<>("status"));
         }
         
         if (exploreColumn1 != null) exploreColumn1.setText("Έτος");
@@ -1925,47 +2075,6 @@ public class HomeController {
         return 0;
     }
     
-    private void loadYearComparisonView() {
-        if (exploreViewTitleLabel != null) {
-            exploreViewTitleLabel.setText("Σύγκριση Ετών");
-        }
-        if (exploreViewDescriptionLabel != null) {
-            exploreViewDescriptionLabel.setText("Σύγκριση συνολικών εσόδων και δαπανών μεταξύ ετών");
-        }
-        
-        if (exploreColumn1 != null) exploreColumn1.setText("Έτος");
-        if (exploreColumn2 != null) exploreColumn2.setText("Συνολικά Έσοδα (€)");
-        if (exploreColumn3 != null) exploreColumn3.setText("Συνολικές Δαπάνες (€)");
-        if (exploreColumn4 != null) exploreColumn4.setText("Υπόλοιπο (€)");
-        if (exploreColumn5 != null) exploreColumn5.setText("Αλλαγή Έσόδων (%)");
-        
-        ObservableList<CategoryData> data = FXCollections.observableArrayList();
-        int startYear = 2023;
-        int endYear = Calendar.getInstance().get(Calendar.YEAR) + 1;
-        
-        for (int year = startYear; year <= endYear; year++) {
-            double revenues = dataService.getTotalRevenues(year);
-            double expenses = dataService.getTotalExpenses(year);
-            double balance = BudgetStatisticsCalculator.calculateBalance(revenues, expenses);
-            double prevRevenues = year > startYear ? dataService.getTotalRevenues(year - 1) : 0;
-            double change = BudgetStatisticsCalculator.calculatePercentageChange(revenues, prevRevenues);
-            
-            String changeText = prevRevenues > 0 ? BudgetAmountFormatter.formatPercentageChange(change) : "Νέο";
-            data.add(new CategoryData(
-                String.valueOf(year),
-                revenues,
-                expenses,
-                changeText,
-                String.format("%.2f", balance),
-                0
-            ));
-        }
-        
-        if (exploreResultsTable != null) {
-            exploreResultsTable.setItems(data);
-        }
-    }
-    
     private void loadTrendsView() {
         if (exploreViewTitleLabel != null) {
             exploreViewTitleLabel.setText("Τάσεις & Αλλαγές");
@@ -2008,6 +2117,256 @@ public class HomeController {
         if (exploreResultsTable != null) {
             exploreResultsTable.setItems(data);
         }
+    }
+    
+    private void loadComparisonView() {
+        if (exploreViewTitleLabel != null) {
+            exploreViewTitleLabel.setText("Σύγκριση Προϋπολογισμού μεταξύ δύο ετών");
+        }
+        if (exploreViewDescriptionLabel != null) {
+            exploreViewDescriptionLabel.setText("Επιλέξτε δύο έτη για σύγκριση εσόδων, δαπανών, υπουργείων και αποκεντρωμένων διοικήσεων");
+        }
+        
+        // Hide the single year ComboBox
+        if (exploreYearComboBox != null) {
+            exploreYearComboBox.setVisible(false);
+            exploreYearComboBox.setManaged(false);
+        }
+        
+        // Show comparison controls
+        if (exploreDynamicFilters != null) {
+            exploreDynamicFilters.setVisible(true);
+            exploreDynamicFilters.setManaged(true);
+        }
+        if (exploreYear1Label != null) {
+            exploreYear1Label.setVisible(true);
+            exploreYear1Label.setManaged(true);
+        }
+        if (exploreYear1ComboBox != null) {
+            exploreYear1ComboBox.setVisible(true);
+            exploreYear1ComboBox.setManaged(true);
+            // Always refresh the list to ensure it reflects current database state
+            List<String> availableYears = getAvailableYearsFromDatabase();
+            exploreYear1ComboBox.getItems().clear();
+            exploreYear1ComboBox.getItems().addAll(availableYears);
+            if (exploreYear1ComboBox.getItems().size() > 1) {
+                exploreYear1ComboBox.setValue(exploreYear1ComboBox.getItems().get(exploreYear1ComboBox.getItems().size() - 2));
+            } else if (!exploreYear1ComboBox.getItems().isEmpty()) {
+                exploreYear1ComboBox.setValue(exploreYear1ComboBox.getItems().get(0));
+            }
+        }
+        if (exploreYear2Label != null) {
+            exploreYear2Label.setVisible(true);
+            exploreYear2Label.setManaged(true);
+        }
+        if (exploreYear2ComboBox != null) {
+            exploreYear2ComboBox.setVisible(true);
+            exploreYear2ComboBox.setManaged(true);
+            // Always refresh the list to ensure it reflects current database state
+            List<String> availableYears = getAvailableYearsFromDatabase();
+            exploreYear2ComboBox.getItems().clear();
+            exploreYear2ComboBox.getItems().addAll(availableYears);
+            if (!exploreYear2ComboBox.getItems().isEmpty()) {
+                exploreYear2ComboBox.setValue(exploreYear2ComboBox.getItems().get(exploreYear2ComboBox.getItems().size() - 1));
+            }
+        }
+        if (exploreLoadComparisonButton != null) {
+            exploreLoadComparisonButton.setVisible(true);
+            exploreLoadComparisonButton.setManaged(true);
+        }
+        
+        // Hide other filters
+        if (exploreMinistryLabel != null) exploreMinistryLabel.setVisible(false);
+        if (exploreMinistryComboBox != null) exploreMinistryComboBox.setVisible(false);
+        if (exploreRevenueCategoryLabel != null) exploreRevenueCategoryLabel.setVisible(false);
+        if (exploreRevenueCategoryComboBox != null) exploreRevenueCategoryComboBox.setVisible(false);
+        if (exploreExpenseCategoryLabel != null) exploreExpenseCategoryLabel.setVisible(false);
+        if (exploreExpenseCategoryComboBox != null) exploreExpenseCategoryComboBox.setVisible(false);
+        
+        // Set up table columns for comparison
+        if (exploreColumn1 != null) exploreColumn1.setText("Κατηγορία");
+        if (exploreColumn2 != null) exploreColumn2.setText("Έτος 1 (€)");
+        if (exploreColumn3 != null) exploreColumn3.setText("Έτος 2 (€)");
+        if (exploreColumn4 != null) exploreColumn4.setText("Διαφορά (€)");
+        if (exploreColumn5 != null) exploreColumn5.setText("% Αλλαγή");
+        
+        // Set up custom cell value factories for comparison view
+        if (exploreResultsTable != null && exploreColumn2 != null && exploreColumn3 != null) {
+            // Column 2 (Double): Year 1 value (using amount property directly)
+            exploreColumn2.setCellValueFactory(new PropertyValueFactory<>("amount"));
+            
+            // Column 3 (String): Year 2 value formatted (using change property to store formatted year2)
+            exploreColumn3.setCellValueFactory(cellData -> {
+                double value = cellData.getValue().getPercentage(); // percentage stores year2 value
+                return new SimpleStringProperty(String.format("%,d €", (long)value));
+            });
+            
+            // Column 4 (Double): Difference (calculate from amount and percentage)
+            if (exploreColumn4 != null) {
+                exploreColumn4.setCellValueFactory(cellData -> {
+                    double year1 = cellData.getValue().getAmount();
+                    double year2 = cellData.getValue().getPercentage();
+                    return new SimpleDoubleProperty(year2 - year1).asObject();
+                });
+            }
+            
+            // Column 5 (String): % Change (already in status property)
+            if (exploreColumn5 != null) {
+                exploreColumn5.setCellValueFactory(new PropertyValueFactory<>("status"));
+            }
+        }
+        
+        // Clear table initially
+        if (exploreResultsTable != null) {
+            exploreResultsTable.setItems(FXCollections.observableArrayList());
+        }
+    }
+    
+    @FXML
+    private void onLoadComparison() {
+        if (exploreYear1ComboBox == null || exploreYear2ComboBox == null) return;
+        
+        String year1Str = exploreYear1ComboBox.getValue();
+        String year2Str = exploreYear2ComboBox.getValue();
+        
+        if (year1Str == null || year2Str == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Παρακαλώ επιλέξτε και τα δύο έτη");
+            alert.showAndWait();
+            return;
+        }
+        
+        try {
+            int year1 = Integer.parseInt(year1Str);
+            int year2 = Integer.parseInt(year2Str);
+            
+            if (year1 == year2) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Σφάλμα");
+                alert.setHeaderText("Παρακαλώ επιλέξτε διαφορετικά έτη");
+                alert.showAndWait();
+                return;
+            }
+            
+            loadComparisonData(year1, year2);
+        } catch (NumberFormatException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Μη έγκυρα έτη");
+            alert.setContentText("Παρακαλώ επιλέξτε έγκυρα έτη");
+            alert.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errorMessage = e.getMessage();
+            if (errorMessage == null || errorMessage.isEmpty()) {
+                errorMessage = e.getClass().getSimpleName();
+            }
+            
+            // Extract year values for error message
+            String year1Display = year1Str != null ? year1Str : "?";
+            String year2Display = year2Str != null ? year2Str : "?";
+            
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Σφάλμα φόρτωσης δεδομένων σύγκρισης");
+            alert.setContentText("Δεν ήταν δυνατή η φόρτωση των δεδομένων σύγκρισης.\n\n" +
+                "Σφάλμα: " + errorMessage + "\n\n" +
+                "Πιθανές αιτίες:\n" +
+                "• Οι πίνακες για τα έτη " + year1Display + " ή " + year2Display + " δεν υπάρχουν\n" +
+                "• Τα δεδομένα δεν έχουν εισαχθεί στη βάση\n" +
+                "• Προβλήματα σύνδεσης με τη βάση δεδομένων\n\n" +
+                "Παρακαλώ ελέγξτε ότι τα δεδομένα έχουν εισαχθεί για τα επιλεγμένα έτη.");
+            alert.setResizable(true);
+            alert.getDialogPane().setPrefWidth(550);
+            alert.showAndWait();
+        }
+    }
+    
+    private void loadComparisonData(int year1, int year2) throws Exception {
+        ComparisonService comparisonService = new ComparisonService();
+        ComparisonService.ComparisonResults results = comparisonService.compareYears(year1, year2);
+        
+        ObservableList<CategoryData> data = FXCollections.observableArrayList();
+        
+        // Add Budget Summary
+        data.add(new CategoryData("━━━ ΣΥΝΟΨΗ ΠΡΟΥΠΟΛΟΓΙΣΜΟΥ ━━━", 0, 0, "", "", 0));
+        
+        // Calculate totals for budget summary
+        long totalRevenues1 = 0, totalRevenues2 = 0;
+        long totalExpenses1 = 0, totalExpenses2 = 0;
+        
+        for (ComparisonService.ComparisonData compData : results.getRevenues().values()) {
+            totalRevenues1 += compData.getYear1Value();
+            totalRevenues2 += compData.getYear2Value();
+        }
+        
+        for (ComparisonService.ComparisonData compData : results.getExpenses().values()) {
+            totalExpenses1 += compData.getYear1Value();
+            totalExpenses2 += compData.getYear2Value();
+        }
+        
+        long balance1 = totalRevenues1 - totalExpenses1;
+        long balance2 = totalRevenues2 - totalExpenses2;
+        
+        // Use: category, amount (year1), percentage (year2 as double), change (difference), status (% change)
+        data.add(new CategoryData("Συνολικά Έσοδα", totalRevenues1, totalRevenues2, 
+            String.format("%,d €", totalRevenues2 - totalRevenues1),
+            formatPercentageChange(totalRevenues1, totalRevenues2), 0));
+        data.add(new CategoryData("Συνολικές Δαπάνες", totalExpenses1, totalExpenses2,
+            String.format("%,d €", totalExpenses2 - totalExpenses1),
+            formatPercentageChange(totalExpenses1, totalExpenses2), 0));
+        data.add(new CategoryData("Υπόλοιπο", balance1, balance2,
+            String.format("%,d €", balance2 - balance1),
+            formatPercentageChange(balance1, balance2), 0));
+        
+        // Add Revenues
+        data.add(new CategoryData("━━━ ΕΣΟΔΑ ━━━", 0, 0, "", "", 0));
+        for (ComparisonService.ComparisonData compData : results.getRevenues().values()) {
+            data.add(new CategoryData(compData.getCategoryName(), 
+                compData.getYear1Value(), compData.getYear2Value(),
+                String.format("%,d €", compData.getDifference()),
+                String.format("%.2f%%", compData.getPercentageChange()), 0));
+        }
+        
+        // Add Expenses
+        data.add(new CategoryData("━━━ ΔΑΠΑΝΕΣ ━━━", 0, 0, "", "", 0));
+        for (ComparisonService.ComparisonData compData : results.getExpenses().values()) {
+            data.add(new CategoryData(compData.getCategoryName(),
+                compData.getYear1Value(), compData.getYear2Value(),
+                String.format("%,d €", compData.getDifference()),
+                String.format("%.2f%%", compData.getPercentageChange()), 0));
+        }
+        
+        // Add Administrations
+        data.add(new CategoryData("━━━ ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ ━━━", 0, 0, "", "", 0));
+        for (ComparisonService.ComparisonData compData : results.getAdministrations().values()) {
+            data.add(new CategoryData(compData.getCategoryName(),
+                compData.getYear1Value(), compData.getYear2Value(),
+                String.format("%,d €", compData.getDifference()),
+                String.format("%.2f%%", compData.getPercentageChange()), 0));
+        }
+        
+        // Add Ministries
+        data.add(new CategoryData("━━━ ΥΠΟΥΡΓΕΙΑ ━━━", 0, 0, "", "", 0));
+        for (ComparisonService.ComparisonData compData : results.getMinistries().values()) {
+            data.add(new CategoryData(compData.getCategoryName(),
+                compData.getYear1Value(), compData.getYear2Value(),
+                String.format("%,d €", compData.getDifference()),
+                String.format("%.2f%%", compData.getPercentageChange()), 0));
+        }
+        
+        if (exploreResultsTable != null) {
+            exploreResultsTable.setItems(data);
+        }
+    }
+    
+    private String formatPercentageChange(long value1, long value2) {
+        if (value1 == 0) {
+            return value2 > 0 ? "Νέο" : "0.00%";
+        }
+        double change = ((double)(value2 - value1) / value1) * 100.0;
+        return String.format("%.2f%%", change);
     }
     
     @FXML
@@ -2083,7 +2442,274 @@ public class HomeController {
         // Coming soon 
     }
     
-
+    @FXML
+    private void onNavigateStatistics() {
+        if (statisticsView == null) {
+            return;
+        }
+        showView(statisticsView);
+        
+        // Initialize year combo boxes if empty
+        if (statisticsStartYearComboBox != null && statisticsStartYearComboBox.getItems().isEmpty()) {
+            List<String> availableYears = getAvailableYearsFromDatabase();
+            statisticsStartYearComboBox.getItems().addAll(availableYears);
+            statisticsEndYearComboBox.getItems().addAll(availableYears);
+            
+            if (!availableYears.isEmpty()) {
+                // Set default: start from first available year, end at last
+                statisticsStartYearComboBox.setValue(availableYears.get(availableYears.size() - 1));
+                statisticsEndYearComboBox.setValue(availableYears.get(0));
+            }
+        }
+        
+        // Setup outliers table columns programmatically
+        if (statisticsOutliersTable != null && statsOutlierYearColumn != null) {
+            statsOutlierYearColumn.setCellValueFactory(cellData -> {
+                Map<String, Object> item = cellData.getValue();
+                return new SimpleStringProperty(item.get("year") != null ? item.get("year").toString() : "");
+            });
+            statsOutlierTypeColumn.setCellValueFactory(cellData -> {
+                Map<String, Object> item = cellData.getValue();
+                return new SimpleStringProperty(item.get("type") != null ? item.get("type").toString() : "");
+            });
+            statsOutlierValueColumn.setCellValueFactory(cellData -> {
+                Map<String, Object> item = cellData.getValue();
+                Object value = item.get("value");
+                if (value instanceof Number) {
+                    return new SimpleDoubleProperty(((Number) value).doubleValue()).asObject();
+                }
+                return new SimpleDoubleProperty(0.0).asObject();
+            });
+            statsOutlierValueColumn.setCellFactory(tc -> new TableCell<Map<String, Object>, Double>() {
+                @Override
+                protected void updateItem(Double item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(BudgetAmountFormatter.formatCurrency(item));
+                    }
+                }
+            });
+            statsOutlierZScoreColumn.setCellValueFactory(cellData -> {
+                Map<String, Object> item = cellData.getValue();
+                Object zScore = item.get("zScore");
+                if (zScore instanceof Number) {
+                    return new SimpleDoubleProperty(((Number) zScore).doubleValue()).asObject();
+                }
+                return new SimpleDoubleProperty(0.0).asObject();
+            });
+            statsOutlierZScoreColumn.setCellFactory(tc -> new TableCell<Map<String, Object>, Double>() {
+                @Override
+                protected void updateItem(Double item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(String.format("%.2f", item));
+                    }
+                }
+            });
+        }
+    }
+    
+    @FXML
+    private void onCalculateStatistics() {
+        if (statisticsStartYearComboBox == null || statisticsEndYearComboBox == null) {
+            return;
+        }
+        
+        String startYearStr = statisticsStartYearComboBox.getValue();
+        String endYearStr = statisticsEndYearComboBox.getValue();
+        
+        if (startYearStr == null || endYearStr == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Παρακαλώ επιλέξτε περίοδο");
+            alert.setContentText("Πρέπει να επιλέξετε έτος έναρξης και έτος λήξης.");
+            alert.showAndWait();
+            return;
+        }
+        
+        try {
+            int startYear = Integer.parseInt(startYearStr);
+            int endYear = Integer.parseInt(endYearStr);
+            
+            if (startYear > endYear) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Σφάλμα");
+                alert.setHeaderText("Μη έγκυρη περίοδος");
+                alert.setContentText("Το έτος έναρξης πρέπει να είναι μικρότερο ή ίσο με το έτος λήξης.");
+                alert.showAndWait();
+                return;
+            }
+            
+            calculateAndDisplayStatistics(startYear, endYear);
+        } catch (NumberFormatException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Μη έγκυρα έτη");
+            alert.setContentText("Παρακαλώ επιλέξτε έγκυρα έτη.");
+            alert.showAndWait();
+        }
+    }
+    
+    private void calculateAndDisplayStatistics(int startYear, int endYear) {
+        try {
+            BudgetDataService service = BudgetDataService.getInstance();
+            
+            // Get revenue and expense arrays
+            double[] revenues = service.getRevenuesAcrossYears(startYear, endYear);
+            double[] expenses = service.getExpensesAcrossYears(startYear, endYear);
+            
+            if (revenues == null || revenues.length < 2) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Σφάλμα");
+                alert.setHeaderText("Ανεπαρκή δεδομένα");
+                alert.setContentText("Δεν υπάρχουν αρκετά δεδομένα για την επιλεγμένη περίοδο.");
+                alert.showAndWait();
+                return;
+            }
+            
+            // Calculate revenue statistics
+            double revenueMean = StatisticalAnalysis.calculateMean(revenues);
+            double revenueMedian = StatisticalAnalysis.calculateMedian(revenues);
+            double revenueStdDev = StatisticalAnalysis.calculateStandardDeviation(revenues);
+            double revenueVariance = StatisticalAnalysis.calculateVariance(revenues);
+            double revenueCoeffVar = StatisticalAnalysis.calculateCoefficientOfVariation(revenues);
+            
+            // Display revenue statistics
+            if (statsRevenueMeanLabel != null) {
+                statsRevenueMeanLabel.setText(BudgetAmountFormatter.formatCurrency(revenueMean));
+            }
+            if (statsRevenueMedianLabel != null) {
+                statsRevenueMedianLabel.setText(BudgetAmountFormatter.formatCurrency(revenueMedian));
+            }
+            if (statsRevenueStdDevLabel != null) {
+                statsRevenueStdDevLabel.setText(BudgetAmountFormatter.formatCurrency(revenueStdDev));
+            }
+            if (statsRevenueVarianceLabel != null) {
+                statsRevenueVarianceLabel.setText(BudgetAmountFormatter.formatCurrency(revenueVariance));
+            }
+            if (statsRevenueCoeffVarLabel != null) {
+                statsRevenueCoeffVarLabel.setText(String.format("%.2f%%", revenueCoeffVar * 100));
+            }
+            
+            // Calculate expense statistics
+            if (expenses != null && expenses.length >= 2) {
+                double expenseMean = StatisticalAnalysis.calculateMean(expenses);
+                double expenseMedian = StatisticalAnalysis.calculateMedian(expenses);
+                double expenseStdDev = StatisticalAnalysis.calculateStandardDeviation(expenses);
+                double expenseVariance = StatisticalAnalysis.calculateVariance(expenses);
+                double expenseCoeffVar = StatisticalAnalysis.calculateCoefficientOfVariation(expenses);
+                
+                // Display expense statistics
+                if (statsExpenseMeanLabel != null) {
+                    statsExpenseMeanLabel.setText(BudgetAmountFormatter.formatCurrency(expenseMean));
+                }
+                if (statsExpenseMedianLabel != null) {
+                    statsExpenseMedianLabel.setText(BudgetAmountFormatter.formatCurrency(expenseMedian));
+                }
+                if (statsExpenseStdDevLabel != null) {
+                    statsExpenseStdDevLabel.setText(BudgetAmountFormatter.formatCurrency(expenseStdDev));
+                }
+                if (statsExpenseVarianceLabel != null) {
+                    statsExpenseVarianceLabel.setText(BudgetAmountFormatter.formatCurrency(expenseVariance));
+                }
+                if (statsExpenseCoeffVarLabel != null) {
+                    statsExpenseCoeffVarLabel.setText(String.format("%.2f%%", expenseCoeffVar * 100));
+                }
+            }
+            
+            // Calculate and display correlation
+            double correlation = service.calculateRevenueExpenseCorrelation(startYear, endYear);
+            if (statsCorrelationLabel != null) {
+                if (Double.isNaN(correlation)) {
+                    statsCorrelationLabel.setText("-");
+                } else {
+                    statsCorrelationLabel.setText(String.format("%.4f", correlation));
+                }
+            }
+            
+            // Calculate and display trends
+            double[] revenueTrend = service.calculateRevenueTrend(startYear, endYear);
+            double[] expenseTrend = service.calculateExpenseTrend(startYear, endYear);
+            
+            if (statsRevenueTrendLabel != null && revenueTrend != null && revenueTrend.length >= 1) {
+                double slope = revenueTrend[0];
+                String trend = slope > 0 ? "↑ Αύξηση" : slope < 0 ? "↓ Μείωση" : "— Σταθερό";
+                statsRevenueTrendLabel.setText(String.format("%s (%.2f €/έτος)", trend, Math.abs(slope)));
+            }
+            if (statsExpenseTrendLabel != null && expenseTrend != null && expenseTrend.length >= 1) {
+                double slope = expenseTrend[0];
+                String trend = slope > 0 ? "↑ Αύξηση" : slope < 0 ? "↓ Μείωση" : "— Σταθερό";
+                statsExpenseTrendLabel.setText(String.format("%s (%.2f €/έτος)", trend, Math.abs(slope)));
+            }
+            
+            // Display outliers
+            List<Double> revenueOutliers = service.identifyRevenueOutliers(startYear, endYear);
+            List<Double> expenseOutliers = service.identifyExpenseOutliers(startYear, endYear);
+            
+            // Create map of year to value for revenues and expenses
+            Map<Integer, Double> revenueYearMap = new HashMap<>();
+            Map<Integer, Double> expenseYearMap = new HashMap<>();
+            for (int year = startYear; year <= endYear; year++) {
+                double rev = service.getTotalRevenues(year);
+                if (rev > 0) revenueYearMap.put(year, rev);
+                double exp = service.getTotalExpenses(year);
+                if (exp > 0) expenseYearMap.put(year, exp);
+            }
+            
+            // Calculate z-scores for outliers
+            ObservableList<Map<String, Object>> outliersData = FXCollections.observableArrayList();
+            for (Double outlierValue : revenueOutliers) {
+                // Find the year for this outlier value
+                for (Map.Entry<Integer, Double> entry : revenueYearMap.entrySet()) {
+                    if (Math.abs(entry.getValue() - outlierValue) < 0.01) {
+                        Map<String, Object> item = new HashMap<>();
+                        item.put("year", entry.getKey().toString());
+                        item.put("type", "Έσοδα");
+                        item.put("value", outlierValue);
+                        double zScore = StatisticalAnalysis.calculateZScore(outlierValue, revenues);
+                        item.put("zScore", zScore);
+                        outliersData.add(item);
+                        break;
+                    }
+                }
+            }
+            
+            if (expenses != null && expenses.length >= 2) {
+                for (Double outlierValue : expenseOutliers) {
+                    // Find the year for this outlier value
+                    for (Map.Entry<Integer, Double> entry : expenseYearMap.entrySet()) {
+                        if (Math.abs(entry.getValue() - outlierValue) < 0.01) {
+                            Map<String, Object> item = new HashMap<>();
+                            item.put("year", entry.getKey().toString());
+                            item.put("type", "Δαπάνες");
+                            item.put("value", outlierValue);
+                            double zScore = StatisticalAnalysis.calculateZScore(outlierValue, expenses);
+                            item.put("zScore", zScore);
+                            outliersData.add(item);
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (statisticsOutliersTable != null) {
+                statisticsOutliersTable.setItems(outliersData);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Σφάλμα υπολογισμού στατιστικών");
+            alert.setContentText("Δεν ήταν δυνατός ο υπολογισμός των στατιστικών: " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+    
     private void showView(VBox view) {
         // Hide all views
         homeView.setVisible(false);
@@ -2103,6 +2729,10 @@ public class HomeController {
         if (dataExplorationView != null) {
             dataExplorationView.setVisible(false);
             dataExplorationView.setManaged(false);
+        }
+        if (statisticsView != null) {
+            statisticsView.setVisible(false);
+            statisticsView.setManaged(false);
         }
         
         // Show selected view

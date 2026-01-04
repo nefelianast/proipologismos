@@ -1,4 +1,5 @@
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,6 +27,18 @@ public class SQLmaker {
      public void make() {
         try {
             Connection conn = DatabaseConnection.getConnection();
+
+            // Check if tables already exist to avoid re-initialization 
+            DatabaseMetaData meta = conn.getMetaData();
+            ResultSet tables = meta.getTables(null, null, "revenue_2025", null);
+            if (tables.next()) {
+                tables.close();
+                System.out.println("Database already initialized. Skipping table creation.");
+                return;
+            }
+            tables.close();
+
+            System.out.println("Initializing database tables...");
             String sql1 = "CREATE TABLE IF NOT EXISTS revenue_2025 ("
         +"total_revenue MONEY PRIMARY KEY,"
         +"taxes MONEY,"

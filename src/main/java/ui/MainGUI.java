@@ -34,10 +34,23 @@ public class MainGUI extends Application {
 
     /**
      * Main entry point for the application.
+     * Automatically initializes the database if needed before launching the GUI.
      * 
      * @param args Command line arguments
      */
     public static void main(String[] args) {
+        // Initialize database automatically on first run
+        try {
+            // Use reflection since SQLmaker is in default package
+            Class<?> sqlMakerClass = Class.forName("SQLmaker");
+            Object sqlMaker = sqlMakerClass.getDeclaredConstructor().newInstance();
+            sqlMakerClass.getMethod("make").invoke(sqlMaker);
+        } catch (Exception e) {
+            System.err.println("Warning: Could not initialize database: " + e.getMessage());
+            System.err.println("Application will continue with sample data.");
+        }
+        
+        // Launch the JavaFX application
         launch(args);
     }
 }

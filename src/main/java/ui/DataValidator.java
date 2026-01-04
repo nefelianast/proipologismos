@@ -196,13 +196,23 @@ public class DataValidator {
         if (isValid) {
             // Valid state - remove error styling
             textField.getStyleClass().removeAll("validation-error");
-            textField.setStyle("");
+            // Restore default border color but keep other styles
+            String currentStyle = textField.getStyle();
+            if (currentStyle != null && currentStyle.contains("-fx-border-color: #dc2626")) {   
+                textField.setStyle(currentStyle.replace("-fx-border-color: #dc2626", "-fx-border-color: #d1d5db"));
+            }
         } else {
             // Invalid state - add error styling
             if (!textField.getStyleClass().contains("validation-error")) {
                 textField.getStyleClass().add("validation-error");
             }
-            textField.setStyle("-fx-border-color: #dc2626; -fx-border-width: 2px;");
+            // Only change border color, keep width at 1px to maintain height
+            String currentStyle = textField.getStyle();
+            if (currentStyle != null && currentStyle.contains("-fx-border-color:")) {
+                textField.setStyle(currentStyle.replaceAll("-fx-border-color:[^;]+", "-fx-border-color: #dc2626"));
+            } else {
+                textField.setStyle((currentStyle != null ? currentStyle + " " : "") + "-fx-border-color: #dc2626;");
+            }
         }
         
         // Update error label if provided
