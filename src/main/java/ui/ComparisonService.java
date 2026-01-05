@@ -10,15 +10,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Service class for comparing budget data between two years.
- * Extracts structured comparison data instead of printing to console.
- */
 public class ComparisonService {
     
-    /**
-     * Data class representing comparison results for a single category  
-     */
     public static class ComparisonData {
         private final String categoryName;
         private final long year1Value;
@@ -45,9 +38,6 @@ public class ComparisonService {
         public double getPercentageChange() { return percentageChange; }
     }
     
-    /**
-     * Data class representing all comparison results for two years      
-     */
     public static class ComparisonResults {
         private final Map<String, ComparisonData> revenues = new HashMap<>();
         private final Map<String, ComparisonData> expenses = new HashMap<>();
@@ -62,21 +52,12 @@ public class ComparisonService {
         public Map<String, ComparisonData> getBudgetSummary() { return budgetSummary; }
     }
     
-    /**
-     * Compares budget data between two years and returns structured results.
-     * 
-     * @param year1 The first year to compare
-     * @param year2 The second year to compare
-     * @return ComparisonResults containing all comparison data
-     * @throws SQLException if there is an error accessing the database  
-     */
     public ComparisonResults compareYears(int year1, int year2) throws SQLException {
         Connection connection = DatabaseConnection.getConnection();      
         Statement stmt = connection.createStatement();
         ComparisonResults results = new ComparisonResults();
         
         try {
-            // Check if tables exist for both years
             if (!tableExists(connection, "revenue_" + year1)) {
                 throw new SQLException("Ο πίνακας revenue_" + year1 + " δεν υπάρχει στη βάση δεδομένων. " +
                     "Παρακαλώ βεβαιωθείτε ότι τα δεδομένα για το έτος " + year1 + " έχουν εισαχθεί.");
@@ -86,19 +67,10 @@ public class ComparisonService {
                     "Παρακαλώ βεβαιωθείτε ότι τα δεδομένα για το έτος " + year2 + " έχουν εισαχθεί.");
             }
             
-            // Compare Revenues
             compareRevenues(stmt, year1, year2, results);
-
-            // Compare Expenses
             compareExpenses(stmt, year1, year2, results);
-
-            // Compare Decentralized Administrations
             compareAdministrations(stmt, year1, year2, results);
-
-            // Compare Ministries
             compareMinistries(stmt, year1, year2, results);
-
-            // Compare Budget Summary
             compareBudgetSummary(stmt, year1, year2, results);
 
         } finally {
@@ -351,7 +323,6 @@ public class ComparisonService {
         ResultSet rs1 = stmt.executeQuery(sql1);
         ResultSet rs2 = stmt.executeQuery(sql2);
         
-        // Get column metadata to check which columns exist
         java.sql.ResultSetMetaData meta1 = rs1.getMetaData();
         java.sql.ResultSetMetaData meta2 = rs2.getMetaData();
         
@@ -383,7 +354,6 @@ public class ComparisonService {
             ministries1.put("Αγροτικής Ανάπτυξης & Τροφίμων", rs1.getLong("ministry_of_agricultural_development_and_food"));
             ministries1.put("Περιβάλλοντος & Ενέργειας", rs1.getLong("ministry_of_environment_and_energy"));
             ministries1.put("Εργασίας & Κοινωνικής Ασφάλισης", rs1.getLong("ministry_of_labor_and_social_security"));
-            // Check if column exists before reading
             if (columns1.contains("ministry_of_social_cohesion_and_family")) {
                 ministries1.put("Κοινωνικής Συνοχής & Οικογένειας", rs1.getLong("ministry_of_social_cohesion_and_family"));
             } else {
@@ -415,7 +385,6 @@ public class ComparisonService {
             ministries2.put("Αγροτικής Ανάπτυξης & Τροφίμων", rs2.getLong("ministry_of_agricultural_development_and_food"));
             ministries2.put("Περιβάλλοντος & Ενέργειας", rs2.getLong("ministry_of_environment_and_energy"));
             ministries2.put("Εργασίας & Κοινωνικής Ασφάλισης", rs2.getLong("ministry_of_labor_and_social_security"));
-            // Check if column exists before reading
             if (columns2.contains("ministry_of_social_cohesion_and_family")) {
                 ministries2.put("Κοινωνικής Συνοχής & Οικογένειας", rs2.getLong("ministry_of_social_cohesion_and_family"));
             } else {

@@ -4,30 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
-/**
- * Advanced statistical analysis class for budget data.
- * Provides methods for calculating standard deviation, variance, median, mode,
- * correlation, and other advanced statistical measures.
- * 
- * This class extends the basic statistics provided by BudgetStatisticsCalculator
- * with more sophisticated analysis capabilities.
- */
 public class StatisticalAnalysis {
     
-    /**
-     * Private constructor to prevent instantiation
-     */
     private StatisticalAnalysis() {
-        // Utility class - no instantiation needed
     }
     
-    /**
-     * Calculates the standard deviation of a dataset.
-     * Standard deviation measures the amount of variation or dispersion in a set of values.
-     * 
-     * @param values Array of double values
-     * @return The standard deviation, or 0.0 if array is empty or has only one element
-     */
     public static double calculateStandardDeviation(double[] values) {  
         if (values == null || values.length <= 1) {
             return 0.0;
@@ -45,13 +26,6 @@ public class StatisticalAnalysis {
         return Math.sqrt(variance);
     }
     
-    /**
-     * Calculates the variance of a dataset.
-     * Variance measures how far a set of numbers is spread out from their average value.
-     * 
-     * @param values Array of double values
-     * @return The variance, or 0.0 if array is empty or has only one element
-     */
     public static double calculateVariance(double[] values) {
         if (values == null || values.length <= 1) {
             return 0.0;
@@ -68,12 +42,6 @@ public class StatisticalAnalysis {
         return sumSquaredDifferences / (values.length - 1);
     }
     
-    /**
-     * Calculates the mean (average) of a dataset.
-     * 
-     * @param values Array of double values
-     * @return The mean, or 0.0 if array is empty
-     */
     public static double calculateMean(double[] values) {
         if (values == null || values.length == 0) {
             return 0.0;
@@ -86,13 +54,6 @@ public class StatisticalAnalysis {
         return sum / values.length;
     }
     
-    /**
-     * Calculates the median of a dataset.
-     * The median is the middle value when the data is sorted.
-     * 
-     * @param values Array of double values
-     * @return The median, or 0.0 if array is empty
-     */
     public static double calculateMedian(double[] values) {
         if (values == null || values.length == 0) {
             return 0.0;
@@ -104,34 +65,22 @@ public class StatisticalAnalysis {
         int middle = sorted.length / 2;
         
         if (sorted.length % 2 == 0) {
-            // Even number of elements - average the two middle values  
             return (sorted[middle - 1] + sorted[middle]) / 2.0;
         } else {
-            // Odd number of elements - return the middle value
             return sorted[middle];
         }
     }
     
-    /**
-     * Calculates the mode of a dataset.
-     * The mode is the value that appears most frequently.
-     * If multiple values have the same highest frequency, returns the first one encountered.
-     * 
-     * @param values Array of double values
-     * @return The mode, or Double.NaN if no mode exists (all values are unique)
-     */
     public static double calculateMode(double[] values) {
         if (values == null || values.length == 0) {
             return Double.NaN;
         }
         
-        // Count frequency of each value
         java.util.Map<Double, Integer> frequencyMap = new java.util.HashMap<>();
         for (double value : values) {
             frequencyMap.put(value, frequencyMap.getOrDefault(value, 0) + 1);
         }
         
-        // Find the value with highest frequency
         int maxFrequency = 0;
         double mode = Double.NaN;
         
@@ -142,7 +91,6 @@ public class StatisticalAnalysis {
             }
         }
         
-        // If all values appear only once, there's no mode
         if (maxFrequency == 1 && values.length > 1) {
             return Double.NaN;
         }
@@ -150,18 +98,6 @@ public class StatisticalAnalysis {
         return mode;
     }
     
-    /**
-     * Calculates the correlation coefficient between two datasets.     
-     * Correlation measures the linear relationship between two variables.
-     * Returns a value between -1 and 1, where:
-     * - 1 indicates perfect positive correlation
-     * - -1 indicates perfect negative correlation
-     * - 0 indicates no linear correlation
-     * 
-     * @param xValues First dataset
-     * @param yValues Second dataset
-     * @return The correlation coefficient, or Double.NaN if datasets are invalid
-     */
     public static double calculateCorrelation(double[] xValues, double[] yValues) {
         if (xValues == null || yValues == null || 
             xValues.length != yValues.length || 
@@ -193,13 +129,6 @@ public class StatisticalAnalysis {
         return sumXY / denominator;
     }
     
-    /**
-     * Calculates the range of a dataset.
-     * Range is the difference between the maximum and minimum values.  
-     * 
-     * @param values Array of double values
-     * @return The range, or 0.0 if array is empty
-     */
     public static double calculateRange(double[] values) {
         if (values == null || values.length == 0) {
             return 0.0;
@@ -216,13 +145,6 @@ public class StatisticalAnalysis {
         return max - min;
     }
     
-    /**
-     * Calculates the quartiles of a dataset.
-     * Returns an array with [Q1, Q2 (median), Q3].
-     * 
-     * @param values Array of double values
-     * @return Array with [Q1, Q2, Q3], or null if dataset is invalid   
-     */
     public static double[] calculateQuartiles(double[] values) {        
         if (values == null || values.length < 3) {
             return null;
@@ -249,13 +171,6 @@ public class StatisticalAnalysis {
         return new double[]{q1, q2, q3};
     }
     
-    /**
-     * Calculates the interquartile range (IQR) of a dataset.
-     * IQR is the difference between Q3 and Q1.
-     * 
-     * @param values Array of double values
-     * @return The IQR, or Double.NaN if dataset is invalid
-     */
     public static double calculateIQR(double[] values) {
         double[] quartiles = calculateQuartiles(values);
         if (quartiles == null) {
@@ -264,13 +179,6 @@ public class StatisticalAnalysis {
         return quartiles[2] - quartiles[0];
     }
     
-    /**
-     * Identifies outliers in a dataset using the IQR method.
-     * An outlier is a value that is more than 1.5 * IQR away from Q1 or Q3.
-     * 
-     * @param values Array of double values
-     * @return List of outlier values
-     */
     public static List<Double> identifyOutliers(double[] values) {      
         List<Double> outliers = new ArrayList<>();
         
@@ -298,14 +206,6 @@ public class StatisticalAnalysis {
         return outliers;
     }
     
-    /**
-     * Calculates linear regression coefficients (slope and intercept) for two datasets.
-     * Returns an array with [slope, intercept] for the equation y = slope * x + intercept.
-     * 
-     * @param xValues Independent variable values
-     * @param yValues Dependent variable values
-     * @return Array with [slope, intercept], or null if datasets are invalid
-     */
     public static double[] calculateLinearRegression(double[] xValues, double[] yValues) {
         if (xValues == null || yValues == null || 
             xValues.length != yValues.length || 
@@ -328,7 +228,7 @@ public class StatisticalAnalysis {
         }
         
         if (sumXSquared == 0.0) {
-            return null; // All x values are the same
+            return null;
         }
         
         double slope = sumXY / sumXSquared;
@@ -337,14 +237,6 @@ public class StatisticalAnalysis {
         return new double[]{slope, intercept};
     }
     
-    /**
-     * Calculates the coefficient of variation (CV).
-     * CV is the ratio of standard deviation to mean, expressed as a percentage.
-     * Useful for comparing variability between datasets with different means.
-     * 
-     * @param values Array of double values
-     * @return The coefficient of variation as a percentage, or Double.NaN if mean is 0
-     */
     public static double calculateCoefficientOfVariation(double[] values) {
         if (values == null || values.length == 0) {
             return Double.NaN;
@@ -359,13 +251,6 @@ public class StatisticalAnalysis {
         return (stdDev / mean) * 100.0;
     }
     
-    /**
-     * Calculates a simple moving average for a dataset.
-     * 
-     * @param values Array of double values
-     * @param windowSize Size of the moving average window
-     * @return Array of moving average values, or null if window size is invalid
-     */
     public static double[] calculateMovingAverage(double[] values, int windowSize) {
         if (values == null || values.length == 0 || 
             windowSize <= 0 || windowSize > values.length) {
@@ -385,14 +270,6 @@ public class StatisticalAnalysis {
         return movingAverages;
     }
     
-    /**
-     * Calculates the z-score for a value relative to a dataset.        
-     * Z-score indicates how many standard deviations a value is from the mean.
-     * 
-     * @param value The value to calculate z-score for
-     * @param values The dataset
-     * @return The z-score, or Double.NaN if dataset is invalid
-     */
     public static double calculateZScore(double value, double[] values) {
         if (values == null || values.length == 0) {
             return Double.NaN;
@@ -408,13 +285,6 @@ public class StatisticalAnalysis {
         return (value - mean) / stdDev;
     }
     
-    /**
-     * Generates a statistical summary for a dataset.
-     * Returns a formatted string with key statistics.
-     * 
-     * @param values Array of double values
-     * @return Formatted statistical summary string
-     */
     public static String generateStatisticalSummary(double[] values) {  
         if (values == null || values.length == 0) {
             return "No data available for statistical analysis.";       
@@ -458,12 +328,6 @@ public class StatisticalAnalysis {
         return summary.toString();
     }
     
-    /**
-     * Analyzes a budget balance and returns a descriptive message about the budget status.
-     * 
-     * @param balance The budget balance (revenues - expenses)
-     * @return A descriptive message in Greek about whether the budget is surplus, balanced, or deficit
-     */
     public static String analyzeBudget(double balance) {
         if (balance > 0) {
             return "Ο προϋπολογισμός είναι πλεονασματικός όταν τα συνολικά έσοδα είναι μεγαλύτερα από τα έξοδα. " +
@@ -480,24 +344,10 @@ public class StatisticalAnalysis {
         }
     }
     
-    /**
-     * Compares two budget values and returns a detailed comparison message.
-     * 
-     * @param year1 First year identifier
-     * @param year2 Second year identifier
-     * @param balance1 Balance for year 1
-     * @param balance2 Balance for year 2
-     * @param revenue1 Total revenue for year 1
-     * @param revenue2 Total revenue for year 2
-     * @param expense1 Total expenses for year 1
-     * @param expense2 Total expenses for year 2
-     * @return A detailed comparison message in Greek
-     */
     public static String compareBudgetsDetailed(int year1, int year2, 
                                                  double balance1, double balance2,
                                                  double revenue1, double revenue2,
                                                  double expense1, double expense2) {
-        // Calculate percentage difference for balance
         double percentageDiff = 0;
         if (balance1 != 0) {
             percentageDiff = ((balance2 - balance1) / Math.abs(balance1)) * 100;
