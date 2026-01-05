@@ -34,6 +34,8 @@ public class SQLmaker {
             if (tables.next()) {
                 tables.close();
                 System.out.println("Database already initialized. Skipping table creation.");
+                // Still create admin user if it doesn't exist
+                createDefaultAdminUser();
                 return;
             }
             tables.close();
@@ -368,6 +370,14 @@ public class SQLmaker {
     + "FOREIGN KEY (total_da) REFERENCES decentralized_administrations_2025(total_da)"
     + ");";
     
+    // Users table for authentication
+    String sqlUsers =
+        "CREATE TABLE IF NOT EXISTS users ("
+        + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        + "username TEXT UNIQUE NOT NULL,"
+        + "password TEXT NOT NULL"
+        + ");";
+    
         try (Statement stmt = conn.createStatement()) {
             stmt.execute(sql1);
             stmt.execute(sql2);
@@ -389,6 +399,7 @@ public class SQLmaker {
             stmt.execute(sql18);
             stmt.execute(sql19);
             stmt.execute(sql20);
+            stmt.execute(sqlUsers);
             
             // Create tables for data persistence (comments, scenarios, preferences)
             String sql21 = "CREATE TABLE IF NOT EXISTS user_comments (" +
@@ -429,6 +440,9 @@ public class SQLmaker {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        
+        // Always check and create default admin user (even if tables already existed)
+        createDefaultAdminUser();
         
         
         SQLinserter test = new SQLinserter();
@@ -476,6 +490,45 @@ public class SQLmaker {
             e.printStackTrace();
         }
 
+    }
+    
+    /**
+     * Creates a default admin user for testing if it doesn't already exist.
+     * This method is called separately so it runs even if tables already exist.
+     */
+    private static void createDefaultAdminUser() {
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            // First, ensure users table exists (in case it was created separately)
+            try {
+                stmt.execute("CREATE TABLE IF NOT EXISTS users (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "username TEXT UNIQUE NOT NULL," +
+                    "password TEXT NOT NULL" +
+                    ");");
+            } catch (SQLException e) {
+                // Table might already exist, that's fine
+            }
+            
+            // Check if admin user exists
+            String checkUser = "SELECT COUNT(*) FROM users WHERE username = 'admin'";
+            ResultSet rs = stmt.executeQuery(checkUser);
+            
+            if (rs.next() && rs.getInt(1) == 0) {
+                // Default admin account: username='admin', password='admin123'
+                String insertAdmin = "INSERT INTO users (username, password) VALUES ('admin', 'admin123')";
+                stmt.execute(insertAdmin);
+                System.out.println("✓ Default admin user created (username: admin, password: admin123)");
+            } else {
+                System.out.println("✓ Default admin user already exists.");
+            }
+            rs.close();
+            
+        } catch (SQLException e) {
+            System.err.println("⚠ Warning: Could not create default admin user: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     
 }

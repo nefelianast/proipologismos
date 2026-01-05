@@ -20,6 +20,13 @@ public class Comparisons {
      * @param year2 The second year to compare
      */
     public void comparisons_of_two_years(int year1,int year2) {
+       // Default year2 to previous year if not specified
+       if (year2 == 0) {
+           year2 = year1 - 1;
+           if (year2 == 2022) {
+               year2 = 2023;
+           }
+       }
        try {
             Connection connection = DatabaseConnection.getConnection();
 
@@ -226,10 +233,12 @@ public class Comparisons {
 
                     
         }
-        String sq2 ="SELECT * FROM revenue_"+year2;
-        ResultSet rs2 = stmt.executeQuery(sq2);
+        //MMM
+        if (year2 != 0) {
+            String sq2 ="SELECT * FROM revenue_"+year2;
+            ResultSet rs2 = stmt.executeQuery(sq2);
 
-         while (rs2.next()) {
+            while (rs2.next()) {
             total_revenue2 = rs2.getLong("total_revenue");
             taxes2 = rs2.getLong("taxes");
             social_contributions2 = rs2.getLong("social_contributions");
@@ -268,6 +277,7 @@ public class Comparisons {
             System.out.println("financial_derivatives: " + financial_derivatives2);
 
                     
+            }
         }
         String sq3 ="SELECT * FROM expenses_"+year1;
         ResultSet rs3 = stmt.executeQuery(sq3);
@@ -310,10 +320,12 @@ public class Comparisons {
 
                     
         }
-        String sq4 ="SELECT * FROM expenses_"+year2;
-        ResultSet rs4 = stmt.executeQuery(sq4);
+        //MMM
+        if (year2 != 0) {
+            String sq4 ="SELECT * FROM expenses_"+year2;
+            ResultSet rs4 = stmt.executeQuery(sq4);
 
-         while (rs4.next()) {
+            while (rs4.next()) {
             total_expenses2 = rs4.getLong("total_expenses");
             employee_benefits2 = rs4.getLong("employee_benefits");
             social_benefits2 = rs4.getLong("social_benefits");
@@ -350,6 +362,7 @@ public class Comparisons {
             System.out.println("loans_liabilities: " + loans_liabilities22);
 
                     
+            }
         }
 
         String sq5 ="SELECT * FROM decentralized_administrations_"+year1;
@@ -380,11 +393,12 @@ public class Comparisons {
            
                     
         }
+        //MMM
+        if (year2 != 0) {
+            String sq6 ="SELECT * FROM decentralized_administrations_"+year2;
+            ResultSet rs6 = stmt.executeQuery(sq6);
 
-        String sq6 ="SELECT * FROM decentralized_administrations_"+year2;
-        ResultSet rs6 = stmt.executeQuery(sq6);
-
-         while (rs6.next()) {
+            while (rs6.next()) {
             total_da2 = rs6.getLong("total_da");
             decentralized_administration_of_attica2 = rs6.getLong("decentralized_administration_of_attica");
             decentralized_administration_of_thessaly_central_greece2 = rs6.getLong("decentralized_administration_of_thessaly_central_greece");
@@ -408,6 +422,7 @@ public class Comparisons {
             
            
                     
+            }
         }
 
         String sq7 ="SELECT * FROM ministries_"+year1;
@@ -468,11 +483,12 @@ public class Comparisons {
             System.out.println("ministry_of_climate_crisis_and_civil_protection: " + ministry_of_climate_crisis_and_civil_protection);
                     
         }
+        //MMM
+        if (year2 != 0) {
+            String sq8 ="SELECT * FROM ministries_"+year2;
+            ResultSet rs8 = stmt.executeQuery(sq8);
 
-        String sq8 ="SELECT * FROM ministries_"+year2;
-        ResultSet rs8 = stmt.executeQuery(sq8);
-
-         while (rs8.next()) {
+            while (rs8.next()) {
             total_ministries2 = rs8.getLong("total_ministries");
             presidency_of_the_republic2 = rs8.getLong("presidency_of_the_republic");
             hellenic_parliament2 = rs8.getLong("hellenic_parliament");
@@ -526,6 +542,7 @@ public class Comparisons {
             System.out.println("ministry_of_citizen_protection: " + ministry_of_citizen_protection2);
             System.out.println("ministry_of_climate_crisis_and_civil_protection: " + ministry_of_climate_crisis_and_civil_protection2);
                     
+            }
         }
 
         String sq9 ="SELECT * FROM budget_summary_"+year1;
@@ -546,11 +563,12 @@ public class Comparisons {
             System.out.println("total_ministries: " + total_ministries3);
             System.out.println("total_da: " + total_da3);
         }
+        //MMM
+        if (year2 != 0) {
+            String sq10 ="SELECT * FROM budget_summary_"+year2;
+            ResultSet rs10 = stmt.executeQuery(sq10);
 
-        String sq10 ="SELECT * FROM budget_summary_"+year2;
-        ResultSet rs10 = stmt.executeQuery(sq10);
-
-         while (rs10.next()) {
+            while (rs10.next()) {
             budget_result2 = rs10.getLong("budget_result");
             total_revenue4 = rs10.getLong("total_revenue");
             total_expenses4 = rs10.getLong("total_expenses");
@@ -564,10 +582,10 @@ public class Comparisons {
             System.out.println("total_expenses: " + total_expenses4);
             System.out.println("total_ministries: " + total_ministries4);
             System.out.println("total_da: " + total_da4);
+            }
         }
-
-
-
+        //MMM
+        if (year2 != 0 && year2 != 2023) {
 //------------------------------------------------Display------------------------------------------------------------------------------
                         System.out.println();
             System.out.println("================================ BUDGET SUMMARY =============================================");
@@ -881,6 +899,9 @@ public class Comparisons {
                     ministry_of_climate_crisis_and_civil_protection2,
                     year1,
                     year2);
+        } else {
+            // No comparison display when year2 is 0 or 2023
+        }
 
         } catch (SQLException e) {
             e.printStackTrace();
