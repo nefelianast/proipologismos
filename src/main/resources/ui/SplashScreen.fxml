@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane fx:id="splashPane" styleClass="splash-pane" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.SplashController">
+   <children>
+      <VBox alignment="CENTER" spacing="0">
+         <children>
+            <ImageView fx:id="logoImageView" fitHeight="500.0" fitWidth="500.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@/images/logo.png" />
+               </image>
+            </ImageView>
+            <Label fx:id="titleLabel" styleClass="splash-title" text="Επίσημη Πλατφόρμα Κρατικού Προϋπολογισμού" />
+         </children>
+      </VBox>
+   </children>
+</StackPane>
+

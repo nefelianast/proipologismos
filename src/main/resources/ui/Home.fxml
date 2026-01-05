@@ -4,13 +4,34 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.AreaChart?>
+<?import javafx.scene.chart.StackedBarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -21,144 +42,1100 @@
     <!-- HEADER -->
     <top>
         <VBox styleClass="header-container">
-            <HBox styleClass="header-bar" BorderPane.alignment="CENTER">
+            <StackPane styleClass="header-bar">
                 <children>
-                    <VBox spacing="2">
+                    <!-- Background HBox για το μενού -->
+                    <HBox spacing="0" alignment="CENTER_LEFT">
                         <children>
-                            <Label text="Κρατικός Προϋπολογισμός"
-                                   styleClass="header-title"/>
-                            <Label text="Σύστημα Ανάλυσης &amp; Οπτικοποίησης"
-                                   styleClass="header-subtitle"/>
+                            <!-- MenuBar -->
+                            <MenuBar styleClass="header-menu-bar">
+                                <menus>
+                                    <Menu text="☰ Μενού">
+                                        <items>
+                                            <MenuItem text="📈 Προεπισκοπήσεις Αλλαγών" onAction="#onNavigateProjections" fx:id="projectionsMenuItem" styleClass="menu-item"/>
+                                            <MenuItem text="🔍 Εξερεύνηση Δεδομένων" onAction="#onNavigateDataExploration" fx:id="dataExplorationMenuItem" styleClass="menu-item"/>
+                                            <MenuItem text="📊 Στατιστικές Αναλύσεις" onAction="#onNavigateStatistics" fx:id="statisticsMenuItem" styleClass="menu-item"/>
+                                            <SeparatorMenuItem styleClass="separator-menu-item"/>
+                                            <MenuItem text="Σύνδεση ως Κυβέρνηση" onAction="#onAuthButtonClicked" fx:id="authMenuItem" styleClass="menu-item"/>
+                                        </items>
+                                    </Menu>
+                                </menus>
+                            </MenuBar>
+                        </children>
+                        <padding>
+                            <Insets top="8" right="0" bottom="8" left="32"/>
+                        </padding>
+                    </HBox>
+                    
+                    <!-- Logo centered -->
+                    <VBox spacing="0" alignment="CENTER" StackPane.alignment="CENTER" mouseTransparent="true">
+                        <children>
+                            <Region prefHeight="15.0" mouseTransparent="true"/>
+                            <ImageView fx:id="headerLogoImageView" mouseTransparent="true">
+                                <image>
+                                    <Image url="@/images/logo.png"/>
+                                </image>
+                                <fitWidth>300.0</fitWidth>
+                                <preserveRatio>true</preserveRatio>
+                            </ImageView>
+                            <Region prefHeight="25.0" mouseTransparent="true"/>
                         </children>
                     </VBox>
-
-                    <Region HBox.hgrow="ALWAYS"/>
-
-                    <ComboBox fx:id="yearCombo" promptText="Έτος" prefWidth="100" styleClass="year-combo"/>
                 </children>
-                <padding>
-                    <Insets top="20" right="32" bottom="20" left="32"/>
-                </padding>
-            </HBox>
+            </StackPane>
         </VBox>
     </top>
 
-    <!-- LEFT NAVIGATION -->
-    <left>
-        <VBox styleClass="nav-menu" spacing="4">
-            <padding>
-                <Insets top="20" right="0" bottom="20" left="20"/>
-            </padding>
-            <children>
-                <Button text="Αρχική" onAction="#onNavigateHome" styleClass="nav-button nav-button-active" fx:id="navHome"/>
-                <Button text="Έσοδα" onAction="#onNavigateRevenues" styleClass="nav-button" fx:id="navRevenues"/>
-                <Button text="Δαπάνες" onAction="#onNavigateExpenses" styleClass="nav-button" fx:id="navExpenses"/>
-                <Button text="Κατηγορίες" onAction="#onNavigateCategories" styleClass="nav-button" fx:id="navCategories"/>
-                <Button text="Συγκρίσεις" onAction="#onNavigateComparisons" styleClass="nav-button" fx:id="navComparisons"/>
-                <Button text="Προσομοιώσεις" onAction="#onNavigateSimulations" styleClass="nav-button" fx:id="navSimulations"/>
-                <Button text="Σχετικά" onAction="#onNavigateAbout" styleClass="nav-button" fx:id="navAbout"/>
-            </children>
-        </VBox>
-    </left>
-
     <!-- CENTER CONTENT -->
     <center>
-        <ScrollPane fitToWidth="true" styleClass="content-scroll">
+        <ScrollPane fitToWidth="true" styleClass="content-scroll" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER">
             <content>
                 <VBox spacing="24" styleClass="content-container">
-                <padding>
-                    <Insets top="24" right="32" bottom="24" left="32"/>
-                </padding>
-                <children>
+                    <padding>
+                        <Insets top="24" right="80" bottom="24" left="80"/>
+                    </padding>
+                    <children>
+                        
+                        <!-- HOME VIEW (Summary Cards) -->
+                        <VBox fx:id="homeView" spacing="20" alignment="TOP_CENTER">
+                            <children>
+                                <!-- MAIN CONTENT: Year Selection + Summary Cards Full Width + Split Layout -->
+                                <VBox spacing="16">
+                                    <children>
+                                        <!-- YEAR SELECTION (Full Width) -->
+                                <HBox spacing="12" alignment="CENTER" styleClass="year-buttons-container">
+                                    <children>
+                                        <ComboBox fx:id="yearComboBox" onAction="#onYearSelected" styleClass="year-combo-box" prefWidth="170.0" prefHeight="50" minHeight="50" maxHeight="50"/>
+                                        <Button fx:id="homeEditButton" onAction="#onNavigateDataManagement" styleClass="auth-button" visible="false" managed="false" prefWidth="170.0" prefHeight="50" minHeight="50" maxHeight="50">
+                                            <graphic>
+                                                <HBox spacing="6" alignment="CENTER">
+                                                    <Label text="Επεξεργασία" style="-fx-font-size: 15px; -fx-font-weight: 600; -fx-text-fill: #1e40af;"/>
+                                                    <Label text="✎" style="-fx-font-size: 20px; -fx-text-fill: #1e40af; -fx-rotate: -8;"/>
+                                                </HBox>
+                                            </graphic>
+                                        </Button>
+                                    </children>
+                                </HBox>
 
-                    <!-- SUMMARY CARDS -->
-                    <HBox styleClass="summary-row" spacing="20">
-                        <children>
-                            <VBox styleClass="summary-card" spacing="6">
-                                <children>
-                                    <Label text="Συνολικά Έσοδα" styleClass="summary-label"/>
-                                    <Label fx:id="totalRevenuesLabel" text="€100,2 δισ." styleClass="summary-number"/>
-                                    <Label fx:id="revenuesDeltaLabel" text="+2,3% από πέρυσι" styleClass="summary-delta positive"/>
-                                </children>
-                            </VBox>
+                                        <!-- SUMMARY CARDS (Full Width) -->
+                                        <VBox>
+                                            <padding>
+                                                <Insets top="0" right="125" bottom="0" left="125"/>
+                                            </padding>
+                                            <children>
+                                                <HBox styleClass="summary-row" spacing="45" alignment="CENTER">
+                                                    <children>
+                                                <VBox styleClass="summary-card" spacing="6" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="Συνολικά Έσοδα" styleClass="summary-label"/>
+                                                <Label fx:id="totalRevenuesLabel" text="€100,2 δισ." styleClass="summary-number"/>
+                                                <Label fx:id="revenuesDeltaLabel" text="+2,3% από πέρυσι" styleClass="summary-delta positive"/>
+                                            </children>
+                                        </VBox>
 
-                            <VBox styleClass="summary-card" spacing="6">
-                                <children>
-                                    <Label text="Συνολικές Δαπάνες" styleClass="summary-label"/>
-                                    <Label fx:id="totalExpensesLabel" text="€98,5 δισ." styleClass="summary-number"/>
-                                    <Label fx:id="expensesDeltaLabel" text="+1,1% από πέρυσι" styleClass="summary-delta positive"/>
-                                </children>
-                            </VBox>
+                                                <VBox styleClass="summary-card" spacing="6" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="Συνολικές Δαπάνες" styleClass="summary-label"/>
+                                                <Label fx:id="totalExpensesLabel" text="€98,5 δισ." styleClass="summary-number"/>
+                                                <Label fx:id="expensesDeltaLabel" text="+1,1% από πέρυσι" styleClass="summary-delta positive"/>
+                                            </children>
+                                        </VBox>
 
-                            <VBox styleClass="summary-card" spacing="6">
-                                <children>
-                                    <Label text="Ισοζύγιο" styleClass="summary-label"/>
-                                    <Label fx:id="balanceLabel" text="+€1,7 δισ." styleClass="summary-number"/>
-                                    <Label fx:id="balanceStatusLabel" text="Πλεόνασμα" styleClass="summary-delta positive"/>
-                                </children>
-                            </VBox>
-                        </children>
-                    </HBox>
+                                                <VBox styleClass="summary-card" spacing="6" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="Ισοζύγιο" styleClass="summary-label"/>
+                                                <Label fx:id="balanceLabel" text="+€1,7 δισ." styleClass="summary-number"/>
+                                                <Label fx:id="balanceStatusLabel" text="Πλεόνασμα" styleClass="summary-delta positive"/>
+                                            </children>
+                                        </VBox>
+                                                    </children>
+                                                </HBox>
+                                            </children>
+                                        </VBox>
 
-                    <!-- CHARTS SECTION (Placeholder - Charts will be added when javafx-charts dependency is available) -->
-                    <HBox spacing="20" styleClass="charts-row">
-                        <children>
-                            <VBox styleClass="section-card chart-card" spacing="12">
-                                <padding>
-                                    <Insets top="20" right="20" bottom="20" left="20"/>
-                                </padding>
-                                <children>
-                                    <Label text="Κατανομή ανά Κατηγορία" styleClass="section-title"/>
-                                    <VBox prefWidth="400" prefHeight="300" styleClass="chart-placeholder">
-                                        <children>
-                                            <Region VBox.vgrow="ALWAYS"/>
-                                            <Label text="Γράφημα Pie Chart" styleClass="placeholder-text"/>
-                                            <Label text="(Θα προστεθεί όταν είναι διαθέσιμο javafx-charts)" styleClass="placeholder-subtext"/>
-                                            <Region VBox.vgrow="ALWAYS"/>
-                                        </children>
-                                    </VBox>
-                                </children>
-                            </VBox>
+                                        <!-- SPLIT LAYOUT: Quick Nav Cards (Left) | Line Chart (Right) -->
+                                        <GridPane hgap="20" vgap="0" alignment="CENTER">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="600" prefWidth="650"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="600" prefWidth="650"/>
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints vgrow="ALWAYS" prefHeight="500"/>
+                                            </rowConstraints>
+                                            
+                                            <!-- LEFT: QUICK NAVIGATION CARDS -->
+                                            <VBox spacing="16" GridPane.columnIndex="0">
+                                                <GridPane.margin>
+                                                    <Insets top="32" right="0" bottom="0" left="0"/>
+                                                </GridPane.margin>
+                                    <children>
+                                                    <!-- QUICK NAVIGATION CARDS (2x2 Grid) -->
+                                                    <GridPane hgap="12" vgap="12">
+                                                        <columnConstraints>
+                                                            <ColumnConstraints hgrow="ALWAYS" minWidth="280"/>
+                                                            <ColumnConstraints hgrow="ALWAYS" minWidth="280"/>
+                                                        </columnConstraints>
+                                                        <rowConstraints>
+                                                            <RowConstraints vgrow="ALWAYS" prefHeight="170"/>
+                                                            <RowConstraints vgrow="ALWAYS" prefHeight="170"/>
+                                                        </rowConstraints>
+                                                        
+                                                        <VBox styleClass="quick-nav-card" spacing="6" fx:id="quickNavMinistries" alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                                    <children>
+                                                        <Label text="1" styleClass="quick-nav-number"/>
+                                                        <Label text="Υπουργεία &amp; Φορείς" styleClass="quick-nav-title"/>
+                                                                <Label text="Ανάλυση Δαπανών ανά Υπουργείο" styleClass="quick-nav-description"/>
+                                                                <Label text="→" styleClass="quick-nav-link"/>
+                                                    </children>
+                                                </VBox>
 
-                            <VBox styleClass="section-card chart-card" spacing="12">
-                                <padding>
-                                    <Insets top="20" right="20" bottom="20" left="20"/>
-                                </padding>
-                                <children>
-                                    <Label text="Σύγκριση Ετών" styleClass="section-title"/>
-                                    <VBox prefWidth="400" prefHeight="300" styleClass="chart-placeholder">
-                                        <children>
-                                            <Region VBox.vgrow="ALWAYS"/>
-                                            <Label text="Γράφημα Bar Chart" styleClass="placeholder-text"/>
-                                            <Label text="(Θα προστεθεί όταν είναι διαθέσιμο javafx-charts)" styleClass="placeholder-subtext"/>
-                                            <Region VBox.vgrow="ALWAYS"/>
-                                        </children>
-                                    </VBox>
-                                </children>
-                            </VBox>
-                        </children>
-                    </HBox>
+                                                        <VBox styleClass="quick-nav-card" spacing="6" fx:id="quickNavRevenues" alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                                    <children>
+                                                        <Label text="2" styleClass="quick-nav-number"/>
+                                                        <Label text="Έσοδα" styleClass="quick-nav-title"/>
+                                                                <Label text="Ανάλυση Εσόδων" styleClass="quick-nav-description"/>
+                                                                <Label text="→" styleClass="quick-nav-link"/>
+                                                    </children>
+                                                </VBox>
 
-                    <!-- TABLE SECTION -->
-                    <VBox styleClass="section-card" spacing="12">
-                        <padding>
-                            <Insets top="20" right="20" bottom="20" left="20"/>
-                        </padding>
-                        <children>
-                            <Label text="Ανάλυση Κατηγοριών" styleClass="section-title"/>
-                            <TableView fx:id="categoryTable" prefHeight="300">
-                                <columns>
-                                    <TableColumn fx:id="categoryColumn" text="Κατηγορία" prefWidth="350"/>
-                                    <TableColumn fx:id="amountColumn" text="Ποσό" prefWidth="200"/>
-                                    <TableColumn fx:id="percentageColumn" text="%% στο σύνολο" prefWidth="150"/>
-                                    <TableColumn fx:id="changeColumn" text="Αλλαγή από πέρυσι" prefWidth="200"/>
-                                </columns>
-                            </TableView>
-                        </children>
-                    </VBox>
+                                                        <VBox styleClass="quick-nav-card" spacing="6" fx:id="quickNavExpenses" alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                                    <children>
+                                                        <Label text="3" styleClass="quick-nav-number"/>
+                                                        <Label text="Δαπάνες" styleClass="quick-nav-title"/>
+                                                                <Label text="Ανάλυση Δαπανών ανά Είδος" styleClass="quick-nav-description"/>
+                                                                <Label text="→" styleClass="quick-nav-link"/>
+                                                    </children>
+                                                </VBox>
 
-                </children>
-            </VBox>
+                                                        <VBox styleClass="quick-nav-card" spacing="6" fx:id="quickNavAdministrations" alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                                    <children>
+                                                        <Label text="4" styleClass="quick-nav-number"/>
+                                                        <Label text="Αποκεντρωμένες Διοικήσεις" styleClass="quick-nav-title"/>
+                                                                <Label text="Γεωγραφική Κατανομή Δαπανών" styleClass="quick-nav-description"/>
+                                                                <Label text="→" styleClass="quick-nav-link"/>
+                                                    </children>
+                                                </VBox>
+                                                    </GridPane>
+                                            </children>
+                                            </VBox>
+
+                                            <!-- RIGHT: LINE CHART -->
+                                            <VBox spacing="12" GridPane.columnIndex="1">
+                                                <children>
+                                                    <!-- LINE CHART -->
+                                                    <VBox styleClass="section-card chart-card" spacing="8" VBox.vgrow="ALWAYS">
+                                                        <padding>
+                                                            <Insets top="16" right="16" bottom="16" left="16"/>
+                                                        </padding>
+                                                        <children>
+                                                            <LineChart fx:id="lineHistory" title="Πορεία Προϋπολογισμού" prefHeight="250" legendVisible="true" VBox.vgrow="ALWAYS">
+                                                                <xAxis>
+                                                                    <CategoryAxis label="Έτος" />
+                                                                </xAxis>
+                                                                <yAxis>
+                                                                    <NumberAxis label="Ποσό (€)" />
+                                                                </yAxis>
+                                                            </LineChart>
+                                                            <Label text="Έσοδα και έξοδα ανά έτος" style="-fx-font-size: 11px; -fx-text-fill: #64748b; -fx-padding: 8 0 0 0;"/>
+                                                        </children>
+                                                    </VBox>
+                                                </children>
+                                            </VBox>
+                                        </GridPane>
+                                    </children>
+                                </VBox>
+
+                            </children>
+                        </VBox>
+
+                        <!-- MINISTRIES VIEW -->
+                        <VBox fx:id="ministriesView" spacing="16" visible="false" managed="false">
+                            <children>
+                                <VBox spacing="12" alignment="CENTER_LEFT">
+                                    <children>
+                                        <HBox spacing="16" alignment="CENTER_LEFT">
+                                            <children>
+                                                <Button text="← Αρχική" onAction="#onNavigateHome" styleClass="back-button"/>
+                                                <Label text="Υπουργεία &amp; Φορείς" styleClass="section-title"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                                <GridPane hgap="16" vgap="16">
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="400"/>
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="400"/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                        <RowConstraints vgrow="ALWAYS" prefHeight="350"/>
+                                        <RowConstraints vgrow="ALWAYS" prefHeight="350"/>
+                                    </rowConstraints>
+                                    <children>
+                                        <!-- Pie Chart -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Κατανομή ανά Υπουργείο" styleClass="section-title"/>
+                                                <PieChart fx:id="pieMinistries" title="Υπουργεία" prefHeight="300" legendVisible="false" VBox.vgrow="ALWAYS"/>
+                                            </children>
+                                        </VBox>
+                                        <!-- Bar Chart - Top Ministries -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Κορυφαία Υπουργεία" styleClass="section-title"/>
+                                                <BarChart fx:id="barMinistriesTop" title="Top Υπουργεία" prefHeight="300" legendVisible="true" VBox.vgrow="ALWAYS">
+                                                    <xAxis>
+                                                        <CategoryAxis label="Υπουργείο" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="Ποσό (€)" />
+                                                    </yAxis>
+                                                </BarChart>
+                                            </children>
+                                        </VBox>
+                                        <!-- Area Chart - Historical Trend -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="1">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Διαχρονική Εξέλιξη Συνολικών Δαπανών Υπουργείων" styleClass="section-title"/>
+                                                <AreaChart fx:id="areaMinistriesTrend" title="Εξέλιξη Δαπανών Υπουργείων" prefHeight="300" legendVisible="true" VBox.vgrow="ALWAYS">
+                                                    <xAxis>
+                                                        <CategoryAxis label="Έτος" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="Ποσό (€)" />
+                                                    </yAxis>
+                                                </AreaChart>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </GridPane>
+                                <VBox styleClass="section-card" spacing="16">
+                                    <padding>
+                                        <Insets top="24" right="24" bottom="24" left="24"/>
+                                    </padding>
+                                    <children>
+                                        <TableView fx:id="categoryTable" prefHeight="600">
+                                            <columns>
+                                                <TableColumn fx:id="categoryColumn" text="Υπουργείο / Φορέας" prefWidth="400"/>
+                                                <TableColumn fx:id="amountColumn" text="Δαπάνες (€)" prefWidth="220"/>
+                                                <TableColumn fx:id="percentageColumn" text="Συμμετοχή (%)" prefWidth="180"/>
+                                                <TableColumn fx:id="changeColumn" text="Μεταβολή από προηγούμενο έτος" prefWidth="250"/>
+                                            </columns>
+                                        </TableView>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                        <!-- REVENUES VIEW -->
+                        <VBox fx:id="revenuesView" spacing="16" visible="false" managed="false">
+                            <children>
+                                <VBox spacing="12" alignment="CENTER_LEFT">
+                                    <children>
+                                        <HBox spacing="16" alignment="CENTER_LEFT">
+                                            <children>
+                                                <Button text="← Αρχική" onAction="#onNavigateHome" styleClass="back-button"/>
+                                                <Label text="Έσοδα" styleClass="section-title"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                                <GridPane hgap="16" vgap="16">
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="400"/>
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="400"/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                        <RowConstraints vgrow="ALWAYS" prefHeight="300"/>
+                                        <RowConstraints vgrow="ALWAYS" prefHeight="300"/>
+                                    </rowConstraints>
+                                    <children>
+                                        <!-- Pie Chart -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Ανάλυση Εσόδων" styleClass="section-title"/>
+                                                <PieChart fx:id="pieRevenue" title="Πηγές Εσόδων" prefHeight="250" legendVisible="false" VBox.vgrow="ALWAYS"/>
+                                            </children>
+                                        </VBox>
+                                        <!-- Bar Chart - Top Categories -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Κορυφαίες Κατηγορίες Εσόδων" styleClass="section-title"/>
+                                                <BarChart fx:id="barRevenueTop" title="Top Κατηγορίες" prefHeight="250" legendVisible="true" VBox.vgrow="ALWAYS">
+                                                    <xAxis>
+                                                        <CategoryAxis label="Κατηγορία" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="Ποσό (€)" />
+                                                    </yAxis>
+                                                </BarChart>
+                                            </children>
+                                        </VBox>
+                                        <!-- Area Chart - Historical Trend -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Διαχρονική Εξέλιξη Εσόδων" styleClass="section-title"/>
+                                                <AreaChart fx:id="areaRevenueTrend" title="Εξέλιξη Εσόδων" prefHeight="250" legendVisible="true" VBox.vgrow="ALWAYS">
+                                                    <xAxis>
+                                                        <CategoryAxis label="Έτος" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="Ποσό (€)" />
+                                                    </yAxis>
+                                                </AreaChart>
+                                            </children>
+                                        </VBox>
+                                        <!-- Stacked Bar Chart - Composition by Year -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Σύνθεση Εσόδων ανά Έτος" styleClass="section-title"/>
+                                                <StackedBarChart fx:id="stackedRevenue" title="Σύνθεση Εσόδων" prefHeight="250" legendVisible="true" VBox.vgrow="ALWAYS">
+                                                    <xAxis>
+                                                        <CategoryAxis label="Έτος" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="Ποσό (€)" />
+                                                    </yAxis>
+                                                </StackedBarChart>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </GridPane>
+                                <VBox styleClass="section-card" spacing="16">
+                                    <padding>
+                                        <Insets top="24" right="24" bottom="24" left="24"/>
+                                    </padding>
+                                    <children>
+                                        <Label text="Λεπτομερής Ανάλυση Εσόδων" styleClass="section-title"/>
+                                        <TableView fx:id="revenuesTable" prefHeight="600">
+                                            <columns>
+                                                <TableColumn fx:id="revenueCategoryColumn" text="Είδος Έσοδων" prefWidth="450"/>
+                                                <TableColumn fx:id="revenueAmountColumn" text="Ποσό (€)" prefWidth="280"/>
+                                                <TableColumn fx:id="revenuePercentageColumn" text="Συμμετοχή (%)" prefWidth="220"/>
+                                            </columns>
+                                        </TableView>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                        <!-- EXPENSES VIEW -->
+                        <VBox fx:id="expensesView" spacing="16" visible="false" managed="false">
+                            <children>
+                                <VBox spacing="12" alignment="CENTER_LEFT">
+                                    <children>
+                                        <HBox spacing="16" alignment="CENTER_LEFT">
+                                            <children>
+                                                <Button text="← Αρχική" onAction="#onNavigateHome" styleClass="back-button"/>
+                                                <Label text="Δαπάνες" styleClass="section-title"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                                <GridPane hgap="16" vgap="16">
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="400"/>
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="400"/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                        <RowConstraints vgrow="ALWAYS" prefHeight="300"/>
+                                        <RowConstraints vgrow="ALWAYS" prefHeight="300"/>
+                                    </rowConstraints>
+                                    <children>
+                                        <!-- Pie Chart -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Ανάλυση Εξόδων" styleClass="section-title"/>
+                                                <PieChart fx:id="pieExpenses" title="Κατηγορίες Δαπανών" prefHeight="250" legendVisible="false" VBox.vgrow="ALWAYS"/>
+                                            </children>
+                                        </VBox>
+                                        <!-- Bar Chart - Top Categories -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Κορυφαίες Κατηγορίες Δαπανών" styleClass="section-title"/>
+                                                <BarChart fx:id="barExpenseTop" title="Top Κατηγορίες" prefHeight="250" legendVisible="true" VBox.vgrow="ALWAYS">
+                                                    <xAxis>
+                                                        <CategoryAxis label="Κατηγορία" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="Ποσό (€)" />
+                                                    </yAxis>
+                                                </BarChart>
+                                            </children>
+                                        </VBox>
+                                        <!-- Area Chart - Historical Trend -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Διαχρονική Εξέλιξη Δαπανών" styleClass="section-title"/>
+                                                <AreaChart fx:id="areaExpenseTrend" title="Εξέλιξη Δαπανών" prefHeight="250" legendVisible="true" VBox.vgrow="ALWAYS">
+                                                    <xAxis>
+                                                        <CategoryAxis label="Έτος" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="Ποσό (€)" />
+                                                    </yAxis>
+                                                </AreaChart>
+                                            </children>
+                                        </VBox>
+                                        <!-- Stacked Bar Chart - Composition by Year -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Σύνθεση Δαπανών ανά Έτος" styleClass="section-title"/>
+                                                <StackedBarChart fx:id="stackedExpense" title="Σύνθεση Δαπανών" prefHeight="250" legendVisible="true" VBox.vgrow="ALWAYS">
+                                                    <xAxis>
+                                                        <CategoryAxis label="Έτος" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="Ποσό (€)" />
+                                                    </yAxis>
+                                                </StackedBarChart>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </GridPane>
+                                <VBox styleClass="section-card" spacing="16">
+                                    <padding>
+                                        <Insets top="24" right="24" bottom="24" left="24"/>
+                                    </padding>
+                                    <children>
+                                        <Label text="Λεπτομερής Ανάλυση Δαπανών" styleClass="section-title"/>
+                                        <TableView fx:id="expensesTable" prefHeight="600">
+                                            <columns>
+                                                <TableColumn fx:id="expenseCategoryColumn" text="Είδος Δαπανών" prefWidth="450"/>
+                                                <TableColumn fx:id="expenseAmountColumn" text="Ποσό (€)" prefWidth="280"/>
+                                                <TableColumn fx:id="expensePercentageColumn" text="Συμμετοχή (%)" prefWidth="220"/>
+                                            </columns>
+                                        </TableView>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                        <!-- ADMINISTRATIONS VIEW -->
+                        <VBox fx:id="administrationsView" spacing="16" visible="false" managed="false">
+                            <children>
+                                <VBox spacing="12" alignment="CENTER_LEFT">
+                                    <children>
+                                        <HBox spacing="16" alignment="CENTER_LEFT">
+                                            <children>
+                                                <Button text="← Αρχική" onAction="#onNavigateHome" styleClass="back-button"/>
+                                                <Label text="Αποκεντρωμένες Διοικήσεις" styleClass="section-title"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                                <GridPane hgap="16" vgap="16">
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="400"/>
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="400"/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                        <RowConstraints vgrow="ALWAYS" prefHeight="350"/>
+                                        <RowConstraints vgrow="ALWAYS" prefHeight="350"/>
+                                    </rowConstraints>
+                                    <children>
+                                        <!-- Pie Chart -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Κατανομή ανά Αποκεντρωμένη Διοίκηση" styleClass="section-title"/>
+                                                <PieChart fx:id="pieAdministrations" title="Αποκεντρωμένες Διοικήσεις" prefHeight="300" legendVisible="false" VBox.vgrow="ALWAYS"/>
+                                            </children>
+                                        </VBox>
+                                        <!-- Bar Chart - Top Administrations -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Κορυφαίες Αποκεντρωμένες Διοικήσεις" styleClass="section-title"/>
+                                                <BarChart fx:id="barAdministrationsTop" title="Top Διοικήσεις" prefHeight="300" legendVisible="true" VBox.vgrow="ALWAYS">
+                                                    <xAxis>
+                                                        <CategoryAxis label="Διοίκηση" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="Ποσό (€)" />
+                                                    </yAxis>
+                                                </BarChart>
+                                            </children>
+                                        </VBox>
+                                        <!-- Area Chart - Historical Trend -->
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="1">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Διαχρονική Εξέλιξη Συνολικών Δαπανών Αποκεντρωμένων Διοικήσεων" styleClass="section-title"/>
+                                                <AreaChart fx:id="areaAdministrationsTrend" title="Εξέλιξη Δαπανών Αποκεντρωμένων Διοικήσεων" prefHeight="300" legendVisible="true" VBox.vgrow="ALWAYS">
+                                                    <xAxis>
+                                                        <CategoryAxis label="Έτος" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="Ποσό (€)" />
+                                                    </yAxis>
+                                                </AreaChart>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </GridPane>
+                                <VBox styleClass="section-card" spacing="16">
+                                    <padding>
+                                        <Insets top="24" right="24" bottom="24" left="24"/>
+                                    </padding>
+                                    <children>
+                                        <TableView fx:id="administrationsTable" prefHeight="600">
+                                            <columns>
+                                                <TableColumn fx:id="adminCategoryColumn" text="Αποκεντρωμένη Διοίκηση" prefWidth="550"/>
+                                                <TableColumn fx:id="adminAmountColumn" text="Ποσό (€)" prefWidth="280"/>
+                                                <TableColumn fx:id="adminPercentageColumn" text="Συμμετοχή (%)" prefWidth="220"/>
+                                            </columns>
+                                        </TableView>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                        <!-- DATA MANAGEMENT VIEW (Government Only) -->
+                        <VBox fx:id="dataManagementView" spacing="20" alignment="TOP_CENTER" visible="false" managed="false" styleClass="data-management-container">
+                            <children>
+                                <!-- Header Section -->
+                                <VBox spacing="20" styleClass="section-card header-section" alignment="CENTER">
+                                    <padding>
+                                        <Insets top="24" right="80" bottom="24" left="80"/>
+                                    </padding>
+                                    <children>
+                                        <!-- Top Row: Back Button and Title -->
+                                        <HBox spacing="16" alignment="CENTER">
+                                            <children>
+                                                <Button text="← Αρχική" onAction="#onNavigateHome" styleClass="back-button-modern" prefWidth="140" prefHeight="38"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Label fx:id="dataManagementYearTitleLabel" text="Διαχείριση Δεδομένων Έτους 2026" styleClass="page-title-centered"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Region prefWidth="140"/>
+                                            </children>
+                                        </HBox>
+                                        
+                                        <!-- Year Selection and Publish Button -->
+                                        <HBox spacing="16" alignment="CENTER">
+                                            <children>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <VBox spacing="4" alignment="CENTER">
+                                                    <Label text="Έτος Προϋπολογισμού" styleClass="field-label"/>
+                                                    <ComboBox fx:id="dataManagementYearComboBox" prefWidth="140" prefHeight="40" onAction="#onDataManagementYearSelected" styleClass="year-selector-centered"/>
+                                                </VBox>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Button fx:id="publishYearButton" text="Δημοσίευση Προϋπολογισμού" onAction="#onPublishYear" styleClass="publish-button" prefWidth="240" prefHeight="40" visible="false" managed="false"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                                
+                                <!-- Statistics Summary Cards -->
+                                <HBox spacing="16" alignment="CENTER" styleClass="stats-container">
+                                    <padding>
+                                        <Insets left="80" right="80"/>
+                                    </padding>
+                                    <children>
+                                        <!-- Revenues Card -->
+                                        <VBox spacing="12" styleClass="stat-card revenue-stat-card" HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-border-color: #94a3b8; -fx-border-width: 3px; -fx-border-radius: 16px; -fx-background-color: #f8fafc;">
+                                            <padding>
+                                                <Insets top="28" right="24" bottom="28" left="24"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Συνολικά Έσοδα" styleClass="stat-label"/>
+                                                <Label fx:id="dmTotalRevenuesLabel" text="0 €" styleClass="stat-value-large revenue-value"/>
+                                            </children>
+                                        </VBox>
+                                        
+                                        <!-- Expenses Card -->
+                                        <VBox spacing="12" styleClass="stat-card expense-stat-card" HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-border-color: #94a3b8; -fx-border-width: 3px; -fx-border-radius: 16px; -fx-background-color: #f8fafc;">
+                                            <padding>
+                                                <Insets top="28" right="24" bottom="28" left="24"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Συνολικές Δαπάνες" styleClass="stat-label"/>
+                                                <Label fx:id="dmTotalExpensesLabel" text="0 €" styleClass="stat-value-large expense-value"/>
+                                            </children>
+                                        </VBox>
+                                        
+                                        <!-- Balance Card -->
+                                        <VBox spacing="12" styleClass="stat-card balance-stat-card" HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-border-color: #94a3b8; -fx-border-width: 3px; -fx-border-radius: 16px; -fx-background-color: #f8fafc;">
+                                            <padding>
+                                                <Insets top="28" right="24" bottom="28" left="24"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Υπόλοιπο" styleClass="stat-label"/>
+                                                <Label fx:id="dmBalanceLabel" text="0 €" styleClass="stat-value-large balance-value"/>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </HBox>
+                                
+                                <!-- Main Data Table Card -->
+                                <VBox spacing="20" styleClass="section-card data-table-section">
+                                    <padding>
+                                        <Insets top="24" right="80" bottom="24" left="80"/>
+                                    </padding>
+                                    <children>
+                                        <!-- Action Buttons Row -->
+                                        <HBox spacing="12" alignment="CENTER_LEFT">
+                                            <children>
+                                                <Button text="➕ Προσθήκη" onAction="#onAddData" styleClass="action-button primary-action" prefWidth="140" prefHeight="40"/>
+                                                <Button text="📥 Εισαγωγή" onAction="#onImportData" styleClass="action-button" prefWidth="130" prefHeight="40"/>
+                                                <Button text="📤 Εξαγωγή" onAction="#onExportData" styleClass="action-button" prefWidth="120" prefHeight="40"/>
+                                                <Button text="💾 Αποθήκευση Scenario" onAction="#onSaveScenario" styleClass="action-button" prefWidth="180" prefHeight="40"/>
+                                                <Button text="📂 Φόρτωση Scenario" onAction="#onLoadScenario" styleClass="action-button" prefWidth="170" prefHeight="40"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                            </children>
+                                        </HBox>
+                                        
+                                        <!-- Search and Filter Bar -->
+                                        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="search-filter-bar">
+                                            <padding>
+                                                <Insets top="12" right="16" bottom="12" left="16"/>
+                                            </padding>
+                                            <children>
+                                                <HBox spacing="8" alignment="CENTER_LEFT">
+                                                    <Label text="🔍" style="-fx-font-size: 18px;"/>
+                                                    <TextField fx:id="dmSearchField" promptText="Αναζήτηση κατηγορίας..." prefWidth="280" prefHeight="38" onKeyReleased="#onSearchData" styleClass="search-field"/>
+                                                </HBox>
+                                                <ComboBox fx:id="dmTypeFilter" promptText="Όλοι οι τύποι" prefWidth="160" prefHeight="38" onAction="#onFilterData" styleClass="filter-combo"/>
+                                                <Button text="🔄 Καθαρισμός" onAction="#onClearFilters" styleClass="clear-filter-button" prefWidth="140" prefHeight="38"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Label fx:id="dmRecordCountLabel" text="0 εγγραφές" styleClass="record-count-label"/>
+                                            </children>
+                                        </HBox>
+                                        
+                                        <!-- Revenues Table -->
+                                        <VBox spacing="12" styleClass="table-section">
+                                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                                <Label text="💰" style="-fx-font-size: 20px;"/>
+                                                <Label text="Έσοδα" styleClass="table-section-title"/>
+                                            </HBox>
+                                            <TableView fx:id="dmRevenuesTable" prefHeight="250" styleClass="data-table">
+                                                <columns>
+                                                    <TableColumn fx:id="revCategoryColumn" text="Κατηγορία" prefWidth="300" sortable="true"/>
+                                                    <TableColumn fx:id="revAmountColumn" text="Ποσό (€)" prefWidth="180" sortable="true"/>
+                                                    <TableColumn fx:id="revPercentageColumn" text="Συμμετοχή (%)" prefWidth="150" sortable="true"/>
+                                                    <TableColumn fx:id="revChangeColumn" text="Αλλαγή από Προηγ. Έτος" prefWidth="200" sortable="true"/>
+                                                    <TableColumn fx:id="revStatusColumn" text="Κατάσταση" prefWidth="150" sortable="true"/>
+                                                    <TableColumn fx:id="revCommentsColumn" text="Σχόλια" prefWidth="250" sortable="false"/>
+                                                </columns>
+                                            </TableView>
+                                        </VBox>
+                                        
+                                        <Region prefHeight="20" VBox.vgrow="NEVER"/>
+                                        
+                                        <!-- Expenses Table -->
+                                        <VBox spacing="12" styleClass="table-section">
+                                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                                <Label text="💸" style="-fx-font-size: 20px;"/>
+                                                <Label text="Δαπάνες" styleClass="table-section-title"/>
+                                            </HBox>
+                                            <TableView fx:id="dmExpensesTable" prefHeight="250" styleClass="data-table">
+                                                <columns>
+                                                    <TableColumn fx:id="expCategoryColumn" text="Κατηγορία" prefWidth="300" sortable="true"/>
+                                                    <TableColumn fx:id="expAmountColumn" text="Ποσό (€)" prefWidth="180" sortable="true"/>
+                                                    <TableColumn fx:id="expPercentageColumn" text="Συμμετοχή (%)" prefWidth="150" sortable="true"/>
+                                                    <TableColumn fx:id="expChangeColumn" text="Αλλαγή από Προηγ. Έτος" prefWidth="200" sortable="true"/>
+                                                    <TableColumn fx:id="expStatusColumn" text="Κατάσταση" prefWidth="150" sortable="true"/>
+                                                    <TableColumn fx:id="expCommentsColumn" text="Σχόλια" prefWidth="250" sortable="false"/>
+                                                </columns>
+                                            </TableView>
+                                        </VBox>
+                                        
+                                        <!-- Table Actions -->
+                                        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="table-actions-bar">
+                                            <padding>
+                                                <Insets top="12" right="0" bottom="0" left="0"/>
+                                            </padding>
+                                            <children>
+                                                <Button text="✏️ Επεξεργασία" onAction="#onEditData" styleClass="table-action-button" fx:id="editDataButton" disable="true" prefWidth="140" prefHeight="38"/>
+                                                <Button text="🗑️ Διαγραφή" onAction="#onDeleteData" styleClass="table-action-button danger" fx:id="deleteDataButton" disable="true" prefWidth="130" prefHeight="38"/>
+                                                <Button text="📝 Μαζική Επεξεργασία" onAction="#onBulkEdit" styleClass="table-action-button" fx:id="bulkEditButton" disable="true" prefWidth="180" prefHeight="38"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Button text="✓ Επιλογή Όλων" onAction="#onSelectAll" styleClass="table-action-button secondary" prefWidth="140" prefHeight="38"/>
+                                                <Button text="✗ Αποεπιλογή" onAction="#onDeselectAll" styleClass="table-action-button secondary" prefWidth="130" prefHeight="38"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                                
+                                <!-- Internal Comments Section -->
+                                <VBox spacing="16" styleClass="section-card comments-section">
+                                    <padding>
+                                        <Insets top="24" right="80" bottom="24" left="80"/>
+                                    </padding>
+                                    <children>
+                                        <HBox spacing="8" alignment="CENTER_LEFT">
+                                            <Label text="💬" style="-fx-font-size: 20px;"/>
+                                            <Label text="Εσωτερικά Σχόλια" styleClass="section-title"/>
+                                        </HBox>
+                                        <Label text="Προσθέστε σχόλια και σημειώσεις για τα δεδομένα (ορατά μόνο στην κυβέρνηση)" styleClass="section-subtitle" style="-fx-text-fill: #64748b; -fx-font-size: 13px;"/>
+                                        <TextArea fx:id="internalCommentsArea" prefRowCount="5" wrapText="true" promptText="Εισάγετε εσωτερικά σχόλια..." styleClass="comments-textarea"/>
+                                        <HBox spacing="12" alignment="CENTER_RIGHT">
+                                            <children>
+                                                <Button text="💾 Αποθήκευση Σχολίων" onAction="#onSaveComments" styleClass="save-comments-button" prefWidth="180" prefHeight="38"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+                        
+                        <!-- DATA EXPLORATION VIEW -->
+                        <VBox fx:id="dataExplorationView" spacing="16" visible="false" managed="false">
+                            <children>
+                                <Button text="← Αρχική" onAction="#onNavigateHome" styleClass="back-button"/>
+                                
+                                <HBox spacing="20" alignment="TOP_LEFT">
+                                    <children>
+                                        <!-- Sidebar with view categories -->
+                                        <VBox spacing="12" styleClass="exploration-sidebar" prefWidth="280">
+                                            <padding>
+                                                <Insets top="20" right="16" bottom="20" left="16"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Τύπος Προβολής" styleClass="section-title" style="-fx-font-size: 16px;"/>
+                                                
+                                                <Button text="📊 Συνολικά Έσοδα/Δαπάνες" onAction="#onSelectExplorationView" fx:id="exploreTotalButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
+                                                <Button text="🏛️ Ανά Υπουργείο" onAction="#onSelectExplorationView" fx:id="exploreMinistryButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
+                                                <Button text="💰 Ανά Κατηγορία Έσόδων" onAction="#onSelectExplorationView" fx:id="exploreRevenueCategoryButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
+                                                <Button text="💸 Ανά Κατηγορία Δαπανών" onAction="#onSelectExplorationView" fx:id="exploreExpenseCategoryButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
+                                                <Button text="⚖️ Σύγκριση Ετών" onAction="#onSelectExplorationView" fx:id="exploreComparisonButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
+                                                <Button text="📉 Τάσεις &amp; Αλλαγές" onAction="#onSelectExplorationView" fx:id="exploreTrendsButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
+                                            </children>
+                                        </VBox>
+                                        
+                                        <!-- Main content area -->
+                                        <VBox spacing="16" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <!-- Filters and controls -->
+                                                <HBox spacing="12" alignment="CENTER_LEFT" styleClass="section-card">
+                                                    <padding>
+                                                        <Insets top="16" right="20" bottom="16" left="20"/>
+                                                    </padding>
+                                                    <children>
+                                                        <Label text="Έτος:" styleClass="section-subtitle"/>
+                                                        <ComboBox fx:id="exploreYearComboBox" prefWidth="120" onAction="#onExploreYearSelected"/>
+                                                        <Region HBox.hgrow="ALWAYS"/>
+                                                        
+                                                        <!-- Dynamic filters based on selected view -->
+                                                        <VBox fx:id="exploreDynamicFilters" spacing="8" visible="false" managed="false">
+                                                            <children>
+                                                                <Label text="Υπουργείο:" styleClass="section-subtitle" fx:id="exploreMinistryLabel" visible="false" managed="false"/>
+                                                                <ComboBox fx:id="exploreMinistryComboBox" prefWidth="250" visible="false" managed="false" onAction="#onExploreFilterChanged"/>
+                                                                
+                                                                <Label text="Κατηγορία Έσόδων:" styleClass="section-subtitle" fx:id="exploreRevenueCategoryLabel" visible="false" managed="false"/>
+                                                                <ComboBox fx:id="exploreRevenueCategoryComboBox" prefWidth="250" visible="false" managed="false" onAction="#onExploreFilterChanged"/>
+                                                                
+                                                                <Label text="Κατηγορία Δαπανών:" styleClass="section-subtitle" fx:id="exploreExpenseCategoryLabel" visible="false" managed="false"/>
+                                                                <ComboBox fx:id="exploreExpenseCategoryComboBox" prefWidth="250" visible="false" managed="false" onAction="#onExploreFilterChanged"/>
+                                                                
+                                                                <HBox fx:id="exploreComparisonControls" spacing="12" alignment="CENTER_LEFT" visible="false" managed="false">
+                                                                    <children>
+                                                                        <Label text="Έτος 1:" styleClass="section-subtitle" fx:id="exploreYear1Label"/>
+                                                                        <ComboBox fx:id="exploreYear1ComboBox" prefWidth="120"/>
+                                                                        <Label text="Έτος 2:" styleClass="section-subtitle" fx:id="exploreYear2Label"/>
+                                                                        <ComboBox fx:id="exploreYear2ComboBox" prefWidth="120"/>
+                                                                        <Button text="🔄 Φόρτωση Σύγκρισης" onAction="#onLoadComparison" styleClass="action-button" fx:id="exploreLoadComparisonButton"/>
+                                                                    </children>
+                                                                </HBox>
+                                                            </children>
+                                                        </VBox>
+                                                    </children>
+                                                </HBox>
+                                                
+                                                <!-- Results table -->
+                                                <VBox spacing="12" styleClass="section-card" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets top="24" right="24" bottom="24" left="24"/>
+                                                    </padding>
+                                                    <children>
+                                                        <Label fx:id="exploreViewTitleLabel" text="Επιλέξτε τύπο προβολής" styleClass="section-title"/>
+                                                        <Label fx:id="exploreViewDescriptionLabel" text="" styleClass="section-subtitle"/>
+                                                        
+                                                        <TableView fx:id="exploreResultsTable" prefHeight="500">
+                                                            <columns>
+                                                                <TableColumn fx:id="exploreColumn1" text="Έτος" prefWidth="100" sortable="true"/>
+                                                                <TableColumn fx:id="exploreColumn2" text="Κατηγορία" prefWidth="300" sortable="true"/>
+                                                                <TableColumn fx:id="exploreColumn3" text="Ποσό (€)" prefWidth="180" sortable="true"/>
+                                                                <TableColumn fx:id="exploreColumn4" text="Συμμετοχή (%)" prefWidth="150" sortable="true"/>
+                                                                <TableColumn fx:id="exploreColumn5" text="Αλλαγή" prefWidth="150" sortable="true"/>
+                                                            </columns>
+                                                        </TableView>
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </HBox>
+                            </children>
+                        </VBox>
+
+                        <!-- STATISTICS VIEW -->
+                        <VBox fx:id="statisticsView" spacing="16" visible="false" managed="false">
+                                            <children>
+                                                <Button text="← Αρχική" onAction="#onNavigateHome" styleClass="back-button"/>
+                                
+                                <VBox spacing="20">
+                                    <padding>
+                                        <Insets top="20" right="80" bottom="20" left="80"/>
+                                    </padding>
+                                    <children>
+                                        <!-- Title -->
+                                        <Label text="Στατιστικές Αναλύσεις Προϋπολογισμού" styleClass="section-title" style="-fx-font-size: 24px;"/>
+                                        <Label text="Προχωρημένες στατιστικές αναλύσεις για έσοδα, δαπάνες και τάσεις" styleClass="section-subtitle"/>
+                                        
+                                        <!-- Year Selection -->
+                                        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="section-card">
+                                            <padding>
+                                                <Insets top="16" right="20" bottom="16" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Περίοδος:" styleClass="section-subtitle"/>
+                                                <Label text="Από:" styleClass="section-subtitle"/>
+                                                <ComboBox fx:id="statisticsStartYearComboBox" prefWidth="120"/>
+                                                <Label text="Έως:" styleClass="section-subtitle"/>
+                                                <ComboBox fx:id="statisticsEndYearComboBox" prefWidth="120"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Button text="🔄 Υπολογισμός Στατιστικών" onAction="#onCalculateStatistics" styleClass="action-button" fx:id="calculateStatisticsButton"/>
+                                            </children>
+                                        </HBox>
+                                        
+                                        <!-- Statistics Cards -->
+                                        <GridPane hgap="20" vgap="20">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" prefWidth="300"/>
+                                                <ColumnConstraints hgrow="ALWAYS" prefWidth="300"/>
+                                                <ColumnConstraints hgrow="ALWAYS" prefWidth="300"/>
+                                            </columnConstraints>
+                                            
+                                            <!-- Revenues Statistics -->
+                                            <VBox spacing="12" styleClass="section-card" GridPane.columnIndex="0">
+                                                <padding>
+                                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                                </padding>
+                                            <children>
+                                                    <Label text="📊 Στατιστικά Εσόδων" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                    <Label text="Μέσος Όρος:" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsRevenueMeanLabel" text="-" styleClass="stat-value"/>
+                                                    <Label text="Διάμεσος:" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsRevenueMedianLabel" text="-" styleClass="stat-value"/>
+                                                    <Label text="Τυπική Απόκλιση:" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsRevenueStdDevLabel" text="-" styleClass="stat-value"/>
+                                                    <Label text="Διακύμανση:" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsRevenueVarianceLabel" text="-" styleClass="stat-value"/>
+                                                    <Label text="Συντελεστής Μεταβλητότητας:" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsRevenueCoeffVarLabel" text="-" styleClass="stat-value"/>
+                                                </children>
+                                            </VBox>
+                                                
+                                            <!-- Expenses Statistics -->
+                                            <VBox spacing="12" styleClass="section-card" GridPane.columnIndex="1">
+                                                <padding>
+                                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                                </padding>
+                                                    <children>
+                                                    <Label text="💸 Στατιστικά Δαπανών" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                    <Label text="Μέσος Όρος:" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsExpenseMeanLabel" text="-" styleClass="stat-value"/>
+                                                    <Label text="Διάμεσος:" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsExpenseMedianLabel" text="-" styleClass="stat-value"/>
+                                                    <Label text="Τυπική Απόκλιση:" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsExpenseStdDevLabel" text="-" styleClass="stat-value"/>
+                                                    <Label text="Διακύμανση:" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsExpenseVarianceLabel" text="-" styleClass="stat-value"/>
+                                                    <Label text="Συντελεστής Μεταβλητότητας:" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsExpenseCoeffVarLabel" text="-" styleClass="stat-value"/>
+                                                </children>
+                                            </VBox>
+                                            
+                                            <!-- Correlation & Trends -->
+                                            <VBox spacing="12" styleClass="section-card" GridPane.columnIndex="2">
+                                                <padding>
+                                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                                </padding>
+                                                <children>
+                                                    <Label text="📈 Συσχέτιση &amp; Τάσεις" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                    <Label text="Συσχέτιση Έσόδων-Δαπανών:" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsCorrelationLabel" text="-" styleClass="stat-value"/>
+                                                    <Label text="Τάση Εσόδων (γραμμική):" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsRevenueTrendLabel" text="-" styleClass="stat-value"/>
+                                                    <Label text="Τάση Δαπανών (γραμμική):" styleClass="section-subtitle"/>
+                                                    <Label fx:id="statsExpenseTrendLabel" text="-" styleClass="stat-value"/>
+                                                    </children>
+                                            </VBox>
+                                                </GridPane>
+                                                
+                                        <!-- Outliers Table -->
+                                        <VBox spacing="12" styleClass="section-card">
+                                            <padding>
+                                                <Insets top="24" right="24" bottom="24" left="24"/>
+                                            </padding>
+                                                    <children>
+                                                <Label text="🔍 Ακραίες Τιμές (Outliers)" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                <Label text="Έτη με ασυνήθιστα υψηλές ή χαμηλές τιμές" styleClass="section-subtitle"/>
+                                                
+                                                <TableView fx:id="statisticsOutliersTable" prefHeight="200">
+                                                    <columns>
+                                                        <TableColumn fx:id="statsOutlierYearColumn" text="Έτος" prefWidth="100" sortable="true"/>
+                                                        <TableColumn fx:id="statsOutlierTypeColumn" text="Τύπος" prefWidth="150" sortable="true"/>
+                                                        <TableColumn fx:id="statsOutlierValueColumn" text="Τιμή (€)" prefWidth="200" sortable="true"/>
+                                                        <TableColumn fx:id="statsOutlierZScoreColumn" text="Z-Score" prefWidth="150" sortable="true"/>
+                                                    </columns>
+                                                </TableView>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                        <!-- PROJECTIONS/SIMULATIONS VIEW -->
+                        <VBox fx:id="projectionsView" spacing="16" visible="false" managed="false">
+                                            <children>
+                                                <Button text="← Αρχική" onAction="#onNavigateHome" styleClass="back-button"/>
+                                
+                                <VBox spacing="20">
+                                    <padding>
+                                        <Insets top="20" right="80" bottom="20" left="80"/>
+                                    </padding>
+                                    <children>
+                                        <!-- Title -->
+                                        <Label text="📈 Προσομοιώσεις Προϋπολογισμού" styleClass="section-title" style="-fx-font-size: 24px;"/>
+                                        <Label text="Δημιούργησε υποθετικά σενάρια για να δεις πώς θα επηρεάσουν τον προϋπολογισμό" styleClass="section-subtitle"/>
+                                        
+                                        <!-- Year Selection -->
+                                        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="section-card">
+                                            <padding>
+                                                <Insets top="16" right="20" bottom="16" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Βασικό Έτος:" styleClass="section-subtitle"/>
+                                                <ComboBox fx:id="simulationBaseYearComboBox" prefWidth="120"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Button text="🔄 Φόρτωση Δεδομένων" onAction="#onLoadSimulationData" styleClass="action-button" fx:id="loadSimulationDataButton"/>
+                                            </children>
+                                        </HBox>
+                                        
+                                        <!-- Simulation Scenarios -->
+                                        <GridPane hgap="20" vgap="20">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" prefWidth="300"/>
+                                                <ColumnConstraints hgrow="ALWAYS" prefWidth="300"/>
+                                            </columnConstraints>
+                                            
+                                            <!-- Scenario 1: Revenue Increase -->
+                                            <VBox spacing="12" styleClass="section-card" GridPane.columnIndex="0">
+                                                <padding>
+                                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                                </padding>
+                                                <children>
+                                                    <Label text="💰 Αύξηση Εσόδων" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                    <Label text="Ποσοστό Αύξησης:" styleClass="section-subtitle"/>
+                                                    <TextField fx:id="revenueIncreasePercentField" promptText="π.χ. 5.0 για 5%"/>
+                                                    <Button text="▶️ Εκτέλεση Σενάριου" onAction="#onSimulateRevenueIncrease" styleClass="action-button"/>
+                                                </children>
+                                        </VBox>
+                                        
+                                            <!-- Scenario 2: Expense Decrease -->
+                                            <VBox spacing="12" styleClass="section-card" GridPane.columnIndex="1">
+                                                <padding>
+                                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                                </padding>
+                                                <children>
+                                                    <Label text="💸 Μείωση Δαπανών" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                    <Label text="Ποσοστό Μείωσης:" styleClass="section-subtitle"/>
+                                                    <TextField fx:id="expenseDecreasePercentField" promptText="π.χ. 10.0 για 10%"/>
+                                                    <Button text="▶️ Εκτέλεση Σενάριου" onAction="#onSimulateExpenseDecrease" styleClass="action-button"/>
+                                                </children>
+                                        </VBox>
+                                        
+                                            <!-- Scenario 3: Combined -->
+                                            <VBox spacing="12" styleClass="section-card" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                                <padding>
+                                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                                </padding>
+                                                <children>
+                                                    <Label text="🔄 Συνδυασμένο Σενάριο" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                    <Label text="Αλλαγή Εσόδων (%):" styleClass="section-subtitle"/>
+                                                    <TextField fx:id="combinedRevenueChangeField" promptText="π.χ. 3.0 ή -2.0"/>
+                                                    <Label text="Αλλαγή Δαπανών (%):" styleClass="section-subtitle"/>
+                                                    <TextField fx:id="combinedExpenseChangeField" promptText="π.χ. -5.0 ή 1.0"/>
+                                                    <Button text="▶️ Εκτέλεση Σενάριου" onAction="#onSimulateCombined" styleClass="action-button"/>
+                                                </children>
+                                        </VBox>
+                                        
+                                            <!-- Scenario 4: Future Year -->
+                                            <VBox spacing="12" styleClass="section-card" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                                <padding>
+                                                    <Insets top="20" right="20" bottom="20" left="20"/>
+                                                </padding>
+                                                <children>
+                                                    <Label text="📅 Προβολή Μελλοντικού Έτους" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                    <Label text="Μελλοντικό Έτος:" styleClass="section-subtitle"/>
+                                                    <ComboBox fx:id="simulationFutureYearComboBox" prefWidth="120"/>
+                                                    <Label text="Τάση Εσόδων/Έτος (€):" styleClass="section-subtitle"/>
+                                                    <TextField fx:id="revenueTrendField" promptText="π.χ. 1000000"/>
+                                                    <Label text="Τάση Δαπανών/Έτος (€):" styleClass="section-subtitle"/>
+                                                    <TextField fx:id="expenseTrendField" promptText="π.χ. -500000"/>
+                                                    <Button text="▶️ Εκτέλεση Σενάριου" onAction="#onSimulateFutureYear" styleClass="action-button"/>
+                                                </children>
+                                        </VBox>
+                                        </GridPane>
+                                        
+                                        <!-- Results Display -->
+                                        <VBox spacing="12" styleClass="section-card">
+                                            <padding>
+                                                <Insets top="24" right="24" bottom="24" left="24"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="📊 Αποτελέσματα Προσομοίωσης" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                <TextArea fx:id="simulationResultsArea" prefHeight="300" editable="false" wrapText="true" styleClass="simulation-results"/>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                    </children>
+                </VBox>
             </content>
         </ScrollPane>
     </center>
@@ -180,3 +1157,4 @@
     </bottom>
 
 </BorderPane>
+

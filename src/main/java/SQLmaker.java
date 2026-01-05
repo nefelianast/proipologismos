@@ -1,17 +1,46 @@
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import ui.DatabaseConnection;
 
+/**
+ * Class responsible for creating database tables for budget data.
+ * Creates tables for revenues, expenses, ministries, decentralized administrations,
+ * and budget summaries for years 2023, 2024, 2025, and 2026.
+ * After creating tables, automatically populates them with data using SQLinserter.
+ */
 public class SQLmaker {
+    
+    /**
+     * Creates all necessary database tables for budget data storage.
+     * Creates tables for multiple years (2023-2026) including:
+     * - Revenue tables
+     * - Expense tables
+     * - Ministry tables
+     * - Decentralized administration tables
+     * - Budget summary tables
+     * After table creation, automatically inserts data into all tables.
+     */
      public void make() {
-        String DBurl = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-       
-
         try {
-            Connection conn = DriverManager.getConnection(DBurl);
+            Connection conn = DatabaseConnection.getConnection();
+
+            // Check if tables already exist to avoid re-initialization 
+            DatabaseMetaData meta = conn.getMetaData();
+            ResultSet tables = meta.getTables(null, null, "revenue_2025", null);
+            if (tables.next()) {
+                tables.close();
+                System.out.println("Database already initialized. Skipping table creation.");
+                // Still create admin user if it doesn't exist
+                createDefaultAdminUser();
+                return;
+            }
+            tables.close();
+
+            System.out.println("Initializing database tables...");
             String sql1 = "CREATE TABLE IF NOT EXISTS revenue_2025 ("
         +"total_revenue MONEY PRIMARY KEY,"
         +"taxes MONEY,"
@@ -340,14 +369,15 @@ public class SQLmaker {
     + "FOREIGN KEY (total_ministries) REFERENCES ministries_2025(total_ministries),"
     + "FOREIGN KEY (total_da) REFERENCES decentralized_administrations_2025(total_da)"
     + ");";
-    //Μ
+    
+    // Users table for authentication
     String sqlUsers =
-    "CREATE TABLE IF NOT EXISTS users ("
-    + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-    + "username TEXT UNIQUE NOT NULL,"
-    + "password TEXT NOT NULL"
-    + ");";
-    //Μ
+        "CREATE TABLE IF NOT EXISTS users ("
+        + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        + "username TEXT UNIQUE NOT NULL,"
+        + "password TEXT NOT NULL"
+        + ");";
+    
         try (Statement stmt = conn.createStatement()) {
             stmt.execute(sql1);
             stmt.execute(sql2);
@@ -369,8 +399,39 @@ public class SQLmaker {
             stmt.execute(sql18);
             stmt.execute(sql19);
             stmt.execute(sql20);
-            stmt.execute(sqlUsers); //Μ ΓΡΑΜΜΗ
-
+            stmt.execute(sqlUsers);
+            
+            // Create tables for data persistence (comments, scenarios, preferences)
+            String sql21 = "CREATE TABLE IF NOT EXISTS user_comments (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "category_name TEXT NOT NULL," +
+                "year INTEGER NOT NULL," +
+                "comments TEXT," +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+            
+            String sql22 = "CREATE TABLE IF NOT EXISTS saved_scenarios (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "scenario_name TEXT NOT NULL UNIQUE," +
+                "description TEXT," +
+                "year INTEGER NOT NULL," +
+                "scenario_data TEXT NOT NULL," + // JSON format
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+            
+            String sql23 = "CREATE TABLE IF NOT EXISTS user_preferences (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "preference_key TEXT NOT NULL UNIQUE," +
+                "preference_value TEXT," +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+            
+            stmt.execute(sql21);
+            stmt.execute(sql22);
+            stmt.execute(sql23);
 
             System.out.println("Table created successfully!");
         } catch (SQLException e) {
@@ -380,10 +441,13 @@ public class SQLmaker {
             e.printStackTrace();
         }
         
+        // Always check and create default admin user (even if tables already existed)
+        createDefaultAdminUser();
+        
         
         SQLinserter test = new SQLinserter();
         try {
-            /*test.insertRevenue2025();
+            test.insertRevenue2025();
              
             test.insertExpenses2025();
            
@@ -417,7 +481,7 @@ public class SQLmaker {
    test.insertMinistries2026();
    test.insertDecentralizedAdministrations2026();
    
-   test.insertBudgetSummary2026();/
+   test.insertBudgetSummary2026();
    /* 
    String sc="social_contributions";
    test.updateRevenue(2025, 3, sc, "10");*/
@@ -426,6 +490,45 @@ public class SQLmaker {
             e.printStackTrace();
         }
 
+    }
+    
+    /**
+     * Creates a default admin user for testing if it doesn't already exist.
+     * This method is called separately so it runs even if tables already exist.
+     */
+    private static void createDefaultAdminUser() {
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            // First, ensure users table exists (in case it was created separately)
+            try {
+                stmt.execute("CREATE TABLE IF NOT EXISTS users (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "username TEXT UNIQUE NOT NULL," +
+                    "password TEXT NOT NULL" +
+                    ");");
+            } catch (SQLException e) {
+                // Table might already exist, that's fine
+            }
+            
+            // Check if admin user exists
+            String checkUser = "SELECT COUNT(*) FROM users WHERE username = 'admin'";
+            ResultSet rs = stmt.executeQuery(checkUser);
+            
+            if (rs.next() && rs.getInt(1) == 0) {
+                // Default admin account: username='admin', password='admin123'
+                String insertAdmin = "INSERT INTO users (username, password) VALUES ('admin', 'admin123')";
+                stmt.execute(insertAdmin);
+                System.out.println("✓ Default admin user created (username: admin, password: admin123)");
+            } else {
+                System.out.println("✓ Default admin user already exists.");
+            }
+            rs.close();
+            
+        } catch (SQLException e) {
+            System.err.println("⚠ Warning: Could not create default admin user: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     
 }
