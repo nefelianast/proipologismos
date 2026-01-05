@@ -36,7 +36,9 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.XYChart;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.AreaChart;
+import javafx.scene.chart.StackedBarChart;
 
 /**
  * Main controller for the home screen of the Budget Analysis System.
@@ -443,14 +445,44 @@ public class HomeController {
     // Charts (from graphs branch)
     @FXML
     private PieChart pieRevenue;
-    @FXML 
+    @FXML
     private PieChart pieExpenses;
-    @FXML 
+    @FXML
     private PieChart pieMinistries;
-    @FXML 
+    @FXML
     private PieChart pieTotals;
-    @FXML 
+    @FXML
     private LineChart<String, Number> lineHistory;
+    
+    // New Charts for Revenues View
+    @FXML
+    private BarChart<String, Number> barRevenueTop;
+    @FXML
+    private AreaChart<String, Number> areaRevenueTrend;
+    @FXML
+    private StackedBarChart<String, Number> stackedRevenue;
+    
+    // New Charts for Expenses View
+    @FXML
+    private BarChart<String, Number> barExpenseTop;
+    @FXML
+    private AreaChart<String, Number> areaExpenseTrend;
+    @FXML
+    private StackedBarChart<String, Number> stackedExpense;
+    
+    // New Charts for Ministries View
+    @FXML
+    private BarChart<String, Number> barMinistriesTop;
+    @FXML
+    private AreaChart<String, Number> areaMinistriesTrend;
+    
+    // New Charts for Administrations View
+    @FXML
+    private PieChart pieAdministrations;
+    @FXML
+    private BarChart<String, Number> barAdministrationsTop;
+    @FXML
+    private AreaChart<String, Number> areaAdministrationsTrend;
     
     // Projections/Simulations View
     @FXML
@@ -1414,10 +1446,10 @@ public class HomeController {
                 // Check if all validations pass
                 if (usernameResult.isValid() && passwordResult.isValid()) {
                     // Set user type to government
-                    currentUserType = UserType.GOVERNMENT;
-                    updateAuthButton();
-                    updateUserTypeLabel();
-                    updateGovernmentFeatures();
+                            currentUserType = UserType.GOVERNMENT;
+                            updateAuthButton();
+                            updateUserTypeLabel();
+                            updateGovernmentFeatures();
                     
                     // Close login dialog
                     loginStage.close();
@@ -1519,11 +1551,63 @@ public class HomeController {
         updateSummaryCards(selectedYear);
         
         // Update all tables
-        updateCategoryTable();
         updateRevenuesTable();
         updateExpensesTable();
         updateAdministrationsTable();
         updateCharts(Integer.parseInt(selectedYear));
+        
+        // Update Charts in detailed views if they are visible
+        int year = Integer.parseInt(selectedYear);
+        if (revenuesView != null && revenuesView.isVisible()) {
+            if (pieRevenue != null) {
+                ChartService.fillPieChart(pieRevenue, dataService.getRevenueBreakdownForGraphs(year), "Έσοδα " + selectedYear);
+            }
+            if (barRevenueTop != null) {
+                ChartService.loadBarChartForTopCategories(barRevenueTop, dataService.getRevenueBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
+            }
+            if (areaRevenueTrend != null) {
+                ChartService.loadAreaChart(areaRevenueTrend, dataService, "total_revenue", "Διαχρονική Εξέλιξη Εσόδων");
+            }
+            if (stackedRevenue != null) {
+                ChartService.loadStackedBarChart(stackedRevenue, dataService, "revenue", "Σύνθεση Εσόδων ανά Έτος");
+            }
+        }
+        if (expensesView != null && expensesView.isVisible()) {
+            if (pieExpenses != null) {
+                ChartService.fillPieChart(pieExpenses, dataService.getExpenseBreakdownForGraphs(year), "Έξοδα " + selectedYear);
+            }
+            if (barExpenseTop != null) {
+                ChartService.loadBarChartForTopCategories(barExpenseTop, dataService.getExpenseBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
+            }
+            if (areaExpenseTrend != null) {
+                ChartService.loadAreaChart(areaExpenseTrend, dataService, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών");
+            }
+            if (stackedExpense != null) {
+                ChartService.loadStackedBarChart(stackedExpense, dataService, "expense", "Σύνθεση Δαπανών ανά Έτος");
+            }
+        }
+        if (ministriesView != null && ministriesView.isVisible()) {
+            if (pieMinistries != null) {
+                ChartService.fillPieChart(pieMinistries, dataService.getMinistriesBreakdown(year), "Υπουργεία " + selectedYear);
+            }
+            if (barMinistriesTop != null) {
+                ChartService.loadBarChartForMinistries(barMinistriesTop, dataService.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία", 10);
+            }
+            if (areaMinistriesTrend != null) {
+                ChartService.loadAreaChart(areaMinistriesTrend, dataService, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Υπουργείων");
+            }
+        }
+        if (administrationsView != null && administrationsView.isVisible()) {
+            if (pieAdministrations != null) {
+                ChartService.fillPieChart(pieAdministrations, dataService.getDecentralizedAdministrationsBreakdown(year), "Αποκεντρωμένες Διοικήσεις " + selectedYear);
+            }
+            if (barAdministrationsTop != null) {
+                ChartService.loadBarChartForTopCategories(barAdministrationsTop, dataService.getDecentralizedAdministrationsBreakdown(year), "Κορυφαίες Διοικήσεις", 7);
+            }
+            if (areaAdministrationsTrend != null) {
+                ChartService.loadAreaChart(areaAdministrationsTrend, dataService, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Αποκεντρωμένων Διοικήσεων");
+            }
+        }
     }
 
     private void updateSummaryCards(String year) {
@@ -1654,21 +1738,91 @@ public class HomeController {
     @FXML
     private void onNavigateMinistries() {
         showView(ministriesView);
+        updateCategoryTable(); // Update the category table for ministries view
+        if (selectedYear != null) {
+            int year = Integer.parseInt(selectedYear);
+            // Update ministries pie chart
+            if (pieMinistries != null) {
+                ChartService.fillPieChart(pieMinistries, dataService.getMinistriesBreakdown(year), "Υπουργεία " + selectedYear);
+            }
+            // Update bar chart - top ministries
+            if (barMinistriesTop != null) {
+                ChartService.loadBarChartForMinistries(barMinistriesTop, dataService.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία", 10);
+            }
+            // Update area chart - trend
+            if (areaMinistriesTrend != null) {
+                ChartService.loadAreaChart(areaMinistriesTrend, dataService, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Υπουργείων");
+            }
+        }
     }
 
     @FXML
     private void onNavigateRevenues() {
         showView(revenuesView);
+        if (selectedYear != null) {
+            int year = Integer.parseInt(selectedYear);
+            // Update revenues pie chart
+            if (pieRevenue != null) {
+                ChartService.fillPieChart(pieRevenue, dataService.getRevenueBreakdownForGraphs(year), "Έσοδα " + selectedYear);
+            }
+            // Update bar chart - top categories
+            if (barRevenueTop != null) {
+                ChartService.loadBarChartForTopCategories(barRevenueTop, dataService.getRevenueBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
+            }
+            // Update area chart - trend
+            if (areaRevenueTrend != null) {
+                ChartService.loadAreaChart(areaRevenueTrend, dataService, "total_revenue", "Διαχρονική Εξέλιξη Εσόδων");
+            }
+            // Update stacked bar chart
+            if (stackedRevenue != null) {
+                ChartService.loadStackedBarChart(stackedRevenue, dataService, "revenue", "Σύνθεση Εσόδων ανά Έτος");
+            }
+        }
     }
 
     @FXML
     private void onNavigateExpenses() {
         showView(expensesView);
+        if (selectedYear != null) {
+            int year = Integer.parseInt(selectedYear);
+            // Update expenses pie chart
+            if (pieExpenses != null) {
+                ChartService.fillPieChart(pieExpenses, dataService.getExpenseBreakdownForGraphs(year), "Έξοδα " + selectedYear);
+            }
+            // Update bar chart - top categories
+            if (barExpenseTop != null) {
+                ChartService.loadBarChartForTopCategories(barExpenseTop, dataService.getExpenseBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
+            }
+            // Update area chart - trend
+            if (areaExpenseTrend != null) {
+                ChartService.loadAreaChart(areaExpenseTrend, dataService, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών");
+            }
+            // Update stacked bar chart
+            if (stackedExpense != null) {
+                ChartService.loadStackedBarChart(stackedExpense, dataService, "expense", "Σύνθεση Δαπανών ανά Έτος");
+            }
+        }
     }
 
     @FXML
     private void onNavigateAdministrations() {
         showView(administrationsView);
+        if (selectedYear != null) {
+            int year = Integer.parseInt(selectedYear);
+            // Update administrations pie chart
+            if (pieAdministrations != null) {
+                ChartService.fillPieChart(pieAdministrations, dataService.getDecentralizedAdministrationsBreakdown(year), "Αποκεντρωμένες Διοικήσεις " + selectedYear);
+            }
+            // Update bar chart - top administrations
+            if (barAdministrationsTop != null) {
+                ChartService.loadBarChartForTopCategories(barAdministrationsTop, dataService.getDecentralizedAdministrationsBreakdown(year), "Κορυφαίες Διοικήσεις", 7);
+            }
+            // Update area chart - trend (using total_da if available, otherwise total_expenses)
+            if (areaAdministrationsTrend != null) {
+                // For administrations, we'll use total_expenses as proxy since they are part of expenses
+                ChartService.loadAreaChart(areaAdministrationsTrend, dataService, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Αποκεντρωμένων Διοικήσεων");
+            }
+        }
     }
     
     @FXML
@@ -1952,73 +2106,13 @@ public class HomeController {
     // ========== CHART METHODS (from graphs branch) ==========
     
     /**
-     * Update all charts for the selected year.
+     * Update all charts for the selected year (home view - only overview charts).
      */
     private void updateCharts(int year) {
-        // If FXML hasn't loaded the charts yet, stop
-        if (pieRevenue == null) return;
-
-        // 1. Revenue Pie Chart
-        fillPie(pieRevenue, dataService.getRevenueBreakdownForGraphs(year), "Έσοδα " + year);
-
-        // 2. Expenses Pie Chart
-        fillPie(pieExpenses, dataService.getExpenseBreakdownForGraphs(year), "Έξοδα " + year);
-
-        // 3. Ministries Pie Chart
-        fillPie(pieMinistries, dataService.getMinistriesBreakdown(year), "Υπουργεία " + year);
-
-        // 4. Totals Pie Chart (Revenues vs Expenses)
-        double totalRev = dataService.getTotalAmount(year, "total_revenue");
-        double totalExp = dataService.getTotalAmount(year, "total_expenses");
-        
-        ObservableList<PieChart.Data> totals = FXCollections.observableArrayList(
-            new PieChart.Data("Έσοδα", totalRev),
-            new PieChart.Data("Έξοδα", totalExp)
-        );
-        pieTotals.setData(totals);
-        pieTotals.setTitle("Ισοζύγιο " + year);
-
-        // 5. Line Chart (2023-2025)
-        loadLineChart();
+        // Update Line Chart
+        ChartService.loadLineChart(lineHistory, dataService);
     }
 
-    /**
-     * Helper method to fill a pie chart with data.
-     */
-    private void fillPie(PieChart chart, Map<String, Double> data, String title) {
-        ObservableList<PieChart.Data> list = FXCollections.observableArrayList();
-        data.forEach((k, v) -> {
-            if (v > 0) list.add(new PieChart.Data(k, v));
-        });
-        chart.setData(list);
-        chart.setTitle(title);
-    }
-
-    /**
-     * Helper method to load line chart with historical data.
-     */
-    private void loadLineChart() {
-        if (lineHistory == null) return;
-        lineHistory.getData().clear();
-        
-        XYChart.Series<String, Number> revSeries = new XYChart.Series<>();
-        revSeries.setName("Έσοδα");
-        
-        XYChart.Series<String, Number> expSeries = new XYChart.Series<>();
-        expSeries.setName("Έξοδα");
-
-        int[] years = {2023, 2024, 2025};
-        for (int y : years) {
-            double rev = dataService.getTotalAmount(y, "total_revenue");
-            double exp = dataService.getTotalAmount(y, "total_expenses");
-            
-            revSeries.getData().add(new XYChart.Data<>(String.valueOf(y), rev));
-            expSeries.getData().add(new XYChart.Data<>(String.valueOf(y), exp));
-        }
-        @SuppressWarnings("unchecked")
-        ObservableList<XYChart.Series<String, Number>> chartData = FXCollections.observableArrayList(revSeries, expSeries);
-        lineHistory.getData().addAll(chartData);
-    }
     
     private void loadRevenueCategoryView() {
         if (exploreViewTitleLabel != null) {
@@ -2991,7 +3085,7 @@ public class HomeController {
             alert.showAndWait();
         }
     }
-    
+
     private void showView(VBox view) {
         // Hide all views
         homeView.setVisible(false);

@@ -511,6 +511,33 @@ public class BudgetDataService {
     }
 
     /**
+     * Get decentralized administrations breakdown as Map for graphs/charts.
+     * Returns Map: Administration -> Amount
+     */
+    public Map<String, Double> getDecentralizedAdministrationsBreakdown(int year) {
+        Map<String, Double> data = new HashMap<>();
+        String sql = "SELECT * FROM decentralized_administrations_" + year;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                data.put("Αττικής", safeGet(rs, "decentralized_administration_of_attica"));
+                data.put("Θεσσαλίας & Στερεάς Ελλάδας", safeGet(rs, "decentralized_administration_of_thessaly_central_greece"));
+                data.put("Ηπείρου & Δυτικής Μακεδονίας", safeGet(rs, "decentralized_administration_of_epirus_western_macedonia"));
+                data.put("Πελοποννήσου, Δυτικής Ελλάδας & Ιονίου", safeGet(rs, "decentralized_administration_of_peloponnese_western_greece_and_ionian"));
+                data.put("Αιγαίου", safeGet(rs, "decentralized_administration_of_aegean"));
+                data.put("Κρήτης", safeGet(rs, "decentralized_administration_of_crete"));
+                data.put("Μακεδονίας & Θράκης", safeGet(rs, "decentralized_administration_of_macedonia_thrace"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading decentralized administrations for " + year + ": " + e.getMessage());
+        }
+        return data;
+    }
+
+    /**
      * Get total amount for a specific type from budget summary.
      * Used for pie chart 4 and linear chart.
      */
