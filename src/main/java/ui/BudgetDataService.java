@@ -10,12 +10,7 @@ import java.sql.Statement;
 import java.util.*;
 import java.math.BigDecimal;
 
-/**
- * Singleton service class for managing budget data.
- * Provides access to budget data for different years, including revenues, expenses,
- * categories, ministries, and decentralized administrations.
- * Loads data from JSON files or uses sample data as fallback.
- */
+
 public class BudgetDataService {
     
     private static BudgetDataService instance;
@@ -94,16 +89,12 @@ public class BudgetDataService {
         budgetData.put(2025, data2025);
     }
     
-    /**
-     * Get budget data for a specific year
-     */
+    
     public BudgetYearData getBudgetData(int year) {
         return budgetData.get(year);
     }
     
-    /**
-     * Get total revenues for a year
-     */
+    
    public double getTotalRevenues(int year) {
     long totalRevenue = 0;
 
@@ -125,9 +116,7 @@ public class BudgetDataService {
 }
 
     
-    /**
-     * Get total expenses for a year
-     */
+    
     public double getTotalExpenses(int year) {
         long totalExpenses = 0;
 
@@ -148,18 +137,14 @@ public class BudgetDataService {
         return (double) totalExpenses;
     }
     
-    /**
-     * Get balance (surplus/deficit) for a year
-     */
+    
     public double getBalance(int year) {
         double revenues = getTotalRevenues(year);
         double expenses = getTotalExpenses(year);
         return BudgetStatisticsCalculator.calculateBalance(revenues, expenses);
     }
     
-    /**
-     * Get percentage change from previous year
-     */
+    
     public double getRevenuesChange(int year) {
         double current = getTotalRevenues(year);
         double previous = getTotalRevenues(year - 1);
@@ -172,9 +157,7 @@ public class BudgetDataService {
         return BudgetStatisticsCalculator.calculatePercentageChange(current, previous);
     }
     
-    /**
-     * Get category data for a year (from ministries table)
-     */
+    
     public List<CategoryInfo> getCategories(int year) {
         List<CategoryInfo> categories = new ArrayList<>();
         
@@ -234,9 +217,6 @@ public class BudgetDataService {
         return categories;
     }
     
-    /**
-     * Inner class to hold budget data for a year
-     */
     public static class BudgetYearData {
         private int year;
         private double totalRevenues;
@@ -265,9 +245,7 @@ public class BudgetDataService {
         public List<CategoryInfo> getCategories() { return categories; }
     }
     
-    /**
-     * Get revenue breakdown for a year
-     */
+  
     public List<CategoryInfo> getRevenueBreakdown(int year) {
         List<CategoryInfo> revenues = new ArrayList<>();
         
@@ -314,9 +292,7 @@ public class BudgetDataService {
         return revenues;
     }
     
-    /**
-     * Get expenses breakdown for a year
-     */
+   
     public List<CategoryInfo> getExpensesBreakdown(int year) {
         List<CategoryInfo> expenses = new ArrayList<>();
         
@@ -364,9 +340,7 @@ public class BudgetDataService {
         return expenses;
     }
     
-    /**
-     * Get decentralized administrations for a year
-     */
+   
     public List<CategoryInfo> getDecentralizedAdministrations(int year) {
         List<CategoryInfo> administrations = new ArrayList<>();
         
@@ -407,9 +381,7 @@ public class BudgetDataService {
         return administrations;
     }
     
-    /**
-     * Inner class to hold category information
-     */
+   
     public static class CategoryInfo {
         private String name;
         private double amount;
@@ -426,12 +398,7 @@ public class BudgetDataService {
         public double getPercentage() { return percentage; }
     }
     
-    // ========== METHODS FOR GRAPHS (from graphs branch) ==========
-    
-    /**
-     * Get revenue breakdown as Map for graphs/charts.
-     * Returns Map: Category -> Amount
-     */
+   
     public Map<String, Double> getRevenueBreakdownForGraphs(int year) {
         Map<String, Double> data = new HashMap<>();
         String sql = "SELECT * FROM revenue_" + year; 
@@ -455,10 +422,7 @@ public class BudgetDataService {
         return data;
     }
 
-    /**
-     * Get expense breakdown as Map for graphs/charts.
-     * Returns Map: Category -> Amount
-     */
+    
     public Map<String, Double> getExpenseBreakdownForGraphs(int year) {
         Map<String, Double> data = new HashMap<>();
         String sql = "SELECT * FROM expenses_" + year;
@@ -482,10 +446,7 @@ public class BudgetDataService {
         return data;
     }
 
-    /**
-     * Get ministries breakdown as Map for graphs/charts.
-     * Returns Map: Ministry -> Amount
-     */
+    
     public Map<String, Double> getMinistriesBreakdown(int year) {
         Map<String, Double> data = new HashMap<>();
         String sql = "SELECT * FROM ministries_" + year;
@@ -510,10 +471,7 @@ public class BudgetDataService {
         return data;
     }
 
-    /**
-     * Get decentralized administrations breakdown as Map for graphs/charts.
-     * Returns Map: Administration -> Amount
-     */
+    
     public Map<String, Double> getDecentralizedAdministrationsBreakdown(int year) {
         Map<String, Double> data = new HashMap<>();
         String sql = "SELECT * FROM decentralized_administrations_" + year;
@@ -537,10 +495,7 @@ public class BudgetDataService {
         return data;
     }
 
-    /**
-     * Get total amount for a specific type from budget summary.
-     * Used for pie chart 4 and linear chart.
-     */
+    
     public double getTotalAmount(int year, String type) {
         String sql = "SELECT " + type + " FROM budget_summary_" + year;
         double amount = 0;
@@ -558,9 +513,7 @@ public class BudgetDataService {
         return amount;
     }
 
-    /**
-     * Helper method for safe conversion from database to double.
-     */
+   
     private double safeGet(ResultSet rs, String column) {
         try {
             BigDecimal bd = rs.getBigDecimal(column);
@@ -570,15 +523,7 @@ public class BudgetDataService {
         }
     }
     
-    // ========== STATISTICAL ANALYSIS METHODS (from main) ==========
     
-    /**
-     * Get revenue values across multiple years for statistical analysis.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Array of revenue values, or null if insufficient data    
-     */
     public double[] getRevenuesAcrossYears(int startYear, int endYear) {
         List<Double> revenues = new ArrayList<>();
         for (int year = startYear; year <= endYear; year++) {
@@ -595,13 +540,7 @@ public class BudgetDataService {
         return revenues.stream().mapToDouble(Double::doubleValue).toArray();
     }
     
-    /**
-     * Get expense values across multiple years for statistical analysis.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Array of expense values, or null if insufficient data    
-     */
+    
     public double[] getExpensesAcrossYears(int startYear, int endYear) {
         List<Double> expenses = new ArrayList<>();
         for (int year = startYear; year <= endYear; year++) {
@@ -618,13 +557,7 @@ public class BudgetDataService {
         return expenses.stream().mapToDouble(Double::doubleValue).toArray();
     }
     
-    /**
-     * Calculate correlation between revenues and expenses across years.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Correlation coefficient, or Double.NaN if insufficient data
-     */
+    
     public double calculateRevenueExpenseCorrelation(int startYear, int endYear) {
         double[] revenues = getRevenuesAcrossYears(startYear, endYear); 
         double[] expenses = getExpensesAcrossYears(startYear, endYear); 
@@ -638,13 +571,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.calculateCorrelation(revenues, expenses);
     }
     
-    /**
-     * Get statistical summary for revenues across multiple years.      
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Statistical summary string, or null if insufficient data
-     */
+   
     public String getRevenuesStatisticalSummary(int startYear, int endYear) {
         double[] revenues = getRevenuesAcrossYears(startYear, endYear); 
         if (revenues == null) {
@@ -653,13 +580,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.generateStatisticalSummary(revenues);
     }
     
-    /**
-     * Get statistical summary for expenses across multiple years.      
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Statistical summary string, or null if insufficient data 
-     */
+  
     public String getExpensesStatisticalSummary(int startYear, int endYear) {
         double[] expenses = getExpensesAcrossYears(startYear, endYear); 
         if (expenses == null) {
@@ -668,13 +589,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.generateStatisticalSummary(expenses);
     }
     
-    /**
-     * Identify outliers in revenue changes across years.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return List of outlier revenue values, or empty list if insufficient data
-     */
+   
     public List<Double> identifyRevenueOutliers(int startYear, int endYear) {
         double[] revenues = getRevenuesAcrossYears(startYear, endYear); 
         if (revenues == null) {
@@ -683,13 +598,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.identifyOutliers(revenues);
     }
     
-    /**
-     * Identify outliers in expense changes across years.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return List of outlier expense values, or empty list if insufficient data
-     */
+   
     public List<Double> identifyExpenseOutliers(int startYear, int endYear) {
         double[] expenses = getExpensesAcrossYears(startYear, endYear); 
         if (expenses == null) {
@@ -698,14 +607,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.identifyOutliers(expenses);
     }
     
-    /**
-     * Calculate linear regression for revenue trends across years.     
-     * Returns slope and intercept for predicting future revenues.      
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Array with [slope, intercept], or null if insufficient data
-     */
+   
     public double[] calculateRevenueTrend(int startYear, int endYear) { 
         List<Double> revenues = new ArrayList<>();
         List<Double> years = new ArrayList<>();
@@ -728,14 +630,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.calculateLinearRegression(yearArray, revenueArray);
     }
     
-    /**
-     * Calculate linear regression for expense trends across years.     
-     * Returns slope and intercept for predicting future expenses.      
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Array with [slope, intercept], or null if insufficient data
-     */
+    
     public double[] calculateExpenseTrend(int startYear, int endYear) { 
         List<Double> expenses = new ArrayList<>();
         List<Double> years = new ArrayList<>();
@@ -758,14 +653,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.calculateLinearRegression(yearArray, expenseArray);
     }
     
-    /**
-     * Get coefficient of variation for revenues across years.
-     * Higher CV indicates more variability in revenue.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Coefficient of variation as percentage, or Double.NaN if insufficient data
-     */
+  
     public double getRevenuesCoefficientOfVariation(int startYear, int endYear) {
         double[] revenues = getRevenuesAcrossYears(startYear, endYear); 
         if (revenues == null) {
@@ -774,14 +662,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.calculateCoefficientOfVariation(revenues);
     }
     
-    /**
-     * Get coefficient of variation for expenses across years.
-     * Higher CV indicates more variability in expenses.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Coefficient of variation as percentage, or Double.NaN if insufficient data
-     */
+   
     public double getExpensesCoefficientOfVariation(int startYear, int endYear) {
         double[] expenses = getExpensesAcrossYears(startYear, endYear); 
         if (expenses == null) {
