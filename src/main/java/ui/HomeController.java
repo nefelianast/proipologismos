@@ -2665,7 +2665,7 @@ public class HomeController {
             data.add(new CategoryData(compData.getCategoryName(), 
                 compData.getYear1Value(), compData.getYear2Value(),
                 String.format("%,d €", compData.getDifference()),
-                String.format("%.2f%%", compData.getPercentageChange()), 0));
+                compData.getPercentageChangeAsString(), 0));
         }
         
         // Add Expenses
@@ -2674,7 +2674,7 @@ public class HomeController {
             data.add(new CategoryData(compData.getCategoryName(),
                 compData.getYear1Value(), compData.getYear2Value(),
                 String.format("%,d €", compData.getDifference()),
-                String.format("%.2f%%", compData.getPercentageChange()), 0));
+                compData.getPercentageChangeAsString(), 0));
         }
         
         // Add Administrations
@@ -2683,7 +2683,7 @@ public class HomeController {
             data.add(new CategoryData(compData.getCategoryName(),
                 compData.getYear1Value(), compData.getYear2Value(),
                 String.format("%,d €", compData.getDifference()),
-                String.format("%.2f%%", compData.getPercentageChange()), 0));
+                compData.getPercentageChangeAsString(), 0));
         }
         
         // Add Ministries
@@ -2692,7 +2692,7 @@ public class HomeController {
             data.add(new CategoryData(compData.getCategoryName(),
                 compData.getYear1Value(), compData.getYear2Value(),
                 String.format("%,d €", compData.getDifference()),
-                String.format("%.2f%%", compData.getPercentageChange()), 0));
+                compData.getPercentageChangeAsString(), 0));
         }
         
         if (exploreResultsTable != null) {
