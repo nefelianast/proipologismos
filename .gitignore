@@ -1,7 +1,40 @@
-/target/
-/.vscode/
+# Java crash logs
+hs_err_pid*.log
+replay_pid*.log
+
+# Maven
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Compiled classes
 *.class
-*.db
-*.pdf
-*.csv
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+
+# Budget data files 
+proipologismos*.pdf
+proipologismos*.csv
+
+# Database files
+*.db
+
+# Temporary files
+*.tmp
+*.bak
+*~
+*.swp
+
