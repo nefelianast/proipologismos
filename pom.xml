@@ -103,8 +103,9 @@
                 <configuration>
                     <mainClass>ui.MainGUI</mainClass>
                     <jvmArgs>
-                        <jvmArg>-Xmx1024m</jvmArg>
-                        <jvmArg>-Xms512m</jvmArg>
+                        <jvmArg>-Xmx2048m</jvmArg>
+                        <jvmArg>-Xms1024m</jvmArg>
+                        <jvmArg>-XX:+UseG1GC</jvmArg>
                     </jvmArgs>
                 </configuration>
             </plugin>

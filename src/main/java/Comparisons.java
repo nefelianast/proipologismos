@@ -668,23 +668,23 @@ public class Comparisons {
             printComparison("Loans (expenses)", loansexp1, loansexp2, year1, year2);
             printComparison("Appropriations", appropriations, appropriations2, year1, year2);
 
-            printComparison("Fixed assets (expenses)", fixed_assets, fixed_assets2, year1, year2);
+            printComparison("Fixed assets (expenses)", fixed_assets, fixed_assets22, year1, year2);
             printComparison("Valuables", valuables, valuables2, year1, year2);
             printComparison("Equity securities & fund shares (exp)",
                     equity_securities_and_fund_shares,
-                    equity_securities_and_fund_shares2,
+                    equity_securities_and_fund_shares22,
                     year1,
                     year2);
 
             printComparison("Debt securities liabilities (exp)",
                     debt_securities_liabilities,
-                    debt_securities_liabilities2,
+                    debt_securities_liabilities22,
                     year1,
                     year2);
 
             printComparison("Loans liabilities (exp)",
                     loans_liabilities,
-                    loans_liabilities2,
+                    loans_liabilities22,
                     year1,
                     year2);
 

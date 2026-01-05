@@ -3,6 +3,7 @@ package ui;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.chart.*;
+import javafx.application.Platform;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,7 +48,7 @@ public class ChartService {
         XYChart.Series<String, Number> expSeries = new XYChart.Series<>();
         expSeries.setName("Έξοδα");
 
-        int[] years = {2023, 2024, 2025};
+        int[] years = {2023, 2024, 2025, 2026};
         double minValue = Double.MAX_VALUE;
         double maxValue = Double.MIN_VALUE;
         
@@ -65,6 +66,32 @@ public class ChartService {
         @SuppressWarnings("unchecked")
         ObservableList<XYChart.Series<String, Number>> chartData = FXCollections.observableArrayList(revSeries, expSeries);
         lineChart.getData().addAll(chartData);
+        
+        // Apply colors after chart is rendered
+        Platform.runLater(() -> {
+            lineChart.applyCss();
+            lineChart.layout();
+            
+            // Set colors for series lines - green for revenues, red for expenses
+            if (revSeries.getNode() != null) {
+                revSeries.getNode().setStyle("-fx-stroke: #22c55e; -fx-stroke-width: 2px;");
+            }
+            if (expSeries.getNode() != null) {
+                expSeries.getNode().setStyle("-fx-stroke: #ef4444; -fx-stroke-width: 2px;");
+            }
+            
+            // Style data points (nodes) - green for revenues, red for expenses
+            for (XYChart.Data<String, Number> data : revSeries.getData()) {
+                if (data.getNode() != null) {
+                    data.getNode().setStyle("-fx-background-color: #22c55e, white; -fx-background-radius: 4px; -fx-padding: 4px;");
+                }
+            }
+            for (XYChart.Data<String, Number> data : expSeries.getData()) {
+                if (data.getNode() != null) {
+                    data.getNode().setStyle("-fx-background-color: #ef4444, white; -fx-background-radius: 4px; -fx-padding: 4px;");
+                }
+            }
+        });
         
         // Set y-axis with rounded bounds and clean tick units (e.g., 700, 800, 900 billions)
         if (lineChart.getYAxis() instanceof NumberAxis) {
@@ -130,7 +157,7 @@ public class ChartService {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName(dataType.equals("total_revenue") ? "Έσοδα" : "Δαπάνες");
         
-        int[] years = {2023, 2024, 2025};
+        int[] years = {2023, 2024, 2025, 2026};
         for (int y : years) {
             double value = dataService.getTotalAmount(y, dataType);
             series.getData().add(new XYChart.Data<>(String.valueOf(y), value));
@@ -153,7 +180,7 @@ public class ChartService {
         stackedBarChart.getData().clear();
         stackedBarChart.setTitle(title);
         
-        int[] years = {2023, 2024, 2025};
+        int[] years = {2023, 2024, 2025, 2026};
         Map<String, Double> allCategories = new HashMap<>();
         
         // Get all categories across all years
@@ -209,7 +236,7 @@ public class ChartService {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Ισοζύγιο");
         
-        int[] years = {2023, 2024, 2025};
+        int[] years = {2023, 2024, 2025, 2026};
         for (int y : years) {
             double balance = dataService.getBalance(y);
             series.getData().add(new XYChart.Data<>(String.valueOf(y), balance));
@@ -237,7 +264,7 @@ public class ChartService {
         XYChart.Series<String, Number> expSeries = new XYChart.Series<>();
         expSeries.setName("Δαπάνες");
         
-        int[] years = {2023, 2024, 2025};
+        int[] years = {2023, 2024, 2025, 2026};
         for (int y : years) {
             double rev = dataService.getTotalAmount(y, "total_revenue");
             double exp = dataService.getTotalAmount(y, "total_expenses");

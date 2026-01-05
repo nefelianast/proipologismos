@@ -1452,14 +1452,14 @@ public class HomeController {
                 if (usernameResult.isValid() && passwordResult.isValid()) {
                     // Check credentials against database
                     if (userRepository.checkLogin(username, password)) {
-                        // Set user type to government
-                        currentUserType = UserType.GOVERNMENT;
-                        updateAuthButton();
-                        updateUserTypeLabel();
-                        updateGovernmentFeatures();
-                        
-                        // Close login dialog
-                        loginStage.close();
+                    // Set user type to government
+                            currentUserType = UserType.GOVERNMENT;
+                            updateAuthButton();
+                            updateUserTypeLabel();
+                            updateGovernmentFeatures();
+                    
+                    // Close login dialog
+                    loginStage.close();
                     } else {
                         // Invalid credentials
                         Alert errorAlert = new Alert(Alert.AlertType.ERROR);

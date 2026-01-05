@@ -42,6 +42,8 @@
 .year-buttons-container {
     -fx-spacing: 12;
     -fx-padding: 0 0 20 0;
+    -fx-alignment: center;
+    -fx-pref-width: 100%;
 }
 
 .year-button {
@@ -166,9 +168,8 @@ Button.nav-button:hover {
 }
 
 .summary-row {
-    -fx-spacing: 12;
-    -fx-pref-width: 600;
-    -fx-min-width: 580;
+    -fx-spacing: 45;
+    -fx-alignment: center;
 }
 
 .quick-nav-row {
@@ -180,13 +181,13 @@ Button.nav-button:hover {
 .summary-card {
     -fx-background-color: #1e40af;
     -fx-background-radius: 18;
-    -fx-padding: 18 20;
+    -fx-padding: 18 24;
     -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.4), 30, 0, 0, 8);
-    -fx-pref-width: 140;
-    -fx-min-width: 130;
+    -fx-pref-width: 280;
+    -fx-min-width: 250;
     -fx-border-width: 2;
     -fx-border-radius: 18;
-    -fx-border-color: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
+    -fx-border-color: rgba(255, 255, 255, 0.3);
 }
 
 .summary-card:hover {
@@ -194,7 +195,7 @@ Button.nav-button:hover {
     -fx-translate-y: -8;
     -fx-scale-x: 1.03;
     -fx-scale-y: 1.03;
-    -fx-border-color: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.4) 100%);
+    -fx-border-color: rgba(255, 255, 255, 0.5);
     -fx-border-width: 4;
 }
 
@@ -236,7 +237,7 @@ Button.nav-button:hover {
     -fx-background-color: rgba(255, 255, 255, 0.95);
     -fx-background-radius: 30;
     -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.3), 35, 0, 0, 10);
-    -fx-border-color: linear-gradient(135deg, rgba(30, 64, 175, 0.4) 0%, rgba(30, 64, 175, 0.4) 100%);
+    -fx-border-color: rgba(30, 64, 175, 0.4);
     -fx-border-width: 3;
     -fx-border-radius: 30;
 }
@@ -974,7 +975,7 @@ Button.nav-button:hover {
     -fx-background-color: rgba(255, 255, 255, 0.98);
     -fx-text-fill: #1e40af;
     -fx-font-weight: 900;
-    -fx-border-color: linear-gradient(135deg, #1e40af 0%, #1e40af 100%);
+    -fx-border-color: #1e40af;
     -fx-border-width: 3 3 0 3;
     -fx-border-radius: 15 15 0 0;
     -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.5), 10, 0, 0, 4);
@@ -983,7 +984,7 @@ Button.nav-button:hover {
 .tab-pane .tab-content-area {
     -fx-background-color: rgba(255, 255, 255, 0.98);
     -fx-background-radius: 0 20 20 20;
-    -fx-border-color: linear-gradient(135deg, #1e40af 0%, rgba(30, 64, 175, 0.3) 100%);
+    -fx-border-color: rgba(30, 64, 175, 0.65);
     -fx-border-width: 3;
     -fx-border-radius: 0 20 20 20;
     -fx-padding: 0;
@@ -1020,7 +1021,7 @@ Button.nav-button:hover {
     -fx-padding: 18 20;
     -fx-font-weight: 900;
     -fx-font-size: 15px;
-    -fx-text-fill: linear-gradient(135deg, #1e40af 0%, #1e40af 100%);
+    -fx-text-fill: #1e40af;
     -fx-letter-spacing: 0.5px;
     -fx-border-color: linear-gradient(to bottom, transparent 0%, rgba(30, 64, 175, 0.2) 100%);
     -fx-border-width: 0 2 0 0;
@@ -1055,7 +1056,7 @@ Button.nav-button:hover {
 }
 
 .table-row-cell:selected {
-    -fx-background-color: linear-gradient(135deg, rgba(30, 64, 175, 0.15) 0%, rgba(30, 64, 175, 0.15) 100%);
+    -fx-background-color: rgba(30, 64, 175, 0.15);
     -fx-text-background-color: #1e40af;
 }
 
@@ -1639,5 +1640,40 @@ Button.nav-button:hover {
     -fx-font-size: 14px;
     -fx-text-fill: #1e293b;
     -fx-line-spacing: 4px;
+}
+
+/* Line Chart Legend Styling */
+.chart-legend {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-border-width: 0;
+    -fx-border-color: transparent;
+}
+
+.chart-legend-item {
+    -fx-padding: 0 8 0 0;
+}
+
+/* Line Chart Series Colors - Green for Revenues, Red for Expenses */
+.default-color0.chart-series-line {
+    -fx-stroke: #22c55e;
+    -fx-stroke-width: 2px;
+}
+
+.default-color0.chart-line-symbol {
+    -fx-background-color: #22c55e, white;
+    -fx-background-radius: 4px;
+    -fx-padding: 4px;
+}
+
+.default-color1.chart-series-line {
+    -fx-stroke: #ef4444;
+    -fx-stroke-width: 2px;
+}
+
+.default-color1.chart-line-symbol {
+    -fx-background-color: #ef4444, white;
+    -fx-background-radius: 4px;
+    -fx-padding: 4px;
 }
 
