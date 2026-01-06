@@ -15,14 +15,9 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-/**
- * Controller for the login screen.
- * Handles user type selection (citizen or government) and authentication.
- * Citizens can access the application directly, while government users must provide credentials.
- */
-public class LoginController {
+public class Login {
 
-    private UserRepository userRepository = new UserRepository();
+    private Authentication authentication = new Authentication();
 
     @FXML
     private VBox citizenCard;
@@ -33,12 +28,12 @@ public class LoginController {
 
     @FXML
     private void initialize() {
-        // Apply style to logo
+        // style στο logo
         if (logoImageView != null) {
             logoImageView.getStyleClass().add("login-logo");
         }
         
-        // Set up click handlers
+        // click handlers
         citizenCard.setOnMouseClicked(e -> onCitizenSelected());
         citizenCard.setCursor(javafx.scene.Cursor.HAND);
         
@@ -48,10 +43,10 @@ public class LoginController {
 
     @FXML
     private void onCitizenSelected() {
-        // Set user type to citizen
+        // ορισμός τύπου χρήστη σε πολίτης
         HomeController.setUserType(HomeController.UserType.CITIZEN);
         
-        // Go directly to main application
+        // μετάβαση στην κύρια οθόνη
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/Home.fxml"));
             Parent root = loader.load();
@@ -70,13 +65,13 @@ public class LoginController {
 
     @FXML
     private void onGovernmentSelected() {
-        // Show government login dialog
+        // εμφάνιση login dialog για κυβέρνηση
         showGovernmentLogin();
     }
 
     private void showGovernmentLogin() {
         try {
-            // Create login dialog
+            // δημιουργία login dialog
             Stage loginStage = new Stage();
             loginStage.setTitle("Σύνδεση - Κυβέρνηση");
             loginStage.setResizable(false);
@@ -88,7 +83,7 @@ public class LoginController {
             Label titleLabel = new Label("Σύνδεση Κυβέρνησης");
             titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e40af;");
 
-            // Username field with visible placeholder
+            // πεδίο username
             TextField usernameField = new TextField();
             usernameField.setPrefWidth(300);
             usernameField.setStyle("-fx-font-size: 14px; -fx-padding: 10;");
@@ -107,7 +102,7 @@ public class LoginController {
                 usernamePrompt.setVisible(newText == null || newText.isEmpty());
             });
             
-            // Username error label
+            // label για σφάλματα username
             Label usernameErrorLabel = new Label();
             usernameErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
             usernameErrorLabel.setVisible(false);
@@ -115,13 +110,13 @@ public class LoginController {
             usernameErrorLabel.setPrefWidth(300);
             usernameErrorLabel.setMaxWidth(300);
             
-            // Real-time validation for username
+            // username validation
             usernameField.textProperty().addListener((obs, oldText, newText) -> {
-                DataValidator.ValidationResult result = DataValidator.validateUsername(newText);
-                DataValidator.applyValidationStyle(usernameField, result.isValid(), usernameErrorLabel, result.getErrorMessage());
+                Constraints.ValidationResult result = Constraints.validateUsername(newText);
+                Constraints.applyValidationStyle(usernameField, result.isValid(), usernameErrorLabel, result.getErrorMessage());
             });
 
-            // Password field with visible placeholder
+            // πεδίο password 
             PasswordField passwordField = new PasswordField();
             passwordField.setPrefWidth(300);
             passwordField.setStyle("-fx-font-size: 14px; -fx-padding: 10;");
@@ -140,7 +135,7 @@ public class LoginController {
                 passwordPrompt.setVisible(newText == null || newText.isEmpty());
             });
             
-            // Password error label
+            // label για σφάλματα password
             Label passwordErrorLabel = new Label();
             passwordErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
             passwordErrorLabel.setVisible(false);
@@ -148,10 +143,10 @@ public class LoginController {
             passwordErrorLabel.setPrefWidth(300);
             passwordErrorLabel.setMaxWidth(300);
             
-            // Real-time validation for password
+            // password validation
             passwordField.textProperty().addListener((obs, oldText, newText) -> {
-                DataValidator.ValidationResult result = DataValidator.validatePassword(newText);
-                DataValidator.applyValidationStyle(passwordField, result.isValid(), passwordErrorLabel, result.getErrorMessage());
+                Constraints.ValidationResult result = Constraints.validatePassword(newText);
+                Constraints.applyValidationStyle(passwordField, result.isValid(), passwordErrorLabel, result.getErrorMessage());
             });
 
             javafx.scene.control.Button loginButton = new javafx.scene.control.Button("Σύνδεση");
@@ -162,24 +157,24 @@ public class LoginController {
                 String username = usernameField.getText();
                 String password = passwordField.getText();
                 
-                // Validate username and password
-                DataValidator.ValidationResult usernameResult = DataValidator.validateUsername(username);
-                DataValidator.ValidationResult passwordResult = DataValidator.validatePassword(password);
+                // username & password validation
+                Constraints.ValidationResult usernameResult = Constraints.validateUsername(username);
+                Constraints.ValidationResult passwordResult = Constraints.validatePassword(password);
                 
-                // Apply validation styles
-                DataValidator.applyValidationStyle(usernameField, usernameResult.isValid(), usernameErrorLabel, usernameResult.getErrorMessage());
-                DataValidator.applyValidationStyle(passwordField, passwordResult.isValid(), passwordErrorLabel, passwordResult.getErrorMessage());
+                // validation styles
+                Constraints.applyValidationStyle(usernameField, usernameResult.isValid(), usernameErrorLabel, usernameResult.getErrorMessage());
+                Constraints.applyValidationStyle(passwordField, passwordResult.isValid(), passwordErrorLabel, passwordResult.getErrorMessage());
                 
-                // Check if all validations pass
+                // validation check
                 if (usernameResult.isValid() && passwordResult.isValid()) {
-                    // Check credentials against database
-                    if (userRepository.checkLogin(username, password)) {
-                        // Set user type to government
+                    // login check
+                    if (authentication.checkLogin(username, password)) {
+                        // user type set
                         HomeController.setUserType(HomeController.UserType.GOVERNMENT);
                         
-                        // Close login dialog
+                        // κλείσιμο login dialog
                         loginStage.close();
-                        // Navigate to main application
+                        // μετάβαση στην κύρια οθόνη
                         try {
                             FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/Home.fxml"));
                             Parent root = loader.load();
@@ -195,13 +190,13 @@ public class LoginController {
                             showError("Σφάλμα", "Δεν ήταν δυνατή η πρόσβαση στην εφαρμογή: " + ex.getMessage());
                         }
                     } else {
-                        // Invalid credentials
+                        // μη έγκυρα διαπιστευτήρια
                         showError("Σφάλμα Σύνδεσης", "Λάθος όνομα χρήστη ή κωδικός πρόσβασης.\nΠαρακαλώ προσπαθήστε ξανά.");
                     }
                 }
             });
 
-            // Sign up button
+            // κουμπί εγγραφής
             javafx.scene.control.Button signUpButton = new javafx.scene.control.Button("Εγγραφή");
             signUpButton.setPrefWidth(300);
             signUpButton.setPrefHeight(40);
@@ -236,7 +231,7 @@ public class LoginController {
             Label titleLabel = new Label("Εγγραφή Νέου Χρήστη");
             titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #10b981;");
 
-            // Username field
+            // πεδίο username
             TextField usernameField = new TextField();
             usernameField.setPrefWidth(300);
             usernameField.setStyle("-fx-font-size: 14px; -fx-padding: 10;");
@@ -249,11 +244,11 @@ public class LoginController {
             usernameErrorLabel.setPrefWidth(300);
 
             usernameField.textProperty().addListener((obs, oldText, newText) -> {
-                DataValidator.ValidationResult result = DataValidator.validateUsername(newText);
-                DataValidator.applyValidationStyle(usernameField, result.isValid(), usernameErrorLabel, result.getErrorMessage());
+                Constraints.ValidationResult result = Constraints.validateUsername(newText);
+                Constraints.applyValidationStyle(usernameField, result.isValid(), usernameErrorLabel, result.getErrorMessage());
             });
 
-            // Password field
+            // πεδίο password
             PasswordField passwordField = new PasswordField();
             passwordField.setPrefWidth(300);
             passwordField.setStyle("-fx-font-size: 14px; -fx-padding: 10;");
@@ -266,11 +261,11 @@ public class LoginController {
             passwordErrorLabel.setPrefWidth(300);
 
             passwordField.textProperty().addListener((obs, oldText, newText) -> {
-                DataValidator.ValidationResult result = DataValidator.validatePassword(newText);
-                DataValidator.applyValidationStyle(passwordField, result.isValid(), passwordErrorLabel, result.getErrorMessage());
+                Constraints.ValidationResult result = Constraints.validatePassword(newText);
+                Constraints.applyValidationStyle(passwordField, result.isValid(), passwordErrorLabel, result.getErrorMessage());
             });
 
-            // Sign up button
+            // κουμπί δημιουργίας λογαριασμού
             javafx.scene.control.Button createButton = new javafx.scene.control.Button("Δημιουργία Λογαριασμού");
             createButton.setPrefWidth(300);
             createButton.setPrefHeight(40);
@@ -279,22 +274,22 @@ public class LoginController {
                 String username = usernameField.getText();
                 String password = passwordField.getText();
 
-                // Validate
-                DataValidator.ValidationResult usernameResult = DataValidator.validateUsername(username);
-                DataValidator.ValidationResult passwordResult = DataValidator.validatePassword(password);
+                // επικύρωση
+                Constraints.ValidationResult usernameResult = Constraints.validateUsername(username);
+                Constraints.ValidationResult passwordResult = Constraints.validatePassword(password);
 
-                DataValidator.applyValidationStyle(usernameField, usernameResult.isValid(), usernameErrorLabel, usernameResult.getErrorMessage());
-                DataValidator.applyValidationStyle(passwordField, passwordResult.isValid(), passwordErrorLabel, passwordResult.getErrorMessage());
+                Constraints.applyValidationStyle(usernameField, usernameResult.isValid(), usernameErrorLabel, usernameResult.getErrorMessage());
+                Constraints.applyValidationStyle(passwordField, passwordResult.isValid(), passwordErrorLabel, passwordResult.getErrorMessage());
 
                 if (usernameResult.isValid() && passwordResult.isValid()) {
-                    // Check if username exists
-                    if (userRepository.usernameExists(username)) {
+                    // έλεγχος αν το username υπάρχει ήδη
+                    if (authentication.usernameExists(username)) {
                         usernameErrorLabel.setText("Το όνομα χρήστη υπάρχει ήδη");
                         usernameErrorLabel.setVisible(true);
                         usernameField.setStyle("-fx-border-color: #dc2626; -fx-font-size: 14px; -fx-padding: 10;");
                     } else {
-                        // Create user
-                        if (userRepository.saveUser(username, password)) {
+                        // δημιουργία χρήστη
+                        if (authentication.saveUser(username, password)) {
                             Alert success = new Alert(Alert.AlertType.INFORMATION);
                             success.setTitle("Επιτυχία");
                             success.setHeaderText(null);
@@ -321,6 +316,7 @@ public class LoginController {
         }
     }
 
+    // εμφάνιση μηνύματος σφάλματος
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -329,4 +325,3 @@ public class LoginController {
         alert.showAndWait();
     }
 }
-

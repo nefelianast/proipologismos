@@ -10,15 +10,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Unit tests for DataPersistenceService class.
+ * Unit tests for UserData class.
  */
-class DataPersistenceServiceTest {
+class UserDataTest {
     
-    private DataPersistenceService service;
+    private UserData service;
     
     @BeforeEach
     void setUp() {
-        service = DataPersistenceService.getInstance();
+        service = UserData.getInstance();
         // Clean up test data before each test
         cleanupTestData();
     }
@@ -46,8 +46,8 @@ class DataPersistenceServiceTest {
     @Test
     void testGetInstance() {
         // Test singleton pattern
-        DataPersistenceService instance1 = DataPersistenceService.getInstance();
-        DataPersistenceService instance2 = DataPersistenceService.getInstance();
+        UserData instance1 = UserData.getInstance();
+        UserData instance2 = UserData.getInstance();
         
         assertNotNull(instance1);
         assertNotNull(instance2);
@@ -147,7 +147,7 @@ class DataPersistenceServiceTest {
         String scenarioData = "{\"year\":2025,\"totalRevenues\":100.0}";
         service.saveScenario("TEST_Scenario", "Test description", 2025, scenarioData);
         
-        DataPersistenceService.SavedScenario scenario = service.getScenario("TEST_Scenario");
+        UserData.SavedScenario scenario = service.getScenario("TEST_Scenario");
         assertNotNull(scenario);
         assertEquals("TEST_Scenario", scenario.getScenarioName());
         assertEquals("Test description", scenario.getDescription());
@@ -157,7 +157,7 @@ class DataPersistenceServiceTest {
     
     @Test
     void testGetScenarioNonExistent() {
-        DataPersistenceService.SavedScenario scenario = service.getScenario("NON_EXISTENT");
+        UserData.SavedScenario scenario = service.getScenario("NON_EXISTENT");
         assertNull(scenario);
     }
     
@@ -170,7 +170,7 @@ class DataPersistenceServiceTest {
         boolean result = service.updateScenario("TEST_Scenario", "Updated description", updatedData);
         assertTrue(result);
         
-        DataPersistenceService.SavedScenario scenario = service.getScenario("TEST_Scenario");
+        UserData.SavedScenario scenario = service.getScenario("TEST_Scenario");
         assertEquals("Updated description", scenario.getDescription());
         assertEquals(updatedData, scenario.getScenarioData());
     }
@@ -186,7 +186,7 @@ class DataPersistenceServiceTest {
         service.saveScenario("TEST_Scenario1", "Description 1", 2025, "{}");
         service.saveScenario("TEST_Scenario2", "Description 2", 2024, "{}");
         
-        List<DataPersistenceService.SavedScenario> scenarios = service.getAllScenarios();
+        List<UserData.SavedScenario> scenarios = service.getAllScenarios();
         assertNotNull(scenarios);
         assertTrue(scenarios.size() >= 2);
         
@@ -203,12 +203,12 @@ class DataPersistenceServiceTest {
         service.saveScenario("TEST_Scenario2", "Description 2", 2025, "{}");
         service.saveScenario("TEST_Scenario3", "Description 3", 2024, "{}");
         
-        List<DataPersistenceService.SavedScenario> scenarios = service.getScenariosForYear(2025);
+        List<UserData.SavedScenario> scenarios = service.getScenariosForYear(2025);
         assertNotNull(scenarios);
         assertTrue(scenarios.size() >= 2);
         
         // All scenarios should be for year 2025
-        for (DataPersistenceService.SavedScenario scenario : scenarios) {
+        for (UserData.SavedScenario scenario : scenarios) {
             if (scenario.getScenarioName().startsWith("TEST_")) {
                 assertEquals(2025, scenario.getYear());
             }
@@ -222,7 +222,7 @@ class DataPersistenceServiceTest {
         boolean result = service.deleteScenario("TEST_Scenario");
         assertTrue(result);
         
-        DataPersistenceService.SavedScenario scenario = service.getScenario("TEST_Scenario");
+        UserData.SavedScenario scenario = service.getScenario("TEST_Scenario");
         assertNull(scenario);
     }
     
@@ -237,7 +237,7 @@ class DataPersistenceServiceTest {
         String scenarioData = "{\"test\":\"data\"}";
         service.saveScenario("TEST_Scenario", "Test description", 2025, scenarioData);
         
-        DataPersistenceService.SavedScenario scenario = service.getScenario("TEST_Scenario");
+        UserData.SavedScenario scenario = service.getScenario("TEST_Scenario");
         assertNotNull(scenario);
         assertNotNull(scenario.getId());
         assertEquals("TEST_Scenario", scenario.getScenarioName());
@@ -341,9 +341,8 @@ class DataPersistenceServiceTest {
         String complexJSON = "{\"year\":2025,\"revenues\":[{\"type\":\"taxes\",\"amount\":1000}],\"expenses\":[{\"type\":\"salaries\",\"amount\":500}]}";
         service.saveScenario("TEST_Complex", "Complex scenario", 2025, complexJSON);
         
-        DataPersistenceService.SavedScenario scenario = service.getScenario("TEST_Complex");
+        UserData.SavedScenario scenario = service.getScenario("TEST_Complex");
         assertNotNull(scenario);
         assertEquals(complexJSON, scenario.getScenarioData());
     }
 }
-

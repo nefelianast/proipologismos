@@ -6,21 +6,14 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-/**
- * Main JavaFX Application class for the Budget Analysis System.
- * Initializes and displays the splash screen, which then transitions to the login screen.
- */
+// κύρια JavaFX Application κλάση για το Σύστημα Ανάλυσης Προϋπολογισμού
+// αρχικοποιεί και εμφανίζει την splash screen, η οποία μετά μεταβαίνει στην οθόνη σύνδεσης
 public class MainGUI extends Application {
 
-    /**
-     * Starts the JavaFX application by loading the splash screen.
-     * 
-     * @param stage The primary stage for the application
-     * @throws Exception if there is an error loading the FXML or CSS files
-     */
+    // ξεκινά την JavaFX εφαρμογή φορτώνοντας την splash screen
     @Override
     public void start(Stage stage) throws Exception {
-        // Load splash screen first
+        // φόρτωση splash screen
         Parent root = FXMLLoader.load(getClass().getResource("/ui/SplashScreen.fxml"));
 
         Scene scene = new Scene(root, 1200, 700);
@@ -32,16 +25,12 @@ public class MainGUI extends Application {
         stage.show();
     }
 
-    /**
-     * Main entry point for the application.
-     * Automatically initializes the database if needed before launching the GUI.
-     * 
-     * @param args Command line arguments
-     */
+    // κύριο entry point της εφαρμογής
+    // αρχικοποιεί αυτόματα τη βάση δεδομένων αν χρειάζεται πριν το launch του GUI
     public static void main(String[] args) {
-        // Initialize database automatically on first run
+        // αυτόματη αρχικοποίηση βάσης δεδομένων στην πρώτη εκτέλεση
         try {
-            // Use reflection since SQLmaker is in default package
+            // χρήση reflection αφού το SQLmaker είναι στο default package
             Class<?> sqlMakerClass = Class.forName("SQLmaker");
             Object sqlMaker = sqlMakerClass.getDeclaredConstructor().newInstance();
             sqlMakerClass.getMethod("make").invoke(sqlMaker);
@@ -50,7 +39,7 @@ public class MainGUI extends Application {
             System.err.println("Application will continue with sample data.");
         }
         
-        // Launch the JavaFX application
+        // εκκίνηση της JavaFX εφαρμογής
         launch(args);
     }
 }

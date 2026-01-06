@@ -5,24 +5,16 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Utility class for converting budget PDF files to CSV format.
- * Extracts text and numbers from PDF pages and applies year-specific fixes
- * to handle formatting inconsistencies in the source documents.
- */
+// βοηθητική κλάση για μετατροπή αρχείων PDF προϋπολογισμού σε CSV format
+// εξάγει κείμενο και αριθμούς από σελίδες PDF και εφαρμόζει fixes ανά έτος
+// για αντιμετώπιση ασυνέπειων μορφοποίησης στα αρχεία προέλευσης
 public class DataConvert {
 
-    /**
-     * StringBuilder used to build the CSV output
-     */
+    // StringBuilder για κατασκευή του CSV output
     private static StringBuilder csvBuilder;
 
-    /**
-     * Converts a budget PDF file to CSV format for the specified year.
-     * Extracts text and numbers from each page and applies year-specific formatting fixes.
-     * 
-     * @param yearof The year of the budget document to convert (e.g., 2023, 2024, 2025, 2026)
-     */
+    // μετατρέπει ένα PDF αρχείο προϋπολογισμού σε CSV format για συγκεκριμένο έτος
+    // εξάγει κείμενο και αριθμούς από κάθε σελίδα και εφαρμόζει fixes μορφοποίησης ανά έτος
     public static void convertiontool(int yearof) {
         try {
             File pdfFile = new File("proipologismos" + yearof + ".pdf");
@@ -31,14 +23,17 @@ public class DataConvert {
                 return;
             }
 
+            // φόρτωση PDF document
             PDDocument document = PDDocument.load(pdfFile);
             PDFTextStripper pdfStripper = new PDFTextStripper();
 
+            // αρχικοποίηση CSV builder με header
             csvBuilder = new StringBuilder();
             csvBuilder.append("Σελίδα,Κείμενο,Αριθμοί\n");
 
             int totalPages = document.getNumberOfPages();
 
+            // επεξεργασία κάθε σελίδας
             for (int page = 1; page <= totalPages; page++) {
                 pdfStripper.setStartPage(page);
                 pdfStripper.setEndPage(page);
@@ -46,6 +41,7 @@ public class DataConvert {
                 String pageText = pdfStripper.getText(document);
                 String[] lines = pageText.split("\\r?\\n");
 
+                // επεξεργασία κάθε γραμμής
                 for (String line : lines) {
                     line = line.trim();
                     if (line.isEmpty()) continue;
@@ -53,6 +49,7 @@ public class DataConvert {
                     StringBuilder numbers = new StringBuilder();
                     StringBuilder textOnly = new StringBuilder();
 
+                    // διαχωρισμός tokens και κατηγοριοποίηση σε αριθμούς/κείμενο
                     String[] tokens = line.split("\\s+");
                     for (String token : tokens) {
                         if (token.matches(".*\\d.*")) {
@@ -63,9 +60,11 @@ public class DataConvert {
                         }
                     }
 
+                    // αφαίρεση τελευταίου comma από αριθμούς
                     if (numbers.length() > 0)
                         numbers.setLength(numbers.length() - 1);
 
+                    // προσθήκη γραμμής στο CSV
                     csvBuilder.append(page).append(",")
                             .append("\"").append(textOnly).append("\"").append(",")
                             .append(numbers)
@@ -75,6 +74,7 @@ public class DataConvert {
 
             document.close();
 
+            // αποθήκευση CSV αρχείου
             String csvFile = "proipologismos" + yearof + ".csv";
             FileWriter writer = new FileWriter(csvFile);
             writer.write(csvBuilder.toString());
@@ -120,6 +120,7 @@ public class DataConvert {
 
     // =========================================================
     // FIX 2023 – ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ
+    // διορθώνει προβλήματα με αποκεντρωμένες διοικήσεις για το 2023
     // =========================================================
     private static void fix2023_ApokentromenesDioikiseis(String csvFile) {
         try {
@@ -155,6 +156,7 @@ public class DataConvert {
 
     // =========================================================
     // FIX 2023 – ΥΠΟΥΡΓΕΙΟ ΚΛΙΜΑΤΙΚΗΣ ΚΡΙΣΗΣ
+    // διορθώνει προβλήματα με το όνομα του υπουργείου που είναι χωρισμένο σε 2 γραμμές
     // =========================================================
     private static void fix2023_KlimatikiKrisi(String csvFile) {
         try {
@@ -197,6 +199,7 @@ public class DataConvert {
 
     // =========================================================
     // FIX 2024 – ΣΥΜΜΕΤΟΧΙΚΟΙ ΤΙΤΛΟΙ
+    // διορθώνει προβλήματα με συμμετοχικούς τίτλους που είναι χωρισμένοι σε πολλές γραμμές
     // =========================================================
     private static void fix2024_SymmetochikoiTitloi(String csvFile) {
         try {
@@ -250,6 +253,7 @@ public class DataConvert {
 
     // =========================================================
     // FIX 2024 – ΚΛΙΜΑΤΙΚΗ ΚΡΙΣΗ
+    // διορθώνει προβλήματα με το όνομα του υπουργείου που είναι χωρισμένο σε 2 γραμμές
     // =========================================================
     private static void fix2024_KlimatikiKrisi(String csvFile) {
         try {
@@ -291,6 +295,7 @@ public class DataConvert {
 
     // =========================================================
     // FIX 2024 – ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ
+    // διορθώνει προβλήματα με αποκεντρωμένες διοικήσεις που είναι χωρισμένες σε πολλές γραμμές
     // =========================================================
     private static void fix2024_ApokentromenesDioikiseis(String csvFile) {
         try {
@@ -359,6 +364,7 @@ public class DataConvert {
 
     // =========================================================
     // FIX 2025 – ΣΥΜΜΕΤΟΧΙΚΟΙ ΤΙΤΛΟΙ
+    // διορθώνει προβλήματα με συμμετοχικούς τίτλους που είναι χωρισμένοι σε πολλές γραμμές
     // =========================================================
     private static void fix2025_SymmetochikoiTitloi(String csvFile) {
         try {
@@ -410,6 +416,7 @@ public class DataConvert {
 
     // =========================================================
     // FIX 2025 – ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ
+    // διορθώνει προβλήματα με αποκεντρωμένες διοικήσεις που είναι χωρισμένες σε πολλές γραμμές
     // =========================================================
     private static void fix2025_ApokentromenesDioikiseis(String csvFile) {
         try {
@@ -461,6 +468,7 @@ public class DataConvert {
 
     // =========================================================
     // FIX 2026 – ΣΥΜΜΕΤΟΧΙΚΟΙ ΤΙΤΛΟΙ
+    // διορθώνει προβλήματα με συμμετοχικούς τίτλους που είναι χωρισμένοι σε πολλές γραμμές
     // =========================================================
     private static void fix2026_SymmetochikoiTitloi(String csvFile) {
         try {
@@ -511,6 +519,7 @@ public class DataConvert {
     }
     // =========================================================
     // FIX 2023 – ΚΡΗΤΗ (ΒΕΛΤΙΩΜΕΝΗ)
+    // διορθώνει προβλήματα με την Αποκεντρωμένη Διοίκηση Κρήτης (λάθος αριθμοί ή λείπει)
     // =========================================================
     private static void fix2023_CreteOnly(String csvFile) {
         try {
@@ -520,10 +529,10 @@ public class DataConvert {
             boolean hasCrete = false;
             
             for (String line : lines) {
-                // ΕΛΕΓΧΟΣ 1: Αν είναι η Κρήτη με λάθος αριθμούς, τη διορθώνουμε
+                // έλεγχος 1: αν είναι η Κρήτη με λάθος αριθμούς, τη διορθώνουμε
                 if (line.contains("Αποκεντρωμένη Διοίκηση Κρήτης")) {
                     hasCrete = true;
-                    // Αντικαθιστούμε ΠΑΝΤΑ με τους σωστούς αριθμούς
+                    // αντικαθιστούμε πάντα με τους σωστούς αριθμούς
                     fixed.add("3,\"Αποκεντρωμένη Διοίκηση Κρήτης\",1906,6.068.000,0,6.068.000");
                     continue;
                 }
@@ -531,7 +540,7 @@ public class DataConvert {
                 fixed.add(line);
             }
             
-            // ΕΛΕΓΧΟΣ 2: Αν η Κρήτη λείπει τελείως, την προσθέτουμε
+            // έλεγχος 2: αν η Κρήτη λείπει τελείως, την προσθέτουμε
             if (!hasCrete) {
                 List<String> finalFixed = new ArrayList<>();
                 boolean addedCrete = false;
@@ -539,14 +548,14 @@ public class DataConvert {
                 for (String line : fixed) {
                     finalFixed.add(line);
                     
-                    // Προσθέτουμε την Κρήτη αμέσως μετά το Αιγαίο (1905)
+                    // προσθήκη της Κρήτης αμέσως μετά το Αιγαίο (1905)
                     if (!addedCrete && (line.contains("Αιγαίου") || line.contains("1905"))) {
                         finalFixed.add("3,\"Αποκεντρωμένη Διοίκηση Κρήτης\",1906,6.068.000,0,6.068.000");
                         addedCrete = true;
                     }
                 }
                 
-                // Αν δεν βρήκαμε το Αιγαίο, προσθέτουμε στο τέλος
+                // αν δεν βρήκαμε το Αιγαίο, προσθέτουμε στο τέλος
                 if (!addedCrete) {
                     finalFixed.add("3,\"Αποκεντρωμένη Διοίκηση Κρήτης\",1906,6.068.000,0,6.068.000");
                 }
@@ -563,6 +572,7 @@ public class DataConvert {
     }
     // =========================================================
     // FIX 2026 – ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ
+    // διορθώνει προβλήματα με αποκεντρωμένες διοικήσεις που είναι χωρισμένες σε πολλές γραμμές
     // =========================================================
     private static void fix2026_ApokentromenesDioikiseis(String csvFile) {
         try {
@@ -613,9 +623,9 @@ public class DataConvert {
     }
 
     // =========================================================
-    // ΥΠΑΡΧΟΥΣΕΣ ΜΕΘΟΔΟΙ
+    // ΓΕΝΙΚΑ FIXES ΓΙΑ 2023
+    // διορθώνει γενικά προβλήματα μορφοποίησης για το 2023
     // =========================================================
-
     private static void fix2023Specific(String csvFile) {
         try {
             List<String> lines = read(csvFile);
@@ -624,13 +634,16 @@ public class DataConvert {
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i).trim();
 
+                // αν βρούμε αποκεντρωμένη διοίκηση, προσπαθούμε να ενώσουμε χωρισμένες γραμμές
                 if (line.startsWith("3,\"Αποκεντρωμένη Διοίκηση")) {
                     StringBuilder name = new StringBuilder();
                     String amounts = null;
                     String id = null;
 
+                    // προσθήκη πρώτου μέρους του ονόματος
                     name.append(line.substring(line.indexOf("\"") + 1, line.lastIndexOf("\"")));
 
+                    // έλεγχος για συνέχεια του ονόματος στην επόμενη γραμμή
                     if (i + 1 < lines.size()) {
                         String next = lines.get(i + 1).trim();
                         if (next.startsWith("3,\"") && !next.startsWith("3,\"\",") && !next.matches(".*\\d.*")) {
@@ -640,6 +653,7 @@ public class DataConvert {
                         }
                     }
 
+                    // έλεγχος για αριθμούς στην επόμενη γραμμή
                     if (i + 1 < lines.size()) {
                         String next = lines.get(i + 1).trim();
                         if (next.contains(",")) {
@@ -651,6 +665,7 @@ public class DataConvert {
                         }
                     }
 
+                    // έλεγχος για ID στην επόμενη γραμμή
                     if (i + 1 < lines.size()) {
                         String next = lines.get(i + 1).trim();
                         if (next.startsWith("3,\"\",") && next.split(",").length >= 3) {
@@ -659,6 +674,7 @@ public class DataConvert {
                         }
                     }
 
+                    // αν έχουμε και id και amounts, δημιουργούμε την ενωμένη γραμμή
                     if (id != null && amounts != null) {
                         fixed.add("3,\"" + name + "\"," + id + "," + amounts);
                         continue;
@@ -675,6 +691,7 @@ public class DataConvert {
         }
     }
 
+    // γενικά fixes για 2024 - διορθώνει προβλήματα με χωρισμένες γραμμές
     private static void fix2024(String csvFile) {
         try {
             List<String> lines = read(csvFile);
@@ -683,13 +700,16 @@ public class DataConvert {
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i);
 
+                // αν βρούμε κενή γραμμή με ID, ενώνουμε με την προηγούμενη
                 if (line.matches("^3,\"\",.*") && !fixed.isEmpty()) {
                     String prev = fixed.remove(fixed.size() - 1);
 
+                    // εξαγωγή ID από την τρέχουσα γραμμή
                     String id = line.split(",", 3)[2];
                     String[] p = prev.split(",", 3);
                     String[] a = p[2].split(",", 2);
 
+                    // δημιουργία ενωμένης γραμμής
                     fixed.add(p[0] + "," + p[1] + "," + id + "," + a[1]);
                     continue;
                 }
@@ -703,6 +723,7 @@ public class DataConvert {
         }
     }
 
+    // διορθώνει προβλήματα με τίτλους που είναι χωρισμένοι σε 2 γραμμές (2024 & 2026)
     private static void fix2024Titles(String csvFile) {
         try {
             List<String> lines = read(csvFile);
@@ -711,11 +732,13 @@ public class DataConvert {
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i);
 
+                // αν βρούμε τίτλο με ID στην επόμενη γραμμή, ενώνουμε
                 if (line.matches("^2,\".*\",\\d+\\.?$") && i + 1 < lines.size()
                         && lines.get(i + 1).matches("^2,\"\",\\d+\\.?$")) {
 
                     String[] a = line.split(",", 3);
                     String id = lines.get(i + 1).split(",", 3)[2];
+                    // δημιουργία ενωμένης γραμμής
                     fixed.add(a[0] + "," + a[1] + "," + id);
                     i++;
                     continue;
@@ -731,8 +754,9 @@ public class DataConvert {
     }
 
     // =========================================================
-    // HELPERS
+    // ΒΟΗΘΗΤΙΚΕΣ ΜΕΘΟΔΟΙ
     // =========================================================
+    // διαβάζει όλες τις γραμμές από ένα αρχείο
     private static List<String> read(String f) throws Exception {
         List<String> l = new ArrayList<>();
         BufferedReader r = new BufferedReader(new FileReader(f));
@@ -742,6 +766,7 @@ public class DataConvert {
         return l;
     }
 
+    // γράφει μια λίστα γραμμών σε ένα αρχείο
     private static void write(String f, List<String> l) throws Exception {
         BufferedWriter w = new BufferedWriter(new FileWriter(f));
         for (String s : l) {

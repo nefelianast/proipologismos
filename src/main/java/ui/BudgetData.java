@@ -1,109 +1,34 @@
 package ui;
 
-import org.json.JSONObject;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.*;
 import java.math.BigDecimal;
 
-/**
- * Singleton service class for managing budget data.
- * Provides access to budget data for different years, including revenues, expenses,
- * categories, ministries, and decentralized administrations.
- * Loads data from JSON files or uses sample data as fallback.
- */
-public class BudgetDataService {
+// βοηθητική κλάση για τη φόρτωση, διαχείριση & πρόσβαση στα budget δεδομένα 
+public class BudgetData {
     
-    private static BudgetDataService instance;
-    private Map<Integer, BudgetYearData> budgetData = new HashMap<>();
+    private static BudgetData instance;
 
-     long budget_result = 0;
-     long total_revenue = 0;
-     long total_expenses = 0;
-     long total_ministries = 0;
-     long total_da = 0;
+    // αποθήκευση συνολικών ποσών 
+     long budget_result = 0;        // συνολικό αποτέλεσμα προϋπολογισμού
+     long total_revenue = 0;        // συνολικά έσοδα
+     long total_expenses = 0;       // συνολικές δαπάνες
+     long total_ministries = 0;     // συνολικά υπουργεία
+     long total_da = 0;             // συνολικές αποκεντρωμένες διοικήσεις
     
-    private BudgetDataService() {
-        loadData();
-    }
     
-    public static BudgetDataService getInstance() {
+    private BudgetData() {}
+    
+    public static BudgetData getInstance() {
         if (instance == null) {
-            instance = new BudgetDataService();
+            instance = new BudgetData();
         }
         return instance;
     }
     
-    private void loadData() {
-            try {
-            File jsonFile = new File("proipologismos.json");
-            if (jsonFile.exists()) {
-                String content = new String(Files.readAllBytes(Paths.get(jsonFile.getPath())));
-                @SuppressWarnings("unused")
-                JSONObject json = new JSONObject(content);
-            }
-        } catch (Exception e) {
-            System.out.println("Could not load JSON file, using sample data: " + e.getMessage());
-        }
-        
-        initializeSampleData();
-    }
-    
-    private void initializeSampleData() {
-        // Sample data for 2023
-        BudgetYearData data2023 = new BudgetYearData(2023);
-        data2023.setTotalRevenues(95.8);
-        data2023.setTotalExpenses(97.4);
-        data2023.addCategory("Οικονομικά", 20.5, 21.0);
-        data2023.addCategory("Κοινωνική Προστασία", 17.2, 17.7);
-        data2023.addCategory("Εκπαίδευση", 14.8, 15.2);
-        data2023.addCategory("Υγεία", 11.5, 11.8);
-        data2023.addCategory("Άλλα", 12.2, 12.5);
-        data2023.addCategory("Υποδομές", 9.8, 10.1);
-        data2023.addCategory("Άμυνα", 8.0, 8.2);
-        budgetData.put(2023, data2023);
-        
-        // Sample data for 2024
-        BudgetYearData data2024 = new BudgetYearData(2024);
-        data2024.setTotalRevenues(98.0);
-        data2024.setTotalExpenses(97.4);
-        data2024.addCategory("Οικονομικά", 21.3, 21.8);
-        data2024.addCategory("Κοινωνική Προστασία", 17.8, 18.3);
-        data2024.addCategory("Εκπαίδευση", 15.0, 15.4);
-        data2024.addCategory("Υγεία", 12.2, 12.5);
-        data2024.addCategory("Άλλα", 12.5, 12.8);
-        data2024.addCategory("Υποδομές", 10.1, 10.4);
-        data2024.addCategory("Άμυνα", 8.2, 8.4);
-        budgetData.put(2024, data2024);
-        
-        // Sample data for 2025
-        BudgetYearData data2025 = new BudgetYearData(2025);
-        data2025.setTotalRevenues(100.2);
-        data2025.setTotalExpenses(98.5);
-        data2025.addCategory("Οικονομικά", 22.1, 22.4);
-        data2025.addCategory("Κοινωνική Προστασία", 18.3, 18.6);
-        data2025.addCategory("Εκπαίδευση", 15.2, 15.4);
-        data2025.addCategory("Υγεία", 12.8, 13.0);
-        data2025.addCategory("Άλλα", 12.7, 12.9);
-        data2025.addCategory("Υποδομές", 10.4, 10.6);
-        data2025.addCategory("Άμυνα", 8.5, 8.6);
-        budgetData.put(2025, data2025);
-    }
-    
-    /**
-     * Get budget data for a specific year
-     */
-    public BudgetYearData getBudgetData(int year) {
-        return budgetData.get(year);
-    }
-    
-    /**
-     * Get total revenues for a year
-     */
+    //επιστρέφει τα συνολικά έσοδα για ένα έτος 
    public double getTotalRevenues(int year) {
     long totalRevenue = 0;
 
@@ -125,9 +50,7 @@ public class BudgetDataService {
 }
 
     
-    /**
-     * Get total expenses for a year
-     */
+    // επιστρέφει τις συνολικές δαπάνες για ένα έτος
     public double getTotalExpenses(int year) {
         long totalExpenses = 0;
 
@@ -148,41 +71,36 @@ public class BudgetDataService {
         return (double) totalExpenses;
     }
     
-    /**
-     * Get balance (surplus/deficit) for a year
-     */
+    // επιστρέφει το ισοζύγιο για ένα έτος
     public double getBalance(int year) {
         double revenues = getTotalRevenues(year);
         double expenses = getTotalExpenses(year);
-        return BudgetStatisticsCalculator.calculateBalance(revenues, expenses);
+        return StatisticalAnalysis.calculateBalance(revenues, expenses);
     }
     
-    /**
-     * Get percentage change from previous year
-     */
+    // υπολογίζει την ποσοστιαία μεταβολή των εσόδων σε σχέση με το προηγούμενο έτος
     public double getRevenuesChange(int year) {
         double current = getTotalRevenues(year);
         double previous = getTotalRevenues(year - 1);
-        return BudgetStatisticsCalculator.calculatePercentageChange(current, previous);
+        return StatisticalAnalysis.calculatePercentageChange(current, previous);
     }
     
+    // υπολογίζει την ποσοστιαία μεταβολή των δαπανών σε σχέση με το προηγούμενο έτος
     public double getExpensesChange(int year) {
         double current = getTotalExpenses(year);
         double previous = getTotalExpenses(year - 1);
-        return BudgetStatisticsCalculator.calculatePercentageChange(current, previous);
+        return StatisticalAnalysis.calculatePercentageChange(current, previous);
     }
     
-    /**
-     * Get category data for a year (from ministries table)
-     */
+    // επιστρέφει τα δεδομένα κατηγοριών για ένα έτος (από τον πίνακα ministries)
     public List<CategoryInfo> getCategories(int year) {
         List<CategoryInfo> categories = new ArrayList<>();
         
-        // Get total expenses for percentage calculation (use total_expenses as the base)
+        // λήψη συνολικών δαπανών για τον υπολογισμό ποσοστών
         double totalExpenses = getTotalExpenses(year);
         if (totalExpenses == 0) return categories;
         
-        // Define ministry columns and their Greek names (excluding total_ministries)
+        // ορισμός στηλών υπουργείων και των ελληνικών ονομάτων τους
         String[][] ministries = {
             {"presidency_of_the_republic", "Προεδρία της Δημοκρατίας"},
             {"hellenic_parliament", "Ελληνικό Κοινοβούλιο"},
@@ -209,7 +127,6 @@ public class BudgetDataService {
             {"ministry_of_climate_crisis_and_civil_protection", "Κλιματικής Κρίσης και Πολιτικής Προστασίας"}
         };
         
-        // Query all ministries
         try (Connection connection = DatabaseConnection.getConnection();
              Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM ministries_" + year)) {
@@ -234,40 +151,7 @@ public class BudgetDataService {
         return categories;
     }
     
-    /**
-     * Inner class to hold budget data for a year
-     */
-    public static class BudgetYearData {
-        private int year;
-        private double totalRevenues;
-        private double totalExpenses;
-        private List<CategoryInfo> categories = new ArrayList<>();
-        
-        public BudgetYearData(int year) {
-            this.year = year;
-        }
-        
-        public void setTotalRevenues(double totalRevenues) {
-            this.totalRevenues = totalRevenues;
-        }
-        
-        public void setTotalExpenses(double totalExpenses) {
-            this.totalExpenses = totalExpenses;
-        }
-        
-        public void addCategory(String name, double amount, double percentage) {
-            categories.add(new CategoryInfo(name, amount, percentage));
-        }
-        
-        public int getYear() { return year; }
-        public double getTotalRevenues() { return totalRevenues; }
-        public double getTotalExpenses() { return totalExpenses; }
-        public List<CategoryInfo> getCategories() { return categories; }
-    }
-    
-    /**
-     * Get revenue breakdown for a year
-     */
+    // επιστρέφει την ανάλυση εσόδων για ένα έτος
     public List<CategoryInfo> getRevenueBreakdown(int year) {
         List<CategoryInfo> revenues = new ArrayList<>();
         
@@ -314,9 +198,7 @@ public class BudgetDataService {
         return revenues;
     }
     
-    /**
-     * Get expenses breakdown for a year
-     */
+    // επιστρέφει την ανάλυση δαπανών για ένα έτος
     public List<CategoryInfo> getExpensesBreakdown(int year) {
         List<CategoryInfo> expenses = new ArrayList<>();
         
@@ -364,9 +246,7 @@ public class BudgetDataService {
         return expenses;
     }
     
-    /**
-     * Get decentralized administrations for a year
-     */
+    // επιστρέφει τις αποκεντρωμένες διοικήσεις για ένα έτος
     public List<CategoryInfo> getDecentralizedAdministrations(int year) {
         List<CategoryInfo> administrations = new ArrayList<>();
         
@@ -407,9 +287,7 @@ public class BudgetDataService {
         return administrations;
     }
     
-    /**
-     * Inner class to hold category information
-     */
+    //εσωτερική κλάση για την αποθήκευση πληροφοριών κατηγορίας
     public static class CategoryInfo {
         private String name;
         private double amount;
@@ -426,12 +304,8 @@ public class BudgetDataService {
         public double getPercentage() { return percentage; }
     }
     
-    // ========== METHODS FOR GRAPHS (from graphs branch) ==========
     
-    /**
-     * Get revenue breakdown as Map for graphs/charts.
-     * Returns Map: Category -> Amount
-     */
+    // επιστρέφει την ανάλυση εσόδων ως map για γραφήματα/διαγράμματα
     public Map<String, Double> getRevenueBreakdownForGraphs(int year) {
         Map<String, Double> data = new HashMap<>();
         String sql = "SELECT * FROM revenue_" + year; 
@@ -455,10 +329,7 @@ public class BudgetDataService {
         return data;
     }
 
-    /**
-     * Get expense breakdown as Map for graphs/charts.
-     * Returns Map: Category -> Amount
-     */
+    //επιστρέφει την ανάλυση δαπανών ως map για γραφήματα/διαγράμματα
     public Map<String, Double> getExpenseBreakdownForGraphs(int year) {
         Map<String, Double> data = new HashMap<>();
         String sql = "SELECT * FROM expenses_" + year;
@@ -482,10 +353,7 @@ public class BudgetDataService {
         return data;
     }
 
-    /**
-     * Get ministries breakdown as Map for graphs/charts.
-     * Returns Map: Ministry -> Amount
-     */
+    //επιστρέφει την ανάλυση υπουργείων ως map για γραφήματα/διαγράμματα
     public Map<String, Double> getMinistriesBreakdown(int year) {
         Map<String, Double> data = new HashMap<>();
         String sql = "SELECT * FROM ministries_" + year;
@@ -510,10 +378,7 @@ public class BudgetDataService {
         return data;
     }
 
-    /**
-     * Get decentralized administrations breakdown as Map for graphs/charts.
-     * Returns Map: Administration -> Amount
-     */
+    //επιστρέφει την ανάλυση αποκεντρωμένων διοικήσεων ως map για γραφήματα/διαγράμματα
     public Map<String, Double> getDecentralizedAdministrationsBreakdown(int year) {
         Map<String, Double> data = new HashMap<>();
         String sql = "SELECT * FROM decentralized_administrations_" + year;
@@ -537,10 +402,7 @@ public class BudgetDataService {
         return data;
     }
 
-    /**
-     * Get total amount for a specific type from budget summary.
-     * Used for pie chart 4 and linear chart.
-     */
+    //επιστρέφει το συνολικό ποσό για ένα συγκεκριμένο τύπο από το budget summary
     public double getTotalAmount(int year, String type) {
         String sql = "SELECT " + type + " FROM budget_summary_" + year;
         double amount = 0;
@@ -552,15 +414,11 @@ public class BudgetDataService {
             if (rs.next()) {
                 amount = safeGet(rs, type);
             }
-        } catch (Exception e) {
-             // Return 0 if year not found
-        }
+        } catch (Exception e) {}
         return amount;
     }
 
-    /**
-     * Helper method for safe conversion from database to double.
-     */
+    //βοηθητική μέθοδος για ασφαλή μετατροπή από βάση δεδομένων σε double
     private double safeGet(ResultSet rs, String column) {
         try {
             BigDecimal bd = rs.getBigDecimal(column);
@@ -569,16 +427,8 @@ public class BudgetDataService {
             return 0.0;
         }
     }
-    
-    // ========== STATISTICAL ANALYSIS METHODS (from main) ==========
-    
-    /**
-     * Get revenue values across multiple years for statistical analysis.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Array of revenue values, or null if insufficient data    
-     */
+        
+    //επιστρέφει τις τιμές εσόδων για πολλαπλά έτη για στατιστική ανάλυση
     public double[] getRevenuesAcrossYears(int startYear, int endYear) {
         List<Double> revenues = new ArrayList<>();
         for (int year = startYear; year <= endYear; year++) {
@@ -595,13 +445,7 @@ public class BudgetDataService {
         return revenues.stream().mapToDouble(Double::doubleValue).toArray();
     }
     
-    /**
-     * Get expense values across multiple years for statistical analysis.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Array of expense values, or null if insufficient data    
-     */
+    //επιστρέφει τις τιμές δαπανών για πολλαπλά έτη για στατιστική ανάλυση
     public double[] getExpensesAcrossYears(int startYear, int endYear) {
         List<Double> expenses = new ArrayList<>();
         for (int year = startYear; year <= endYear; year++) {
@@ -618,13 +462,7 @@ public class BudgetDataService {
         return expenses.stream().mapToDouble(Double::doubleValue).toArray();
     }
     
-    /**
-     * Calculate correlation between revenues and expenses across years.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Correlation coefficient, or Double.NaN if insufficient data
-     */
+    //υπολογίζει τον συντελεστή συσχέτισης μεταξύ εσόδων και δαπανών για πολλαπλά έτη
     public double calculateRevenueExpenseCorrelation(int startYear, int endYear) {
         double[] revenues = getRevenuesAcrossYears(startYear, endYear); 
         double[] expenses = getExpensesAcrossYears(startYear, endYear); 
@@ -638,13 +476,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.calculateCorrelation(revenues, expenses);
     }
     
-    /**
-     * Get statistical summary for revenues across multiple years.      
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Statistical summary string, or null if insufficient data
-     */
+    //επιστρέφει στατιστική περίληψη για τα έσοδα σε πολλαπλά έτη
     public String getRevenuesStatisticalSummary(int startYear, int endYear) {
         double[] revenues = getRevenuesAcrossYears(startYear, endYear); 
         if (revenues == null) {
@@ -653,13 +485,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.generateStatisticalSummary(revenues);
     }
     
-    /**
-     * Get statistical summary for expenses across multiple years.      
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Statistical summary string, or null if insufficient data 
-     */
+    //επιστρέφει στατιστική περίληψη για τις δαπάνες σε πολλαπλά έτη
     public String getExpensesStatisticalSummary(int startYear, int endYear) {
         double[] expenses = getExpensesAcrossYears(startYear, endYear); 
         if (expenses == null) {
@@ -668,13 +494,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.generateStatisticalSummary(expenses);
     }
     
-    /**
-     * Identify outliers in revenue changes across years.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return List of outlier revenue values, or empty list if insufficient data
-     */
+    //εντοπίζει ακραίες τιμές στις μεταβολές εσόδων σε πολλαπλά έτη
     public List<Double> identifyRevenueOutliers(int startYear, int endYear) {
         double[] revenues = getRevenuesAcrossYears(startYear, endYear); 
         if (revenues == null) {
@@ -683,13 +503,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.identifyOutliers(revenues);
     }
     
-    /**
-     * Identify outliers in expense changes across years.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return List of outlier expense values, or empty list if insufficient data
-     */
+    //εντοπίζει ακραίες τιμές στις μεταβολές δαπανών σε πολλαπλά έτη
     public List<Double> identifyExpenseOutliers(int startYear, int endYear) {
         double[] expenses = getExpensesAcrossYears(startYear, endYear); 
         if (expenses == null) {
@@ -698,14 +512,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.identifyOutliers(expenses);
     }
     
-    /**
-     * Calculate linear regression for revenue trends across years.     
-     * Returns slope and intercept for predicting future revenues.      
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Array with [slope, intercept], or null if insufficient data
-     */
+    //υπολογίζει γραμμική παλινδρόμηση για τις τάσεις εσόδων σε πολλαπλά έτη
     public double[] calculateRevenueTrend(int startYear, int endYear) { 
         List<Double> revenues = new ArrayList<>();
         List<Double> years = new ArrayList<>();
@@ -728,14 +535,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.calculateLinearRegression(yearArray, revenueArray);
     }
     
-    /**
-     * Calculate linear regression for expense trends across years.     
-     * Returns slope and intercept for predicting future expenses.      
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Array with [slope, intercept], or null if insufficient data
-     */
+    //υπολογίζει γραμμική παλινδρόμηση για τις τάσεις δαπανών σε πολλαπλά έτη
     public double[] calculateExpenseTrend(int startYear, int endYear) { 
         List<Double> expenses = new ArrayList<>();
         List<Double> years = new ArrayList<>();
@@ -758,14 +558,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.calculateLinearRegression(yearArray, expenseArray);
     }
     
-    /**
-     * Get coefficient of variation for revenues across years.
-     * Higher CV indicates more variability in revenue.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Coefficient of variation as percentage, or Double.NaN if insufficient data
-     */
+    //επιστρέφει τον συντελεστή μεταβλητότητας για τα έσοδα σε πολλαπλά έτη
     public double getRevenuesCoefficientOfVariation(int startYear, int endYear) {
         double[] revenues = getRevenuesAcrossYears(startYear, endYear); 
         if (revenues == null) {
@@ -774,14 +567,7 @@ public class BudgetDataService {
         return StatisticalAnalysis.calculateCoefficientOfVariation(revenues);
     }
     
-    /**
-     * Get coefficient of variation for expenses across years.
-     * Higher CV indicates more variability in expenses.
-     * 
-     * @param startYear Starting year (inclusive)
-     * @param endYear Ending year (inclusive)
-     * @return Coefficient of variation as percentage, or Double.NaN if insufficient data
-     */
+    //επιστρέφει τον συντελεστή μεταβλητότητας για τις δαπάνες σε πολλαπλά έτη
     public double getExpensesCoefficientOfVariation(int startYear, int endYear) {
         double[] expenses = getExpensesAcrossYears(startYear, endYear); 
         if (expenses == null) {

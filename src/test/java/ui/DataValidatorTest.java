@@ -4,41 +4,41 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit tests for DataValidator utility class.
+ * Unit tests for Constraints utility class.
  */
-class DataValidatorTest {
+class ConstraintsTest {
 
     // Username validation tests
     @Test
     void testValidateUsernameValid() {
-        DataValidator.ValidationResult result = DataValidator.validateUsername("testuser");
+        Constraints.ValidationResult result = Constraints.validateUsername("testuser");
         assertTrue(result.isValid());
         assertEquals("", result.getErrorMessage());
     }
 
     @Test
     void testValidateUsernameWithGreek() {
-        DataValidator.ValidationResult result = DataValidator.validateUsername("χρήστης123");
+        Constraints.ValidationResult result = Constraints.validateUsername("χρήστης123");
         assertTrue(result.isValid());
     }
 
     @Test
     void testValidateUsernameNull() {
-        DataValidator.ValidationResult result = DataValidator.validateUsername(null);
+        Constraints.ValidationResult result = Constraints.validateUsername(null);
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("υποχρεωτικό"));
     }
 
     @Test
     void testValidateUsernameEmpty() {
-        DataValidator.ValidationResult result = DataValidator.validateUsername("");
+        Constraints.ValidationResult result = Constraints.validateUsername("");
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("υποχρεωτικό"));
     }
 
     @Test
     void testValidateUsernameTooShort() {
-        DataValidator.ValidationResult result = DataValidator.validateUsername("ab");
+        Constraints.ValidationResult result = Constraints.validateUsername("ab");
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("τουλάχιστον"));
     }
@@ -46,7 +46,7 @@ class DataValidatorTest {
     @Test
     void testValidateUsernameTooLong() {
         String longUsername = "a".repeat(51);
-        DataValidator.ValidationResult result = DataValidator.validateUsername(longUsername);
+        Constraints.ValidationResult result = Constraints.validateUsername(longUsername);
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("υπερβαίνει"));
     }
@@ -54,14 +54,14 @@ class DataValidatorTest {
     @Test
     void testValidateUsernameWithSpaces() {
         // Username with spaces - after trim, "test user" still has space, which is not allowed by regex
-        DataValidator.ValidationResult result = DataValidator.validateUsername("test user");
+        Constraints.ValidationResult result = Constraints.validateUsername("test user");
         assertFalse(result.isValid()); // Spaces are not allowed even after trim
         assertTrue(result.getErrorMessage().contains("μόνο γράμματα"));
     }
 
     @Test
     void testValidateUsernameInvalidCharacters() {
-        DataValidator.ValidationResult result = DataValidator.validateUsername("test@user");
+        Constraints.ValidationResult result = Constraints.validateUsername("test@user");
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("μόνο γράμματα"));
     }
@@ -69,28 +69,28 @@ class DataValidatorTest {
     // Password validation tests
     @Test
     void testValidatePasswordValid() {
-        DataValidator.ValidationResult result = DataValidator.validatePassword("password123");
+        Constraints.ValidationResult result = Constraints.validatePassword("password123");
         assertTrue(result.isValid());
         assertEquals("", result.getErrorMessage());
     }
 
     @Test
     void testValidatePasswordNull() {
-        DataValidator.ValidationResult result = DataValidator.validatePassword(null);
+        Constraints.ValidationResult result = Constraints.validatePassword(null);
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("υποχρεωτικός"));
     }
 
     @Test
     void testValidatePasswordEmpty() {
-        DataValidator.ValidationResult result = DataValidator.validatePassword("");
+        Constraints.ValidationResult result = Constraints.validatePassword("");
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("υποχρεωτικός"));
     }
 
     @Test
     void testValidatePasswordTooShort() {
-        DataValidator.ValidationResult result = DataValidator.validatePassword("12345");
+        Constraints.ValidationResult result = Constraints.validatePassword("12345");
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("τουλάχιστον"));
     }
@@ -98,40 +98,40 @@ class DataValidatorTest {
     @Test
     void testValidatePasswordTooLong() {
         String longPassword = "a".repeat(101);
-        DataValidator.ValidationResult result = DataValidator.validatePassword(longPassword);
+        Constraints.ValidationResult result = Constraints.validatePassword(longPassword);
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("υπερβαίνει"));
     }
 
     @Test
     void testValidatePasswordMinimumLength() {
-        DataValidator.ValidationResult result = DataValidator.validatePassword("123456");
+        Constraints.ValidationResult result = Constraints.validatePassword("123456");
         assertTrue(result.isValid());
     }
 
     // Category validation tests
     @Test
     void testValidateCategoryValid() {
-        DataValidator.ValidationResult result = DataValidator.validateCategory("Υπουργείο");
+        Constraints.ValidationResult result = Constraints.validateCategory("Υπουργείο");
         assertTrue(result.isValid());
     }
 
     @Test
     void testValidateCategoryNull() {
-        DataValidator.ValidationResult result = DataValidator.validateCategory(null);
+        Constraints.ValidationResult result = Constraints.validateCategory(null);
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("υποχρεωτική"));
     }
 
     @Test
     void testValidateCategoryEmpty() {
-        DataValidator.ValidationResult result = DataValidator.validateCategory("");
+        Constraints.ValidationResult result = Constraints.validateCategory("");
         assertFalse(result.isValid());
     }
 
     @Test
     void testValidateCategoryTooShort() {
-        DataValidator.ValidationResult result = DataValidator.validateCategory("A");
+        Constraints.ValidationResult result = Constraints.validateCategory("A");
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("τουλάχιστον"));
     }
@@ -139,7 +139,7 @@ class DataValidatorTest {
     @Test
     void testValidateCategoryTooLong() {
         String longCategory = "A".repeat(101);
-        DataValidator.ValidationResult result = DataValidator.validateCategory(longCategory);
+        Constraints.ValidationResult result = Constraints.validateCategory(longCategory);
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("υπερβαίνει"));
     }
@@ -147,33 +147,33 @@ class DataValidatorTest {
     // Amount validation tests
     @Test
     void testValidateAmountValid() {
-        DataValidator.ValidationResult result = DataValidator.validateAmount("1000.50");
+        Constraints.ValidationResult result = Constraints.validateAmount("1000.50");
         assertTrue(result.isValid());
     }
 
     @Test
     void testValidateAmountInteger() {
-        DataValidator.ValidationResult result = DataValidator.validateAmount("1000");
+        Constraints.ValidationResult result = Constraints.validateAmount("1000");
         assertTrue(result.isValid());
     }
 
     @Test
     void testValidateAmountNull() {
-        DataValidator.ValidationResult result = DataValidator.validateAmount(null);
+        Constraints.ValidationResult result = Constraints.validateAmount(null);
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("υποχρεωτικό"));
     }
 
     @Test
     void testValidateAmountEmpty() {
-        DataValidator.ValidationResult result = DataValidator.validateAmount("");
+        Constraints.ValidationResult result = Constraints.validateAmount("");
         assertFalse(result.isValid());
     }
 
     @Test
     void testValidateAmountNegative() {
         // Negative amount - pattern doesn't match, so returns error about positive number
-        DataValidator.ValidationResult result = DataValidator.validateAmount("-100");
+        Constraints.ValidationResult result = Constraints.validateAmount("-100");
         assertFalse(result.isValid());
         // The error message is about positive number format, not specifically "αρνητικό"
         assertTrue(result.getErrorMessage().contains("θετικός") || result.getErrorMessage().contains("αρνητικό"));
@@ -181,111 +181,111 @@ class DataValidatorTest {
 
     @Test
     void testValidateAmountZero() {
-        DataValidator.ValidationResult result = DataValidator.validateAmount("0");
+        Constraints.ValidationResult result = Constraints.validateAmount("0");
         assertTrue(result.isValid());
     }
 
     @Test
     void testValidateAmountInvalidFormat() {
-        DataValidator.ValidationResult result = DataValidator.validateAmount("abc");
+        Constraints.ValidationResult result = Constraints.validateAmount("abc");
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("θετικός αριθμός"));
     }
 
     @Test
     void testValidateAmountWithSpaces() {
-        DataValidator.ValidationResult result = DataValidator.validateAmount(" 1000 ");
+        Constraints.ValidationResult result = Constraints.validateAmount(" 1000 ");
         assertTrue(result.isValid()); // Spaces are trimmed
     }
 
     // Percentage validation tests
     @Test
     void testValidatePercentageValid() {
-        DataValidator.ValidationResult result = DataValidator.validatePercentage("15.5");
+        Constraints.ValidationResult result = Constraints.validatePercentage("15.5");
         assertTrue(result.isValid());
     }
 
     @Test
     void testValidatePercentageNegative() {
-        DataValidator.ValidationResult result = DataValidator.validatePercentage("-5.2");
+        Constraints.ValidationResult result = Constraints.validatePercentage("-5.2");
         assertTrue(result.isValid());
     }
 
     @Test
     void testValidatePercentageNull() {
-        DataValidator.ValidationResult result = DataValidator.validatePercentage(null);
+        Constraints.ValidationResult result = Constraints.validatePercentage(null);
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("υποχρεωτική"));
     }
 
     @Test
     void testValidatePercentageEmpty() {
-        DataValidator.ValidationResult result = DataValidator.validatePercentage("");
+        Constraints.ValidationResult result = Constraints.validatePercentage("");
         assertFalse(result.isValid());
     }
 
     @Test
     void testValidatePercentageInvalidFormat() {
-        DataValidator.ValidationResult result = DataValidator.validatePercentage("abc");
+        Constraints.ValidationResult result = Constraints.validatePercentage("abc");
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("αριθμός"));
     }
 
     @Test
     void testValidatePercentageZero() {
-        DataValidator.ValidationResult result = DataValidator.validatePercentage("0");
+        Constraints.ValidationResult result = Constraints.validatePercentage("0");
         assertTrue(result.isValid());
     }
 
     // Year validation tests
     @Test
     void testValidateYearValid() {
-        DataValidator.ValidationResult result = DataValidator.validateYear("2024", 2020, 2030);
+        Constraints.ValidationResult result = Constraints.validateYear("2024", 2020, 2030);
         assertTrue(result.isValid());
     }
 
     @Test
     void testValidateYearAtMinimum() {
-        DataValidator.ValidationResult result = DataValidator.validateYear("2020", 2020, 2030);
+        Constraints.ValidationResult result = Constraints.validateYear("2020", 2020, 2030);
         assertTrue(result.isValid());
     }
 
     @Test
     void testValidateYearAtMaximum() {
-        DataValidator.ValidationResult result = DataValidator.validateYear("2030", 2020, 2030);
+        Constraints.ValidationResult result = Constraints.validateYear("2030", 2020, 2030);
         assertTrue(result.isValid());
     }
 
     @Test
     void testValidateYearBelowMinimum() {
-        DataValidator.ValidationResult result = DataValidator.validateYear("2019", 2020, 2030);
+        Constraints.ValidationResult result = Constraints.validateYear("2019", 2020, 2030);
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("μεταξύ"));
     }
 
     @Test
     void testValidateYearAboveMaximum() {
-        DataValidator.ValidationResult result = DataValidator.validateYear("2031", 2020, 2030);
+        Constraints.ValidationResult result = Constraints.validateYear("2031", 2020, 2030);
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("μεταξύ"));
     }
 
     @Test
     void testValidateYearNull() {
-        DataValidator.ValidationResult result = DataValidator.validateYear(null, 2020, 2030);
+        Constraints.ValidationResult result = Constraints.validateYear(null, 2020, 2030);
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("υποχρεωτικό"));
     }
 
     @Test
     void testValidateYearEmpty() {
-        DataValidator.ValidationResult result = DataValidator.validateYear("", 2020, 2030);
+        Constraints.ValidationResult result = Constraints.validateYear("", 2020, 2030);
         assertFalse(result.isValid());
     }
 
     @Test
     void testValidateYearInvalidFormat() {
-        DataValidator.ValidationResult result = DataValidator.validateYear("abc", 2020, 2030);
+        Constraints.ValidationResult result = Constraints.validateYear("abc", 2020, 2030);
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("έγκυρος αριθμός"));
     }
@@ -293,49 +293,138 @@ class DataValidatorTest {
     // ComboBox validation tests
     @Test
     void testValidateComboBoxSelectionValid() {
-        DataValidator.ValidationResult result = DataValidator.validateComboBoxSelection("Option1", "Κατηγορία");
+        Constraints.ValidationResult result = Constraints.validateComboBoxSelection("Option1", "Κατηγορία");
         assertTrue(result.isValid());
     }
 
     @Test
     void testValidateComboBoxSelectionNull() {
-        DataValidator.ValidationResult result = DataValidator.validateComboBoxSelection(null, "Κατηγορία");
+        Constraints.ValidationResult result = Constraints.validateComboBoxSelection(null, "Κατηγορία");
         assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("Παρακαλώ επιλέξτε"));
     }
 
     @Test
     void testValidateComboBoxSelectionEmpty() {
-        DataValidator.ValidationResult result = DataValidator.validateComboBoxSelection("", "Κατηγορία");
+        Constraints.ValidationResult result = Constraints.validateComboBoxSelection("", "Κατηγορία");
         assertFalse(result.isValid());
     }
 
     @Test
     void testValidateComboBoxSelectionWithSpaces() {
-        DataValidator.ValidationResult result = DataValidator.validateComboBoxSelection("  Option  ", "Κατηγορία");
+        Constraints.ValidationResult result = Constraints.validateComboBoxSelection("  Option  ", "Κατηγορία");
         assertTrue(result.isValid()); // Spaces are trimmed
     }
 
     // ValidationResult inner class tests
     @Test
     void testValidationResultValid() {
-        DataValidator.ValidationResult result = new DataValidator.ValidationResult(true, "");
+        Constraints.ValidationResult result = new Constraints.ValidationResult(true, "");
         assertTrue(result.isValid());
         assertEquals("", result.getErrorMessage());
     }
 
     @Test
     void testValidationResultInvalid() {
-        DataValidator.ValidationResult result = new DataValidator.ValidationResult(false, "Error message");
+        Constraints.ValidationResult result = new Constraints.ValidationResult(false, "Error message");
         assertFalse(result.isValid());
         assertEquals("Error message", result.getErrorMessage());
     }
 
     @Test
     void testValidationResultNullMessage() {
-        DataValidator.ValidationResult result = new DataValidator.ValidationResult(true, null);
+        Constraints.ValidationResult result = new Constraints.ValidationResult(true, null);
         assertTrue(result.isValid());
         assertEquals("", result.getErrorMessage()); // null should be converted to empty string
+    }
+
+    // Amount change validation tests
+    @Test
+    void testValidateAmountChangeWithinLimit() {
+        // Test change within 50% limit (default)
+        Constraints.ValidationResult result = 
+            Constraints.validateAmountChange(120.0, 100.0);
+        assertTrue(result.isValid());
+        assertEquals("", result.getErrorMessage());
+    }
+
+    @Test
+    void testValidateAmountChangeExceedsDefaultLimit() {
+        // Test change exceeds 50% limit (default)
+        Constraints.ValidationResult result = 
+            Constraints.validateAmountChange(200.0, 100.0);
+        assertFalse(result.isValid());
+        assertTrue(result.getErrorMessage().contains("υπερβαίνει"));
+        assertTrue(result.getErrorMessage().contains("μέγιστο επιτρεπόμενο όριο"));
+    }
+
+    @Test
+    void testValidateAmountChangeNegativeChange() {
+        // Test negative change within limit
+        Constraints.ValidationResult result = 
+            Constraints.validateAmountChange(50.0, 100.0);
+        assertTrue(result.isValid());
+    }
+
+    @Test
+    void testValidateAmountChangeNegativeChangeExceedsLimit() {
+        // Test negative change exceeds limit
+        Constraints.ValidationResult result = 
+            Constraints.validateAmountChange(20.0, 100.0);
+        assertFalse(result.isValid());
+    }
+
+    @Test
+    void testValidateAmountChangeNoChange() {
+        // Test no change
+        Constraints.ValidationResult result = 
+            Constraints.validateAmountChange(100.0, 100.0);
+        assertTrue(result.isValid());
+    }
+
+    @Test
+    void testValidateAmountChangeNewEntry() {
+        // Test new entry (previous amount is 0)
+        Constraints.ValidationResult result = 
+            Constraints.validateAmountChange(100.0, 0.0);
+        assertTrue(result.isValid());
+        assertEquals("", result.getErrorMessage());
+    }
+
+
+    @Test
+    void testValidateAmountChangeExactlyAtLimit() {
+        // Test change exactly at 50% limit
+        // 50% is NOT > 50%, so it should be valid
+        Constraints.ValidationResult result = 
+            Constraints.validateAmountChange(150.0, 100.0);
+        assertTrue(result.isValid()); // Exactly 50% is valid (limit is > 50%, not >=)
+    }
+
+    @Test
+    void testValidateAmountChangeJustBelowLimit() {
+        // Test change just below 50% limit
+        Constraints.ValidationResult result = 
+            Constraints.validateAmountChange(149.0, 100.0);
+        assertTrue(result.isValid()); // 49% change is within limit
+    }
+
+    @Test
+    void testValidateAmountChangeLargeNumbers() {
+        // Test with large numbers
+        // 1500000.0 from 1000000.0 = 50% change, 50% is NOT > 50%, so valid
+        Constraints.ValidationResult result = 
+            Constraints.validateAmountChange(1500000.0, 1000000.0);
+        assertTrue(result.isValid()); // Exactly 50% is valid (limit is > 50%, not >=)
+    }
+
+    @Test
+    void testValidateAmountChangeSmallNumbers() {
+        // Test with small numbers
+        // 1.5 from 1.0 = 50% change, 50% is NOT > 50%, so valid
+        Constraints.ValidationResult result = 
+            Constraints.validateAmountChange(1.5, 1.0);
+        assertTrue(result.isValid()); // Exactly 50% is valid (limit is > 50%, not >=)
     }
 }
 

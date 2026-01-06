@@ -5,40 +5,15 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
-/**
- * Class responsible for downloading budget PDF files from the Ministry of Finance website.
- * Downloads budget documents for years 2023, 2024, 2025, and 2026.
- * After downloading, automatically converts the PDF to CSV format using DataConvert.
- */
+// κλάση για κατέβασμα αρχείων PDF προϋπολογισμού
 public class DataDownload 
 {
-    /**
-     * Static field to store the year of the downloaded budget document
-     */
+    
     public static int yearof;
 
-    /**
-     * Downloads budget PDF files for all available years (2023-2026) from the Ministry of Finance website.
-     * Each PDF is saved locally and then automatically converted to CSV format.
-     * 
-     * @throws IOException if there is an error during the download or file operations
-     */
+	// κατεβάζει όλα τα PDF αρχεία προϋπολογισμού (2023-2026) από το minfin.gov.gr
 	public void Download() throws IOException
 	{
-		//Scanner scan = new Scanner(System.in);
-		//System.out.println("ΠΟΙΑΣ ΧΡΟΝΙΑΣ ΠΡΟΥΠΟΛΟΓΙΣΜΟ ΘΕΣ ΝΑ ΔΕΙΣ 1:2023, 2:2024, 3:2025");
-		//int epilogi = scan.nextInt();
-		//do {
-		//	if (epilogi !=1 && epilogi !=2 && epilogi!=3) {
-		//		System.out.println("έγκυρες απαντήσεις ειναι μονο οι αριθμοι 1,2,3 παρακαλώ ξανά πληκτρολογήστε");
-		//		System.out.println("ΠΟΙΑΣ ΧΡΟΝΙΑΣ ΠΡΟΥΠΟΛΟΓΙΣΜΟ ΘΕΣ ΝΑ ΔΕΙΣ 1:2023, 2:2024, 3:2025");
-		//		epilogi = scan.nextInt();
-		//	}
-		
-		//}while(epilogi !=1 && epilogi !=2 && epilogi!=3);
-		
-
-
 		for (int epilogi = 1; epilogi <=4; epilogi++ ) {
 
 

@@ -4,22 +4,22 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit tests for LoginController class.
+ * Unit tests for Login class.
  * Note: Full testing requires JavaFX Application context.
  */
 class LoginControllerTest {
 
     @Test
-    void testLoginControllerExists() {
+    void testLoginExists() {
         // Test that the class exists and can be instantiated
-        LoginController controller = new LoginController();
+        Login controller = new Login();
         assertNotNull(controller);
     }
 
     @Test
-    void testLoginControllerClass() {
+    void testLoginClass() {
         // Test that the class can be referenced
-        Class<?> clazz = LoginController.class;
+        Class<?> clazz = Login.class;
         assertNotNull(clazz);
     }
 }

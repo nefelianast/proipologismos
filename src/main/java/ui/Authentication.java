@@ -5,19 +5,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * Repository class for user authentication and management.
- * Handles database operations for user login, registration, and validation.
- */
-public class UserRepository {
+// κλάση για authentication και διαχείριση χρηστών
+// διαχειρίζεται database operations για login, εγγραφή και επικύρωση
+public class Authentication {
     
-    /**
-     * Checks if a username and password combination is valid.
-     * 
-     * @param username The username to check
-     * @param password The password to check
-     * @return true if the credentials are valid, false otherwise
-     */
+    // ελέγχει αν το συνδυασμό username/password είναι έγκυρος
     public boolean checkLogin(String username, String password) {
         String sql = "SELECT password FROM users WHERE username = ?";
         
@@ -29,7 +21,7 @@ public class UserRepository {
             
             if (rs.next()) {
                 String storedPassword = rs.getString("password");
-                // Simple password comparison (in production, use hashing!)
+                // απλή σύγκριση password (σε production, χρησιμοποιήστε hashing!)
                 return storedPassword != null && storedPassword.equals(password);
             }
             
@@ -41,12 +33,7 @@ public class UserRepository {
         return false;
     }
     
-    /**
-     * Checks if a username already exists in the database.
-     * 
-     * @param username The username to check
-     * @return true if the username exists, false otherwise
-     */
+    // ελέγχει αν ένα username υπάρχει ήδη στη βάση
     public boolean usernameExists(String username) {
         String sql = "SELECT 1 FROM users WHERE username = ?";
         
@@ -56,7 +43,7 @@ public class UserRepository {
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
             
-            // If rs.next() returns true, the username exists
+            // αν rs.next() επιστρέφει true, το username υπάρχει
             return rs.next();
             
         } catch (SQLException e) {
@@ -67,13 +54,7 @@ public class UserRepository {
         return false;
     }
     
-    /**
-     * Saves a new user to the database.
-     * 
-     * @param username The username for the new user
-     * @param password The password for the new user
-     * @return true if the user was saved successfully, false otherwise
-     */
+    // αποθηκεύει έναν νέο χρήστη στη βάση
     public boolean saveUser(String username, String password) {
         String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
         
@@ -93,4 +74,3 @@ public class UserRepository {
         }
     }
 }
-

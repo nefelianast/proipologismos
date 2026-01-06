@@ -4,37 +4,26 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-/**
- * Utility class for managing database connections.
- * Provides centralized database connection management for the budget application.
- */
+// βοηθητική κλάση για τη διαχείριση συνδέσεων με τη βάση δεδομένων
+// παρέχει κεντρική διαχείριση συνδέσεων για την εφαρμογή προϋπολογισμού
 public class DatabaseConnection {
     
-    /**
-     * Database connection string for SQLite database
-     */
+    // URL σύνδεσης με τη βάση δεδομένων SQLite
     private static final String DB_URL = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
     
-    /**
-     * Private constructor to prevent instantiation
-     */
+    // private constructor για να αποτρέψει τη δημιουργία instance
     private DatabaseConnection() {
-        // Utility class - no instantiation needed
+        // utility class - δεν χρειάζεται instantiation
     }
     
-    /**
-     * Gets the database connection string
-     * @return The database URL as a String
-     */
+    // επιστρέφει το URL της βάσης δεδομένων
     public static String getDatabaseUrl() {
         return DB_URL;
     }
     
-    /**
-     * Creates and returns a new database connection
-     * @return A Connection object to the database
-     * @throws SQLException if a database access error occurs
-     */
+    // δημιουργεί και επιστρέφει μια νέα σύνδεση με τη βάση δεδομένων
+    // @return ένα Connection object προς τη βάση δεδομένων
+    // @throws SQLException αν συμβεί σφάλμα πρόσβασης στη βάση
     public static Connection getConnection() throws SQLException {
         try {
             return DriverManager.getConnection(DB_URL);
@@ -44,10 +33,8 @@ public class DatabaseConnection {
         }
     }
     
-    /**
-     * Closes a database connection safely
-     * @param connection The connection to close
-     */
+    // κλείνει μια σύνδεση με τη βάση δεδομένων με ασφαλή τρόπο
+    // @param connection η σύνδεση που θα κλείσει
     public static void closeConnection(Connection connection) {
         if (connection != null) {
             try {

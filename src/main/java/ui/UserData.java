@@ -10,39 +10,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Service class for managing data persistence operations.
- * Handles saving and retrieving user comments, scenarios, and preferences.
- */
-public class DataPersistenceService {
+// κλάση για διαχείριση persistence operations για user data
+// διαχειρίζεται αποθήκευση και ανάκτηση σχολίων, σεναρίων και προτιμήσεων χρήστη
+public class UserData {
     
-    private static DataPersistenceService instance;
+    private static UserData instance;
     
-    private DataPersistenceService() {
-        // Private constructor for singleton
+    private UserData() {
+        // private constructor για singleton pattern
     }
     
-    /**
-     * Gets the singleton instance of DataPersistenceService
-     * @return The DataPersistenceService instance
-     */
-    public static DataPersistenceService getInstance() {
+    // επιστρέφει το singleton instance του UserData
+    public static UserData getInstance() {
         if (instance == null) {
-            instance = new DataPersistenceService();
+            instance = new UserData();
         }
         return instance;
     }
     
-    /**
-     * Saves or updates a comment for a specific category and year
-     * @param categoryName The name of the category
-     * @param year The year
-     * @param comments The comment text
-     * @return true if successful, false otherwise
-     */
+    // αποθηκεύει ή ενημερώνει ένα σχόλιο για συγκεκριμένη κατηγορία και έτος
     public boolean saveComment(String categoryName, int year, String comments) {
         try (Connection connection = DatabaseConnection.getConnection()) {
-            // Check if comment already exists
+            // έλεγχος αν το σχόλιο υπάρχει ήδη
             String checkSql = "SELECT id FROM user_comments WHERE category_name = ? AND year = ?";
             try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
                 checkStmt.setString(1, categoryName);
@@ -50,7 +39,7 @@ public class DataPersistenceService {
                 ResultSet rs = checkStmt.executeQuery();
                 
                 if (rs.next()) {
-                    // Update existing comment
+                    // ενημέρωση υπάρχοντος σχολίου
                     String updateSql = "UPDATE user_comments SET comments = ?, updated_at = CURRENT_TIMESTAMP WHERE category_name = ? AND year = ?";
                     try (PreparedStatement updateStmt = connection.prepareStatement(updateSql)) {
                         updateStmt.setString(1, comments);
@@ -60,7 +49,7 @@ public class DataPersistenceService {
                         return true;
                     }
                 } else {
-                    // Insert new comment
+                    // εισαγωγή νέου σχολίου
                     String insertSql = "INSERT INTO user_comments (category_name, year, comments) VALUES (?, ?, ?)";
                     try (PreparedStatement insertStmt = connection.prepareStatement(insertSql)) {
                         insertStmt.setString(1, categoryName);
@@ -77,12 +66,7 @@ public class DataPersistenceService {
         }
     }
     
-    /**
-     * Retrieves a comment for a specific category and year
-     * @param categoryName The name of the category
-     * @param year The year
-     * @return The comment text, or null if not found
-     */
+    // ανάκτηση σχολίου για συγκεκριμένη κατηγορία και έτος
     public String getComment(String categoryName, int year) {
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(
@@ -101,12 +85,7 @@ public class DataPersistenceService {
         return null;
     }
     
-    /**
-     * Deletes a comment for a specific category and year
-     * @param categoryName The name of the category
-     * @param year The year
-     * @return true if successful, false otherwise
-     */
+    // διαγραφή σχολίου για συγκεκριμένη κατηγορία και έτος
     public boolean deleteComment(String categoryName, int year) {
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(
@@ -122,11 +101,7 @@ public class DataPersistenceService {
         }
     }
     
-    /**
-     * Gets all comments for a specific year
-     * @param year The year
-     * @return Map of category names to comments
-     */
+    // επιστρέφει όλα τα σχόλια για ένα συγκεκριμένο έτος
     public Map<String, String> getAllCommentsForYear(int year) {
         Map<String, String> commentsMap = new HashMap<>();
         try (Connection connection = DatabaseConnection.getConnection();
@@ -145,15 +120,13 @@ public class DataPersistenceService {
         return commentsMap;
     }
     
-    /**
-     * Represents a saved scenario
-     */
+    // εσωτερική κλάση για αντιπροσώπευση αποθηκευμένου σεναρίου
     public static class SavedScenario {
         private int id;
         private String scenarioName;
         private String description;
         private int year;
-        private String scenarioData; // JSON format
+        private String scenarioData; // δεδομένα σε JSON format
         private Timestamp createdAt;
         private Timestamp updatedAt;
         
@@ -168,7 +141,7 @@ public class DataPersistenceService {
             this.updatedAt = updatedAt;
         }
         
-        // Getters
+        // getters
         public int getId() { return id; }
         public String getScenarioName() { return scenarioName; }
         public String getDescription() { return description; }
@@ -178,14 +151,7 @@ public class DataPersistenceService {
         public Timestamp getUpdatedAt() { return updatedAt; }
     }
     
-    /**
-     * Saves a new scenario
-     * @param scenarioName The name of the scenario (must be unique)
-     * @param description The description of the scenario
-     * @param year The year
-     * @param scenarioData The scenario data in JSON format
-     * @return true if successful, false otherwise
-     */
+    // αποθηκεύει ένα νέο σενάριο (το όνομα πρέπει να είναι μοναδικό)
     public boolean saveScenario(String scenarioName, String description, int year, String scenarioData) {
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(
@@ -203,13 +169,7 @@ public class DataPersistenceService {
         }
     }
     
-    /**
-     * Updates an existing scenario
-     * @param scenarioName The name of the scenario
-     * @param description The new description
-     * @param scenarioData The new scenario data in JSON format
-     * @return true if successful, false otherwise
-     */
+    // ενημερώνει ένα υπάρχον σενάριο
     public boolean updateScenario(String scenarioName, String description, String scenarioData) {
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(
@@ -226,11 +186,7 @@ public class DataPersistenceService {
         }
     }
     
-    /**
-     * Retrieves a scenario by name
-     * @param scenarioName The name of the scenario
-     * @return The SavedScenario object, or null if not found
-     */
+    // ανάκτηση σεναρίου με βάση το όνομά του
     public SavedScenario getScenario(String scenarioName) {
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(
@@ -256,10 +212,7 @@ public class DataPersistenceService {
         return null;
     }
     
-    /**
-     * Gets all saved scenarios
-     * @return List of all saved scenarios
-     */
+    // επιστρέφει όλα τα αποθηκευμένα σενάρια
     public List<SavedScenario> getAllScenarios() {
         List<SavedScenario> scenarios = new ArrayList<>();
         try (Connection connection = DatabaseConnection.getConnection();
@@ -283,11 +236,7 @@ public class DataPersistenceService {
         return scenarios;
     }
     
-    /**
-     * Gets all scenarios for a specific year
-     * @param year The year
-     * @return List of scenarios for that year
-     */
+    // επιστρέφει όλα τα σενάρια για ένα συγκεκριμένο έτος
     public List<SavedScenario> getScenariosForYear(int year) {
         List<SavedScenario> scenarios = new ArrayList<>();
         try (Connection connection = DatabaseConnection.getConnection();
@@ -314,11 +263,7 @@ public class DataPersistenceService {
         return scenarios;
     }
     
-    /**
-     * Deletes a scenario by name
-     * @param scenarioName The name of the scenario to delete
-     * @return true if successful, false otherwise
-     */
+    // διαγραφή σεναρίου με βάση το όνομά του
     public boolean deleteScenario(String scenarioName) {
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(
@@ -333,22 +278,17 @@ public class DataPersistenceService {
         }
     }
     
-    /**
-     * Saves or updates a user preference
-     * @param key The preference key
-     * @param value The preference value
-     * @return true if successful, false otherwise
-     */
+    // αποθηκεύει ή ενημερώνει μια προτίμηση χρήστη
     public boolean savePreference(String key, String value) {
         try (Connection connection = DatabaseConnection.getConnection()) {
-            // Check if preference exists
+            // έλεγχος αν η προτίμηση υπάρχει ήδη
             String checkSql = "SELECT id FROM user_preferences WHERE preference_key = ?";
             try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
                 checkStmt.setString(1, key);
                 ResultSet rs = checkStmt.executeQuery();
                 
                 if (rs.next()) {
-                    // Update existing preference
+                    // ενημέρωση υπάρχουσας προτίμησης
                     String updateSql = "UPDATE user_preferences SET preference_value = ?, updated_at = CURRENT_TIMESTAMP WHERE preference_key = ?";
                     try (PreparedStatement updateStmt = connection.prepareStatement(updateSql)) {
                         updateStmt.setString(1, value);
@@ -357,7 +297,7 @@ public class DataPersistenceService {
                         return true;
                     }
                 } else {
-                    // Insert new preference
+                    // εισαγωγή νέας προτίμησης
                     String insertSql = "INSERT INTO user_preferences (preference_key, preference_value) VALUES (?, ?)";
                     try (PreparedStatement insertStmt = connection.prepareStatement(insertSql)) {
                         insertStmt.setString(1, key);
@@ -373,11 +313,7 @@ public class DataPersistenceService {
         }
     }
     
-    /**
-     * Retrieves a user preference by key
-     * @param key The preference key
-     * @return The preference value, or null if not found
-     */
+    // ανάκτηση προτίμησης χρήστη με βάση το key
     public String getPreference(String key) {
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(
@@ -395,10 +331,7 @@ public class DataPersistenceService {
         return null;
     }
     
-    /**
-     * Gets all user preferences
-     * @return Map of preference keys to values
-     */
+    // επιστρέφει όλες τις προτιμήσεις χρήστη
     public Map<String, String> getAllPreferences() {
         Map<String, String> preferences = new HashMap<>();
         try (Connection connection = DatabaseConnection.getConnection();
@@ -414,11 +347,7 @@ public class DataPersistenceService {
         return preferences;
     }
     
-    /**
-     * Deletes a user preference
-     * @param key The preference key to delete
-     * @return true if successful, false otherwise
-     */
+    // διαγραφή προτίμησης χρήστη
     public boolean deletePreference(String key) {
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(
@@ -433,4 +362,3 @@ public class DataPersistenceService {
         }
     }
 }
-

@@ -7,7 +7,6 @@ import java.util.Scanner;
  * Provides a menu-driven CLI interface for testing backend operations:
  * - DataDownload: Download budget PDFs from Ministry of Finance
  * - SQLmaker: Create database tables and populate with data
- * - Comparisons: Compare budget data between different years
  * 
  * This class is useful for:
  * - Initial project setup (downloading PDFs, creating database)
@@ -43,14 +42,11 @@ public class testmain {
                             handleSQLSetup();
                             break;
                         case 3:
-                            handleComparisons(scan);
-                            break;
-                        case 4:
                             running = false;
                             System.out.println("\nΈξοδος από το πρόγραμμα. Αντίο!");
                             break;
                         default:
-                            System.out.println("\n⚠️  Μη έγκυρη επιλογή. Παρακαλώ επιλέξτε 1-4.\n");
+                            System.out.println("\n⚠️  Μη έγκυρη επιλογή. Παρακαλώ επιλέξτε 1-3.\n");
                     }
                 } catch (InputMismatchException e) {
                     System.out.println("\n⚠️  Παρακαλώ εισάγετε έναν αριθμό.\n");
@@ -75,7 +71,6 @@ public class testmain {
         System.out.println("Αυτή η κλάση επιτρέπει τη δοκιμή backend operations:");
         System.out.println("  • DataDownload: Κατέβασμα PDFs από το minfin.gov.gr");
         System.out.println("  • SQLmaker: Δημιουργία database tables και εισαγωγή δεδομένων");
-        System.out.println("  • Comparisons: Σύγκριση budget data μεταξύ ετών");
         System.out.println("═══════════════════════════════════════════════════════════\n");
     }
     
@@ -86,8 +81,7 @@ public class testmain {
         System.out.println("Επιλέξτε μια λειτουργία:");
         System.out.println("  1. Κατέβασμα Budget PDFs (DataDownload)");
         System.out.println("  2. Δημιουργία Database Tables (SQLmaker)");
-        System.out.println("  3. Σύγκριση Budget Data (Comparisons)");
-        System.out.println("  4. Έξοδος");
+        System.out.println("  3. Έξοδος");
         System.out.print("\nΕπιλογή: ");
     }
     
@@ -137,65 +131,4 @@ public class testmain {
         }
     }
     
-    /**
-     * Handles the comparisons operation
-     * 
-     * @param scan Scanner for user input
-     */
-    private static void handleComparisons(Scanner scan) {
-        System.out.println("\n📊 Σύγκριση Budget Data...");
-        
-        int year1 = getYearInput(scan, "Πρώτο έτος (2023-2026): ");
-        if (year1 == -1) {
-            System.out.println("Ακυρώθηκε.\n");
-            return;
-        }
-        
-        int year2 = getYearInput(scan, "Δεύτερο έτος (2023-2026): ");
-        if (year2 == -1) {
-            System.out.println("Ακυρώθηκε.\n");
-            return;
-        }
-        
-        if (year1 == year2) {
-            System.out.println("⚠️  Τα έτη πρέπει να είναι διαφορετικά.\n");
-            return;
-        }
-        
-        try {
-            Comparisons com = new Comparisons();
-            com.comparisons_of_two_years(year1, year2);
-            System.out.println("\n✅ Σύγκριση ολοκληρώθηκε!\n");
-        } catch (Exception e) {
-            System.err.println("\n❌ Σφάλμα κατά τη σύγκριση: " + e.getMessage());
-            e.printStackTrace();
-            System.out.println();
-        }
-    }
-    
-    /**
-     * Gets a valid year input from the user
-     * 
-     * @param scan Scanner for user input
-     * @param prompt The prompt message
-     * @return The year (2023-2026) or -1 if cancelled
-     */
-    private static int getYearInput(Scanner scan, String prompt) {
-        while (true) {
-            System.out.print(prompt);
-            try {
-                int year = scan.nextInt();
-                scan.nextLine(); // Consume newline
-                
-                if (year >= 2023 && year <= 2026) {
-                    return year;
-                } else {
-                    System.out.println("⚠️  Παρακαλώ εισάγετε έτος μεταξύ 2023-2026.");
-                }
-            } catch (InputMismatchException e) {
-                System.out.println("⚠️  Παρακαλώ εισάγετε έναν έγκυρο αριθμό.");
-                scan.nextLine(); // Clear invalid input
-            }
-        }
-    }
 }

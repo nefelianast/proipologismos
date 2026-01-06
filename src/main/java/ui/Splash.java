@@ -14,11 +14,9 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-/**
- * Controller for the splash screen.
- * Displays animated logo and title, then automatically transitions to the login screen.
- */
-public class SplashController {
+// controller για την splash screen
+// εμφανίζει animated logo και τίτλο, μετά μεταβαίνει αυτόματα στην οθόνη σύνδεσης
+public class Splash {
     
     @FXML
     private StackPane splashPane;
@@ -100,4 +98,3 @@ public class SplashController {
         stage.setScene(scene);
     }
 }
-

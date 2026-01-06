@@ -7,23 +7,15 @@ import javafx.application.Platform;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Service class for creating and managing charts.
- * Provides utility methods for filling pie charts and loading line charts with budget data.
- */
-public class ChartService {
+// κλάση για τη δημιουργία και διαχείριση γραφημάτων
+public class Charts {
 
-    /**
-     * Fills a pie chart with data from a map.
-     * 
-     * @param chart The pie chart to fill
-     * @param data The data map (key = category name, value = amount)
-     * @param title The title for the chart
-     */
+    // γεμίζει ένα pie chart με δεδομένα από ένα map
     public static void fillPieChart(PieChart chart, Map<String, Double> data, String title) {
         if (chart == null) return;
         
         ObservableList<PieChart.Data> list = FXCollections.observableArrayList();
+        // προσθήκη δεδομένων στο chart (μόνο θετικά ποσά)
         data.forEach((k, v) -> {
             if (v > 0) list.add(new PieChart.Data(k, v));
         });
@@ -31,20 +23,17 @@ public class ChartService {
         chart.setTitle(title);
     }
 
-    /**
-     * Loads a line chart with historical revenue and expense data.
-     * 
-     * @param lineChart The line chart to populate
-     * @param dataService The budget data service to retrieve data from
-     */
-    public static void loadLineChart(LineChart<String, Number> lineChart, BudgetDataService dataService) {
-        if (lineChart == null || dataService == null) return;
+    // φορτώνει ένα line chart με ιστορικά δεδομένα εσόδων και δαπανών
+    public static void loadLineChart(LineChart<String, Number> lineChart, BudgetData budgetData) {
+        if (lineChart == null || budgetData == null) return;
         
         lineChart.getData().clear();
         
+        // δημιουργία σειράς για έσοδα
         XYChart.Series<String, Number> revSeries = new XYChart.Series<>();
         revSeries.setName("Έσοδα");
         
+        // δημιουργία σειράς για έξοδα
         XYChart.Series<String, Number> expSeries = new XYChart.Series<>();
         expSeries.setName("Έξοδα");
 
@@ -52,10 +41,12 @@ public class ChartService {
         double minValue = Double.MAX_VALUE;
         double maxValue = Double.MIN_VALUE;
         
+        // συλλογή δεδομένων για κάθε έτος
         for (int y : years) {
-            double rev = dataService.getTotalAmount(y, "total_revenue");
-            double exp = dataService.getTotalAmount(y, "total_expenses");
+            double rev = budgetData.getTotalAmount(y, "total_revenue");
+            double exp = budgetData.getTotalAmount(y, "total_expenses");
             
+            // εύρεση ελάχιστης και μέγιστης τιμής για τον άξονα y
             minValue = Math.min(minValue, Math.min(rev, exp));
             maxValue = Math.max(maxValue, Math.max(rev, exp));
             
@@ -67,12 +58,13 @@ public class ChartService {
         ObservableList<XYChart.Series<String, Number>> chartData = FXCollections.observableArrayList(revSeries, expSeries);
         lineChart.getData().addAll(chartData);
         
-        // Apply colors after chart is rendered
+        // εφαρμογή χρωμάτων
         Platform.runLater(() -> {
             lineChart.applyCss();
             lineChart.layout();
             
-            // Set colors for series lines - green for revenues, red for expenses
+            // ορισμός στιλ και χρωμάτων
+
             if (revSeries.getNode() != null) {
                 revSeries.getNode().setStyle("-fx-stroke: #22c55e; -fx-stroke-width: 2px;");
             }
@@ -80,7 +72,7 @@ public class ChartService {
                 expSeries.getNode().setStyle("-fx-stroke: #ef4444; -fx-stroke-width: 2px;");
             }
             
-            // Style data points (nodes) - green for revenues, red for expenses
+            
             for (XYChart.Data<String, Number> data : revSeries.getData()) {
                 if (data.getNode() != null) {
                     data.getNode().setStyle("-fx-background-color: #22c55e, white; -fx-background-radius: 4px; -fx-padding: 4px;");
@@ -93,12 +85,12 @@ public class ChartService {
             }
         });
         
-        // Set y-axis with rounded bounds and clean tick units (e.g., 700, 800, 900 billions)
+        // ορισμός άξονα y με στρογγυλοποίηση τιμών
         if (lineChart.getYAxis() instanceof NumberAxis) {
             NumberAxis yAxis = (NumberAxis) lineChart.getYAxis();
             
-            // Round to nearest 100 billion (100.000.000.000)
-            double tickUnit = 100_000_000_000.0; // 100 billions
+            // στρογγυλοποίηση
+            double tickUnit = 100_000_000_000.0; 
             double lowerBound = Math.floor(minValue / tickUnit) * tickUnit;
             double upperBound = Math.ceil(maxValue / tickUnit) * tickUnit;
             
@@ -109,21 +101,14 @@ public class ChartService {
         }
     }
 
-    /**
-     * Loads a bar chart with top categories (revenues or expenses).
-     * 
-     * @param barChart The bar chart to populate
-     * @param data The data map (key = category name, value = amount)
-     * @param title The title for the chart
-     * @param topN Number of top categories to show (default 10)
-     */
+    // φορτώνει ένα bar chart με τις κορυφαίες κατηγορίες (έσοδα ή δαπάνες)
     public static void loadBarChartForTopCategories(BarChart<String, Number> barChart, Map<String, Double> data, String title, int topN) {
         if (barChart == null || data == null) return;
         
         barChart.getData().clear();
         barChart.setTitle(title);
         
-        // Sort by value descending and take top N
+        // ταξινόμηση κατά τιμή φθίνουσα και επιλογή των top N
         List<Map.Entry<String, Double>> sorted = data.entrySet().stream()
             .filter(e -> e.getValue() > 0)
             .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
@@ -133,6 +118,7 @@ public class ChartService {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Ποσό");
         
+        // προσθήκη δεδομένων στο chart
         for (Map.Entry<String, Double> entry : sorted) {
             series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
         }
@@ -140,16 +126,9 @@ public class ChartService {
         barChart.getData().add(series);
     }
 
-    /**
-     * Loads an area chart with historical data for revenues or expenses.
-     * 
-     * @param areaChart The area chart to populate
-     * @param dataService The budget data service
-     * @param dataType "total_revenue" or "total_expenses"
-     * @param title The title for the chart
-     */
-    public static void loadAreaChart(AreaChart<String, Number> areaChart, BudgetDataService dataService, String dataType, String title) {
-        if (areaChart == null || dataService == null) return;
+    // φορτώνει ένα area chart με ιστορικά δεδομένα για έσοδα ή δαπάνες
+    public static void loadAreaChart(AreaChart<String, Number> areaChart, BudgetData budgetData, String dataType, String title) {
+        if (areaChart == null || budgetData == null) return;
         
         areaChart.getData().clear();
         areaChart.setTitle(title);
@@ -158,24 +137,18 @@ public class ChartService {
         series.setName(dataType.equals("total_revenue") ? "Έσοδα" : "Δαπάνες");
         
         int[] years = {2023, 2024, 2025, 2026};
+        // συλλογή δεδομένων για κάθε έτος
         for (int y : years) {
-            double value = dataService.getTotalAmount(y, dataType);
+                double value = budgetData.getTotalAmount(y, dataType);
             series.getData().add(new XYChart.Data<>(String.valueOf(y), value));
         }
         
         areaChart.getData().add(series);
     }
 
-    /**
-     * Loads a stacked bar chart showing composition of revenues or expenses across multiple years.
-     * 
-     * @param stackedBarChart The stacked bar chart to populate
-     * @param dataService The budget data service
-     * @param dataType "revenue" or "expense"
-     * @param title The title for the chart
-     */
-    public static void loadStackedBarChart(StackedBarChart<String, Number> stackedBarChart, BudgetDataService dataService, String dataType, String title) {
-        if (stackedBarChart == null || dataService == null) return;
+    // φορτώνει ένα stacked bar chart που δείχνει τη σύνθεση εσόδων ή δαπανών σε πολλαπλά έτη
+    public static void loadStackedBarChart(StackedBarChart<String, Number> stackedBarChart, BudgetData budgetData, String dataType, String title) {
+        if (stackedBarChart == null || budgetData == null) return;
         
         stackedBarChart.getData().clear();
         stackedBarChart.setTitle(title);
@@ -183,23 +156,24 @@ public class ChartService {
         int[] years = {2023, 2024, 2025, 2026};
         Map<String, Double> allCategories = new HashMap<>();
         
-        // Get all categories across all years
+        // συλλογή όλων των κατηγοριών σε όλα τα έτη
         for (int y : years) {
             Map<String, Double> yearData = dataType.equals("revenue") 
-                ? dataService.getRevenueBreakdownForGraphs(y)
-                : dataService.getExpenseBreakdownForGraphs(y);
+                ? budgetData.getRevenueBreakdownForGraphs(y)
+                : budgetData.getExpenseBreakdownForGraphs(y);
             allCategories.putAll(yearData);
         }
         
-        // Create a series for each category
+        // δημιουργία μιας σειράς για κάθε κατηγορία
         for (String category : allCategories.keySet()) {
             XYChart.Series<String, Number> series = new XYChart.Series<>();
             series.setName(category);
             
+            // προσθήκη δεδομένων για κάθε έτος
             for (int y : years) {
                 Map<String, Double> yearData = dataType.equals("revenue")
-                    ? dataService.getRevenueBreakdownForGraphs(y)
-                    : dataService.getExpenseBreakdownForGraphs(y);
+                    ? budgetData.getRevenueBreakdownForGraphs(y)
+                    : budgetData.getExpenseBreakdownForGraphs(y);
                 double value = yearData.getOrDefault(category, 0.0);
                 series.getData().add(new XYChart.Data<>(String.valueOf(y), value));
             }
@@ -208,27 +182,14 @@ public class ChartService {
         }
     }
 
-    /**
-     * Loads a bar chart with top ministries.
-     * 
-     * @param barChart The bar chart to populate
-     * @param data The ministries data map
-     * @param title The title for the chart
-     * @param topN Number of top ministries to show (default 10)
-     */
+    // φορτώνει ένα bar chart με τα κορυφαία υπουργεία
     public static void loadBarChartForMinistries(BarChart<String, Number> barChart, Map<String, Double> data, String title, int topN) {
         loadBarChartForTopCategories(barChart, data, title, topN);
     }
 
-    /**
-     * Loads a bar chart showing balance (surplus/deficit) for multiple years.
-     * 
-     * @param barChart The bar chart to populate
-     * @param dataService The budget data service
-     * @param title The title for the chart
-     */
-    public static void loadBalanceBarChart(BarChart<String, Number> barChart, BudgetDataService dataService, String title) {
-        if (barChart == null || dataService == null) return;
+    // φορτώνει ένα bar chart που δείχνει το ισοζύγιο για πολλαπλά έτη
+    public static void loadBalanceBarChart(BarChart<String, Number> barChart, BudgetData budgetData, String title) {
+        if (barChart == null || budgetData == null) return;
         
         barChart.getData().clear();
         barChart.setTitle(title);
@@ -237,37 +198,36 @@ public class ChartService {
         series.setName("Ισοζύγιο");
         
         int[] years = {2023, 2024, 2025, 2026};
+        // συλλογή δεδομένων ισοζυγίου για κάθε έτος
         for (int y : years) {
-            double balance = dataService.getBalance(y);
+                double balance = budgetData.getBalance(y);
             series.getData().add(new XYChart.Data<>(String.valueOf(y), balance));
         }
         
         barChart.getData().add(series);
     }
 
-    /**
-     * Loads a bar chart comparing revenues vs expenses for multiple years.
-     * 
-     * @param barChart The bar chart to populate
-     * @param dataService The budget data service
-     * @param title The title for the chart
-     */
-    public static void loadCombinationChart(BarChart<String, Number> barChart, BudgetDataService dataService, String title) {
-        if (barChart == null || dataService == null) return;
+    // φορτώνει ένα bar chart που συγκρίνει έσοδα με δαπάνες για πολλαπλά έτη
+    @SuppressWarnings("unchecked")
+    public static void loadCombinationChart(BarChart<String, Number> barChart, BudgetData budgetData, String title) {
+        if (barChart == null || budgetData == null) return;
         
         barChart.getData().clear();
         barChart.setTitle(title);
         
+        // δημιουργία σειράς για έσοδα
         XYChart.Series<String, Number> revSeries = new XYChart.Series<>();
         revSeries.setName("Έσοδα");
         
+        // δημιουργία σειράς για δαπάνες
         XYChart.Series<String, Number> expSeries = new XYChart.Series<>();
         expSeries.setName("Δαπάνες");
         
         int[] years = {2023, 2024, 2025, 2026};
+        // συλλογή δεδομένων για κάθε έτος
         for (int y : years) {
-            double rev = dataService.getTotalAmount(y, "total_revenue");
-            double exp = dataService.getTotalAmount(y, "total_expenses");
+            double rev = budgetData.getTotalAmount(y, "total_revenue");
+            double exp = budgetData.getTotalAmount(y, "total_expenses");
             
             revSeries.getData().add(new XYChart.Data<>(String.valueOf(y), rev));
             expSeries.getData().add(new XYChart.Data<>(String.valueOf(y), exp));

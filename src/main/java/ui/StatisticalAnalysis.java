@@ -4,28 +4,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
+// κλάση για στατιστικές αναλύσεις 
 public class StatisticalAnalysis {
     
     private StatisticalAnalysis() {
     }
     
+    // υπολογίζει τυπική απόκλιση 
     public static double calculateStandardDeviation(double[] values) {  
-        if (values == null || values.length <= 1) {
-            return 0.0;
-        }
-        
-        double mean = calculateMean(values);
-        double sumSquaredDifferences = 0.0;
-        
-        for (double value : values) {
-            double difference = value - mean;
-            sumSquaredDifferences += difference * difference;
-        }
-        
-        double variance = sumSquaredDifferences / (values.length - 1);  
+        double variance = calculateVariance(values);
         return Math.sqrt(variance);
     }
     
+    // υπολογίζει διακύμανση 
     public static double calculateVariance(double[] values) {
         if (values == null || values.length <= 1) {
             return 0.0;
@@ -34,14 +25,17 @@ public class StatisticalAnalysis {
         double mean = calculateMean(values);
         double sumSquaredDifferences = 0.0;
         
+        // υπολογίζει άθροισμα τετραγωνικών διαφορών
         for (double value : values) {
             double difference = value - mean;
             sumSquaredDifferences += difference * difference;
         }
         
+        // διακύμανση 
         return sumSquaredDifferences / (values.length - 1);
     }
     
+    // υπολογίζει μέση τιμή 
     public static double calculateMean(double[] values) {
         if (values == null || values.length == 0) {
             return 0.0;
@@ -54,33 +48,53 @@ public class StatisticalAnalysis {
         return sum / values.length;
     }
     
+    // υπολογίζει ποσοστιαία μεταβολή μεταξύ δύο τιμών
+    public static double calculatePercentageChange(double currentValue, double previousValue) {
+        if (previousValue == 0) {
+            return 0.0;
+        }
+        return ((currentValue - previousValue) / previousValue) * 100;
+    }
+    
+    // υπολογίζει ισοζύγιο (έσοδα - δαπάνες)
+    public static double calculateBalance(double revenues, double expenses) {
+        return revenues - expenses;
+    }
+    
+    // υπολογίζει διάμεσο
     public static double calculateMedian(double[] values) {
         if (values == null || values.length == 0) {
             return 0.0;
         }
         
+        // ταξινόμηση
         double[] sorted = values.clone();
         Arrays.sort(sorted);
         
         int middle = sorted.length / 2;
         
+        // για άρτιο αριθμό στοιχείων
         if (sorted.length % 2 == 0) {
             return (sorted[middle - 1] + sorted[middle]) / 2.0;
         } else {
+            // για περιττό
             return sorted[middle];
         }
     }
     
+    // υπολογίζει mode
     public static double calculateMode(double[] values) {
         if (values == null || values.length == 0) {
             return Double.NaN;
         }
         
+        // μέτρηση συχνότητας κάθε τιμής
         java.util.Map<Double, Integer> frequencyMap = new java.util.HashMap<>();
         for (double value : values) {
             frequencyMap.put(value, frequencyMap.getOrDefault(value, 0) + 1);
         }
         
+        // εύρεση τιμής με τη μεγαλύτερη συχνότητα
         int maxFrequency = 0;
         double mode = Double.NaN;
         
@@ -91,6 +105,7 @@ public class StatisticalAnalysis {
             }
         }
         
+        // αν όλες οι τιμές εμφανίζονται μόνο μία φορά, δεν υπάρχει mode
         if (maxFrequency == 1 && values.length > 1) {
             return Double.NaN;
         }
@@ -98,11 +113,12 @@ public class StatisticalAnalysis {
         return mode;
     }
     
-    public static double calculateCorrelation(double[] xValues, double[] yValues) {
+    // υπολογίζει κοινά στοιχεία για συσχέτιση και παλινδρόμηση
+    private static double[] calculateCorrelationComponents(double[] xValues, double[] yValues) {
         if (xValues == null || yValues == null || 
             xValues.length != yValues.length || 
             xValues.length < 2) {
-            return Double.NaN;
+            return null;
         }
         
         double meanX = calculateMean(xValues);
@@ -112,6 +128,7 @@ public class StatisticalAnalysis {
         double sumXSquared = 0.0;
         double sumYSquared = 0.0;
         
+        // υπολογίζει αθροίσματα
         for (int i = 0; i < xValues.length; i++) {
             double diffX = xValues[i] - meanX;
             double diffY = yValues[i] - meanY;
@@ -121,6 +138,20 @@ public class StatisticalAnalysis {
             sumYSquared += diffY * diffY;
         }
         
+        return new double[]{sumXY, sumXSquared, sumYSquared};
+    }
+    
+    // υπολογίζει τον συντελεστή συσχέτισης μεταξύ δύο μεταβλητών
+    public static double calculateCorrelation(double[] xValues, double[] yValues) {
+        double[] components = calculateCorrelationComponents(xValues, yValues);
+        if (components == null) {
+            return Double.NaN;
+        }
+        
+        double sumXY = components[0];
+        double sumXSquared = components[1];
+        double sumYSquared = components[2];
+        
         double denominator = Math.sqrt(sumXSquared * sumYSquared);      
         if (denominator == 0.0) {
             return Double.NaN;
@@ -129,6 +160,7 @@ public class StatisticalAnalysis {
         return sumXY / denominator;
     }
     
+    // υπολογίζει διαφορά μέγιστης & ελάχιστης τιμής
     public static double calculateRange(double[] values) {
         if (values == null || values.length == 0) {
             return 0.0;
@@ -137,6 +169,7 @@ public class StatisticalAnalysis {
         double min = values[0];
         double max = values[0];
         
+        // βρίσκουμε μικρότερη & μεγαλύτερη τιμή
         for (double value : values) {
             if (value < min) min = value;
             if (value > max) max = value;
@@ -145,7 +178,8 @@ public class StatisticalAnalysis {
         return max - min;
     }
     
-    public static double[] calculateQuartiles(double[] values) {        
+    // υπολογίζουμε τεταρτημόρια 
+        public static double[] calculateQuartiles(double[] values) {        
         if (values == null || values.length < 3) {
             return null;
         }
@@ -153,9 +187,11 @@ public class StatisticalAnalysis {
         double[] sorted = values.clone();
         Arrays.sort(sorted);
         
+        // Q2 είναι η διάμεσος
         double q2 = calculateMedian(sorted);
         
         int middle = sorted.length / 2;
+        // Χωρίζουμε τα δεδομένα στο μισό
         double[] lowerHalf = Arrays.copyOfRange(sorted, 0, middle);     
         double[] upperHalf;
         
@@ -165,12 +201,15 @@ public class StatisticalAnalysis {
             upperHalf = Arrays.copyOfRange(sorted, middle + 1, sorted.length);
         }
         
+        // Q1 = διάμεσος του κάτω μισού, Q3 = διάμεσος του άνω μισού
         double q1 = calculateMedian(lowerHalf);
         double q3 = calculateMedian(upperHalf);
         
         return new double[]{q1, q2, q3};
     }
     
+    // υπολογίζει το διατεταρτημοριακό εύρος (Q3 - Q1)
+    // μετράει τη διασπορά του μεσαίου 50% των δεδομένων
     public static double calculateIQR(double[] values) {
         double[] quartiles = calculateQuartiles(values);
         if (quartiles == null) {
@@ -179,6 +218,7 @@ public class StatisticalAnalysis {
         return quartiles[2] - quartiles[0];
     }
     
+    // εντοπίζει outliers
     public static List<Double> identifyOutliers(double[] values) {      
         List<Double> outliers = new ArrayList<>();
         
@@ -194,9 +234,11 @@ public class StatisticalAnalysis {
         double q1 = quartiles[0];
         double q3 = quartiles[2];
         double iqr = q3 - q1;
+        // όρια για outliers
         double lowerBound = q1 - 1.5 * iqr;
         double upperBound = q3 + 1.5 * iqr;
         
+        // ελέγχουμε κάθε τιμή αν είναι outlier
         for (double value : values) {
             if (value < lowerBound || value > upperBound) {
                 outliers.add(value);
@@ -206,37 +248,30 @@ public class StatisticalAnalysis {
         return outliers;
     }
     
+    // υπολογίζει γραμμική παλινδρόμηση 
     public static double[] calculateLinearRegression(double[] xValues, double[] yValues) {
-        if (xValues == null || yValues == null || 
-            xValues.length != yValues.length || 
-            xValues.length < 2) {
+        double[] components = calculateCorrelationComponents(xValues, yValues);
+        if (components == null) {
             return null;
         }
         
-        double meanX = calculateMean(xValues);
-        double meanY = calculateMean(yValues);
-        
-        double sumXY = 0.0;
-        double sumXSquared = 0.0;
-        
-        for (int i = 0; i < xValues.length; i++) {
-            double diffX = xValues[i] - meanX;
-            double diffY = yValues[i] - meanY;
-
-            sumXY += diffX * diffY;
-            sumXSquared += diffX * diffX;
-        }
+        double sumXY = components[0];
+        double sumXSquared = components[1];
         
         if (sumXSquared == 0.0) {
             return null;
         }
         
+        // υπολογισμός κλίσης και σταθεράς
+        double meanX = calculateMean(xValues);
+        double meanY = calculateMean(yValues);
         double slope = sumXY / sumXSquared;
         double intercept = meanY - slope * meanX;
         
         return new double[]{slope, intercept};
     }
     
+    // υπολογίζει τον συντελεστή μεταβλητότητας (τυπική απόκλιση / μέση τιμή) * 100
     public static double calculateCoefficientOfVariation(double[] values) {
         if (values == null || values.length == 0) {
             return Double.NaN;
@@ -251,6 +286,7 @@ public class StatisticalAnalysis {
         return (stdDev / mean) * 100.0;
     }
     
+    // υπολογίζει κινητό μέσο όρο 
     public static double[] calculateMovingAverage(double[] values, int windowSize) {
         if (values == null || values.length == 0 || 
             windowSize <= 0 || windowSize > values.length) {
@@ -270,6 +306,7 @@ public class StatisticalAnalysis {
         return movingAverages;
     }
     
+    // υπολογίζει z-score (πόσες τυπικές αποκλίσεις απέχει μια τιμή από τη μέση)
     public static double calculateZScore(double value, double[] values) {
         if (values == null || values.length == 0) {
             return Double.NaN;
@@ -282,9 +319,11 @@ public class StatisticalAnalysis {
             return Double.NaN;
         }
         
+        // Z-score = (τιμή - μέση τιμή) / τυπική απόκλιση
         return (value - mean) / stdDev;
     }
     
+    // συνοπτική αναφορά με τις βασικές στατιστικές
     public static String generateStatisticalSummary(double[] values) {  
         if (values == null || values.length == 0) {
             return "No data available for statistical analysis.";       
@@ -328,6 +367,7 @@ public class StatisticalAnalysis {
         return summary.toString();
     }
     
+    // αναλύει και εξηγεί το  ισοζύγιο  
     public static String analyzeBudget(double balance) {
         if (balance > 0) {
             return "Ο προϋπολογισμός είναι πλεονασματικός όταν τα συνολικά έσοδα είναι μεγαλύτερα από τα έξοδα. " +
@@ -344,6 +384,7 @@ public class StatisticalAnalysis {
         }
     }
     
+    // συγκρίνει αναλυτικά δύο προϋπολογισμούς
     public static String compareBudgetsDetailed(int year1, int year2, 
                                                  double balance1, double balance2,
                                                  double revenue1, double revenue2,
@@ -356,7 +397,7 @@ public class StatisticalAnalysis {
         StringBuilder msg = new StringBuilder();
         msg.append("Σύγκριση προϋπολογισμού μεταξύ των ετών ").append(year1).append(" και ").append(year2).append(":\n\n");
         
-        // Compare balance
+        // Σύγκριση αποτελέσματος
         if (balance1 > balance2) {
             msg.append("Το έτος ").append(year1).append(" έχει καλύτερο οικονομικό αποτέλεσμα από το έτος ").append(year2).append(".\n");
             msg.append("Το ισοζύγιο είναι υψηλότερο κατά ").append(String.format("%.2f", Math.abs(percentageDiff))).append("%.\n\n");
@@ -367,7 +408,7 @@ public class StatisticalAnalysis {
             msg.append("Τα έτη έχουν ακριβώς το ίδιο οικονομικό αποτέλεσμα.\n\n");
         }
         
-        // Compare revenues
+        // Σύγκριση εσόδων
         if (revenue1 > revenue2) {
             msg.append("Τα έσοδα ήταν υψηλότερα στο έτος ").append(year1).append(" (");
             msg.append(String.format("%.2f", revenue1)).append(" έναντι ").append(String.format("%.2f", revenue2)).append(").\n");
@@ -378,7 +419,7 @@ public class StatisticalAnalysis {
             msg.append("Τα έσοδα ήταν ίδια και στα δύο έτη (").append(String.format("%.2f", revenue1)).append(").\n");
         }
         
-        // Compare expenses
+        // Σύγκριση εξόδων
         if (expense1 > expense2) {
             msg.append("Τα έξοδα ήταν υψηλότερα στο έτος ").append(year1).append(" (");
             msg.append(String.format("%.2f", expense1)).append(" έναντι ").append(String.format("%.2f", expense2)).append(").\n");
@@ -394,18 +435,11 @@ public class StatisticalAnalysis {
         return msg.toString();
     }
     
-    /**
-     * Compares expense amounts for a specific category between two years.
-     * 
-     * @param year1 First year identifier
-     * @param year2 Second year identifier
-     * @param category Category name
-     * @param amount1 Expense amount for year 1
-     * @param amount2 Expense amount for year 2
-     * @return A comparison message in Greek, or null if data is missing
-     */
-    public static String compareExpenseByCategory(int year1, int year2, String category, 
-                                                   Double amount1, Double amount2) {
+    // γενική σύγκριση κατηγορίας μεταξύ δύο ετών
+    private static String compareCategoryGeneric(int year1, int year2, String category,
+                                                  Double amount1, Double amount2,
+                                                  String typeLabel, String increaseMsg, String decreaseMsg, 
+                                                  String noChangeMsg, String higherBurdenMsg, String lowerBurdenMsg) {
         if (amount1 == null && amount2 == null) {
             return "Δεν υπάρχουν δεδομένα για την κατηγορία '" + category + "' στα δύο έτη.";
         } else if (amount1 == null) {
@@ -420,70 +454,48 @@ public class StatisticalAnalysis {
         }
         
         StringBuilder msg = new StringBuilder();
-        msg.append("Σύγκριση κατηγορίας '").append(category).append("' μεταξύ των ετών ");
+        msg.append("Σύγκριση ").append(typeLabel).append(" για την κατηγορία '").append(category).append("' μεταξύ των ετών ");
         msg.append(year1).append(" και ").append(year2).append(":\n");
         msg.append("Έτος ").append(year1).append("  Ποσό: ").append(String.format("%.2f", amount1)).append("\n");
         msg.append("Έτος ").append(year2).append("  Ποσό: ").append(String.format("%.2f", amount2)).append("\n");
         
         if (amount2 > amount1) {
-            msg.append("Το ποσό αυξήθηκε κατά ").append(String.format("%.2f", percentageChange));
+            msg.append(increaseMsg).append(String.format("%.2f", percentageChange));
             msg.append("% σε σχέση με το προηγούμενο έτος.\n");
-            msg.append("Η κατηγορία έχει μεγαλύτερη επιβάρυνση.");
+            msg.append(higherBurdenMsg);
         } else if (amount2 < amount1) {
-            msg.append("Το ποσό μειώθηκε κατά ").append(String.format("%.2f", Math.abs(percentageChange)));
+            msg.append(decreaseMsg).append(String.format("%.2f", Math.abs(percentageChange)));
             msg.append("% σε σχέση με το προηγούμενο έτος.\n");
-            msg.append("Η κατηγορία έχει μικρότερη επιβάρυνση.");
+            msg.append(lowerBurdenMsg);
         } else {
-            msg.append("Δεν παρατηρείται αλλαγή στο ποσό της κατηγορίας μεταξύ των δύο ετών.");
+            msg.append(noChangeMsg);
         }
         
         return msg.toString();
     }
     
-    /**
-     * Compares revenue amounts for a specific category between two years.
-     * 
-     * @param year1 First year identifier
-     * @param year2 Second year identifier
-     * @param category Category name
-     * @param amount1 Revenue amount for year 1
-     * @param amount2 Revenue amount for year 2
-     * @return A comparison message in Greek, or null if data is missing
-     */
+    // συγκρίνει ποσά δαπανών για συγκεκριμένη κατηγορία μεταξύ δύο ετών
+    public static String compareExpenseByCategory(int year1, int year2, String category, 
+                                                   Double amount1, Double amount2) {
+        return compareCategoryGeneric(year1, year2, category, amount1, amount2,
+            "κατηγορίας",
+            "Το ποσό αυξήθηκε κατά ",
+            "Το ποσό μειώθηκε κατά ",
+            "Δεν παρατηρείται αλλαγή στο ποσό της κατηγορίας μεταξύ των δύο ετών.",
+            "Η κατηγορία έχει μεγαλύτερη επιβάρυνση.",
+            "Η κατηγορία έχει μικρότερη επιβάρυνση.");
+    }
+    
+    // συγκρίνει ποσά εσόδων για συγκεκριμένη κατηγορία μεταξύ δύο ετών
     public static String compareRevenueByCategory(int year1, int year2, String category,
                                                    Double amount1, Double amount2) {
-        if (amount1 == null && amount2 == null) {
-            return "Δεν υπάρχουν δεδομένα για την κατηγορία '" + category + "' στα δύο έτη.";
-        } else if (amount1 == null) {
-            return "Δεν υπάρχουν δεδομένα για την κατηγορία '" + category + "' στο έτος " + year1;
-        } else if (amount2 == null) {
-            return "Δεν υπάρχουν δεδομένα για την κατηγορία '" + category + "' στο έτος " + year2;
-        }
-        
-        double percentageChange = 0;
-        if (amount1 != 0) {
-            percentageChange = ((amount2 - amount1) / Math.abs(amount1)) * 100;
-        }
-        
-        StringBuilder msg = new StringBuilder();
-        msg.append("Σύγκριση εσόδων για την κατηγορία '").append(category).append("' μεταξύ των ετών ");
-        msg.append(year1).append(" και ").append(year2).append(":\n");
-        msg.append("Έτος ").append(year1).append(" Ποσό: ").append(String.format("%.2f", amount1)).append("\n");
-        msg.append("Έτος ").append(year2).append(" Ποσό: ").append(String.format("%.2f", amount2)).append("\n");
-        
-        if (amount2 > amount1) {
-            msg.append("Τα έσοδα αυξήθηκαν κατά ").append(String.format("%.2f", percentageChange));
-            msg.append("% σε σχέση με το προηγούμενο έτος.\n");
-            msg.append("Η κατηγορία έχει μεγαλύτερη εισροή εσόδων.");
-        } else if (amount2 < amount1) {
-            msg.append("Τα έσοδα μειώθηκαν κατά ").append(String.format("%.2f", Math.abs(percentageChange)));
-            msg.append("% σε σχέση με το προηγούμενο έτος.\n");
-            msg.append("Η κατηγορία έχει μικρότερη εισροή εσόδων.");
-        } else {
-            msg.append("Δεν παρατηρείται αλλαγή στα έσοδα της κατηγορίας μεταξύ των δύο ετών.");
-        }
-        
-        return msg.toString();
+        return compareCategoryGeneric(year1, year2, category, amount1, amount2,
+            "εσόδων",
+            "Τα έσοδα αυξήθηκαν κατά ",
+            "Τα έσοδα μειώθηκαν κατά ",
+            "Δεν παρατηρείται αλλαγή στα έσοδα της κατηγορίας μεταξύ των δύο ετών.",
+            "Η κατηγορία έχει μεγαλύτερη εισροή εσόδων.",
+            "Η κατηγορία έχει μικρότερη εισροή εσόδων.");
     }
 }
 

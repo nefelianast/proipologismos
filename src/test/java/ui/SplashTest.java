@@ -4,23 +4,22 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit tests for SplashController class.
+ * Unit tests for Splash class.
  * Note: Full testing requires JavaFX Application context.
  */
-class SplashControllerTest {
+class SplashTest {
 
     @Test
-    void testSplashControllerExists() {
+    void testSplashExists() {
         // Test that the class exists and can be instantiated
-        SplashController controller = new SplashController();
+        Splash controller = new Splash();
         assertNotNull(controller);
     }
 
     @Test
-    void testSplashControllerClass() {
+    void testSplashClass() {
         // Test that the class can be referenced
-        Class<?> clazz = SplashController.class;
+        Class<?> clazz = Splash.class;
         assertNotNull(clazz);
     }
 }
-

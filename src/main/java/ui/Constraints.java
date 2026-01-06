@@ -5,27 +5,23 @@ import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import java.util.regex.Pattern;
 
-public class DataValidator {
+// κλάση για ελέγχους περιορισμών
+// ελέγχει αν οι αλλαγές στα ποσά είναι εντός λογικών ορίων και αν οι τιμές είναι έγκυρες
+public class Constraints {
     
-    // Constants for validation rules
-    private static final int MIN_USERNAME_LENGTH = 3;
-    private static final int MAX_USERNAME_LENGTH = 50;
-    private static final int MIN_PASSWORD_LENGTH = 6;
-    private static final int MAX_PASSWORD_LENGTH = 100;
-    private static final int MIN_CATEGORY_LENGTH = 2;
-    private static final int MAX_CATEGORY_LENGTH = 100;
-    private static final double MIN_AMOUNT = 0.0;
+    // σταθερές για validation rules 
+    private static final int MIN_USERNAME_LENGTH = 3;        // ελάχιστος αριθμός χαρακτήρων για username
+    private static final int MAX_USERNAME_LENGTH = 50;       // μέγιστος αριθμός χαρακτήρων για username
+    private static final int MIN_PASSWORD_LENGTH = 6;        // ελάχιστος αριθμός χαρακτήρων για password
+    private static final int MAX_PASSWORD_LENGTH = 100;      // μέγιστος αριθμός χαρακτήρων για password
+    private static final int MIN_CATEGORY_LENGTH = 2;        // ελάχιστος αριθμός χαρακτήρων για κατηγορία
+    private static final int MAX_CATEGORY_LENGTH = 100;      // μέγιστος αριθμός χαρακτήρων για κατηγορία
+    private static final double MIN_AMOUNT = 0.0;            // ελάχιστο επιτρεπόμενο ποσό
     
-    // Pattern for positive numeric input
     private static final Pattern POSITIVE_NUMERIC_PATTERN = Pattern.compile("^\\d+(\\.\\d+)?$");
-    // Pattern for percentage input
     private static final Pattern PERCENTAGE_PATTERN = Pattern.compile("^-?\\d+(\\.\\d+)?$");
     
-    /**
-     * Validates username input
-     * @param username The username to validate
-     * @return ValidationResult with isValid flag and error message
-     */
+    //ελέγχει το username 
     public static ValidationResult validateUsername(String username) {
         if (username == null || username.trim().isEmpty()) {
             return new ValidationResult(false, "Το όνομα χρήστη είναι υποχρεωτικό.");
@@ -43,7 +39,7 @@ public class DataValidator {
                 String.format("Το όνομα χρήστη δεν μπορεί να υπερβαίνει τους %d χαρακτήρες.", MAX_USERNAME_LENGTH));
         }
         
-        // Check for invalid characters (only letters, numbers, underscore, hyphen allowed)
+        // έλεγχος για μη έγκυρους χαρακτήρες (επιτρέπονται μόνο γράμματα, αριθμοί, κάτω παύλα, παύλα)
         if (!trimmed.matches("^[a-zA-Z0-9_\\-α-ωΑ-ΩάέήίόύώΆΈΉΊΌΎΏ]+$")) {
             return new ValidationResult(false, 
                 "Το όνομα χρήστη μπορεί να περιέχει μόνο γράμματα, αριθμούς, παύλα και κάτω παύλα.");
@@ -52,11 +48,7 @@ public class DataValidator {
         return new ValidationResult(true, "");
     }
     
-    /**
-     * Validates password input
-     * @param password The password to validate
-     * @return ValidationResult with isValid flag and error message
-     */
+    //ελέγχει τον κωδικό πρόσβασης
     public static ValidationResult validatePassword(String password) {
         if (password == null || password.isEmpty()) {
             return new ValidationResult(false, "Ο κωδικός πρόσβασης είναι υποχρεωτικός.");
@@ -75,11 +67,7 @@ public class DataValidator {
         return new ValidationResult(true, "");
     }
     
-    /**
-     * Validates category name input
-     * @param category The category name to validate
-     * @return ValidationResult with isValid flag and error message
-     */
+    //ελέγχει το όνομα κατηγορίας	
     public static ValidationResult validateCategory(String category) {
         if (category == null || category.trim().isEmpty()) {
             return new ValidationResult(false, "Η κατηγορία είναι υποχρεωτική.");
@@ -100,11 +88,7 @@ public class DataValidator {
         return new ValidationResult(true, "");
     }
     
-    /**
-     * Validates amount input (must be positive number)
-     * @param amountText The amount as text to validate
-     * @return ValidationResult with isValid flag and error message
-     */
+    //ελέγχει το ποσό (>0)
     public static ValidationResult validateAmount(String amountText) {
         if (amountText == null || amountText.trim().isEmpty()) {
             return new ValidationResult(false, "Το ποσό είναι υποχρεωτικό.");
@@ -112,7 +96,7 @@ public class DataValidator {
         
         String trimmed = amountText.trim();
         
-        // Check if it's a valid number format
+        // έλεγχος αν είναι έγκυρη μορφή αριθμού
         if (!POSITIVE_NUMERIC_PATTERN.matcher(trimmed).matches()) {
             return new ValidationResult(false, 
                 "Το ποσό πρέπει να είναι ένας θετικός αριθμός.");
@@ -132,11 +116,7 @@ public class DataValidator {
         }
     }
     
-    /**
-     * Validates percentage input (can be negative or positive)
-     * @param percentageText The percentage as text to validate
-     * @return ValidationResult with isValid flag and error message
-     */
+    //ελέγχει την ποσοστιαία τιμή 
     public static ValidationResult validatePercentage(String percentageText) {
         if (percentageText == null || percentageText.trim().isEmpty()) {
             return new ValidationResult(false, "Η ποσοστιαία τιμή είναι υποχρεωτική.");
@@ -157,13 +137,7 @@ public class DataValidator {
         }
     }
     
-    /**
-     * Validates year input
-     * @param yearText The year as text to validate
-     * @param minYear Minimum allowed year
-     * @param maxYear Maximum allowed year
-     * @return ValidationResult with isValid flag and error message
-     */
+    // ελέγχει το έτος
     public static ValidationResult validateYear(String yearText, int minYear, int maxYear) {
         if (yearText == null || yearText.trim().isEmpty()) {
             return new ValidationResult(false, "Το έτος είναι υποχρεωτικό.");
@@ -183,30 +157,22 @@ public class DataValidator {
         }
     }
     
-    /**
-     * Applies visual validation feedback to a TextField
-     * @param textField The TextField to style
-     * @param isValid Whether the validation passed
-     * @param errorLabel Optional label to display error message (can be null)
-     * @param errorMessage The error message to display
-     */
+    //styling ανάλογα με τον έλεγχο 
     public static void applyValidationStyle(TextField textField, boolean isValid, Label errorLabel, String errorMessage) {
         if (textField == null) return;
         
         if (isValid) {
-            // Valid state - remove error styling
+            // έγκυρο - αφαίρεση error styling
             textField.getStyleClass().removeAll("validation-error");
-            // Restore default border color but keep other styles
             String currentStyle = textField.getStyle();
             if (currentStyle != null && currentStyle.contains("-fx-border-color: #dc2626")) {   
                 textField.setStyle(currentStyle.replace("-fx-border-color: #dc2626", "-fx-border-color: #d1d5db"));
             }
         } else {
-            // Invalid state - add error styling
+            // μη έγκυρο - προσθήκη error styling
             if (!textField.getStyleClass().contains("validation-error")) {
                 textField.getStyleClass().add("validation-error");
             }
-            // Only change border color, keep width at 1px to maintain height
             String currentStyle = textField.getStyle();
             if (currentStyle != null && currentStyle.contains("-fx-border-color:")) {
                 textField.setStyle(currentStyle.replaceAll("-fx-border-color:[^;]+", "-fx-border-color: #dc2626"));
@@ -215,7 +181,7 @@ public class DataValidator {
             }
         }
         
-        // Update error label if provided
+        // ενημέρωση error label 
         if (errorLabel != null) {
             if (isValid) {
                 errorLabel.setText("");
@@ -228,12 +194,7 @@ public class DataValidator {
         }
     }
     
-    /**
-     * Validates that a ComboBox has a selected value
-     * @param value The selected value (can be null)
-     * @param fieldName The name of the field for error message
-     * @return ValidationResult with isValid flag and error message
-     */
+    //ελέγχει ότι ένα ComboBox έχει επιλεγμένη τιμή
     public static ValidationResult validateComboBoxSelection(String value, String fieldName) {
         if (value == null || value.trim().isEmpty()) {
             return new ValidationResult(false, 
@@ -242,25 +203,48 @@ public class DataValidator {
         return new ValidationResult(true, "");
     }
     
-    /**
-     * Inner class to hold validation results
-     */
+    //ελέγχει ότι μια αλλαγή ποσού είναι εντός λογικών ορίων (μέγιστο όριο 50%)
+    public static ValidationResult validateAmountChange(double newAmount, double previousAmount) {
+        // αν δεν υπάρχει προηγούμενο ποσό, δεχόμαστε την αλλαγή
+        if (previousAmount == 0) {
+            return new ValidationResult(true, "");
+        }
+        
+        // μέγιστο επιτρεπόμενο όριο αλλαγής
+        double maxChangePercent = 50.0;
+        
+        // υπολογισμός απόλυτης τιμής της ποσοστιαίας μεταβολής
+        double changePercent = Math.abs(StatisticalAnalysis.calculatePercentageChange(newAmount, previousAmount));
+        
+        // έλεγχος αν η αλλαγή υπερβαίνει το μέγιστο όριο
+        if (changePercent > maxChangePercent) {
+            return new ValidationResult(false, 
+                String.format("Η αλλαγή (%.1f%%) υπερβαίνει το μέγιστο επιτρεπόμενο όριο (%.1f%%). Παρακαλώ επιβεβαιώστε ότι η αλλαγή είναι σωστή.", 
+                    changePercent, maxChangePercent));
+        }
+        
+        // η αλλαγή είναι εντός ορίων
+        return new ValidationResult(true, "");
+    }
+    
+    //εσωτερική κλάση για αποθήκευση αποτελεσμάτων επικύρωσης
     public static class ValidationResult {
-        private final boolean isValid;
-        private final String errorMessage;
+        private final boolean isValid;        // true αν η επικύρωση πέρασε, false αν απέτυχε
+        private final String errorMessage;     // μήνυμα σφάλματος 
         
         public ValidationResult(boolean isValid, String errorMessage) {
             this.isValid = isValid;
             this.errorMessage = errorMessage != null ? errorMessage : "";
         }
         
+        //επιστρέφει true αν η επικύρωση πέρασε, false αν απέτυχε
         public boolean isValid() {
             return isValid;
         }
         
+        //επιστρέφει το μήνυμα σφάλματος 
         public String getErrorMessage() {
             return errorMessage;
         }
     }
 }
-

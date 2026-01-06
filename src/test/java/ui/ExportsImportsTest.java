@@ -9,19 +9,19 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
- * Unit tests for DataExportImportService class.
+ * Unit tests for ExportsImports class.
  */
-class DataExportImportServiceTest {
+class ExportsImportsTest {
     
-    private DataExportImportService service;
-    private DataPersistenceService persistenceService;
+    private ExportsImports service;
+    private UserData userData;
     private String testExportPath;
     private String testImportPath;
     
     @BeforeEach
     void setUp() {
-        service = DataExportImportService.getInstance();
-        persistenceService = DataPersistenceService.getInstance();
+        service = ExportsImports.getInstance();
+        userData = UserData.getInstance();
         
         // Setup test file paths
         testExportPath = "test_export.json";
@@ -39,7 +39,6 @@ class DataExportImportServiceTest {
         try {
             Files.deleteIfExists(Paths.get(testExportPath));
             Files.deleteIfExists(Paths.get(testImportPath));
-            Files.deleteIfExists(Paths.get("test_export.xml"));
         } catch (Exception e) {
             // Ignore cleanup errors
         }
@@ -51,16 +50,16 @@ class DataExportImportServiceTest {
     private void cleanupTestData() {
         try {
             // Delete test comments
-            persistenceService.deleteComment("TEST_Category", 2025);
-            persistenceService.deleteComment("TEST_Category2", 2025);
+            userData.deleteComment("TEST_Category", 2025);
+            userData.deleteComment("TEST_Category2", 2025);
             
             // Delete test scenarios
-            persistenceService.deleteScenario("TEST_Scenario");
-            persistenceService.deleteScenario("TEST_Scenario2");
+            userData.deleteScenario("TEST_Scenario");
+            userData.deleteScenario("TEST_Scenario2");
             
             // Delete test preferences
-            persistenceService.deletePreference("TEST_PREF_KEY");
-            persistenceService.deletePreference("TEST_PREF_KEY2");
+            userData.deletePreference("TEST_PREF_KEY");
+            userData.deletePreference("TEST_PREF_KEY2");
         } catch (Exception e) {
             // Ignore cleanup errors
         }
@@ -69,8 +68,8 @@ class DataExportImportServiceTest {
     @Test
     void testGetInstance() {
         // Test singleton pattern
-        DataExportImportService instance1 = DataExportImportService.getInstance();
-        DataExportImportService instance2 = DataExportImportService.getInstance();
+        ExportsImports instance1 = ExportsImports.getInstance();
+        ExportsImports instance2 = ExportsImports.getInstance();
         
         assertNotNull(instance1);
         assertNotNull(instance2);
@@ -80,9 +79,9 @@ class DataExportImportServiceTest {
     @Test
     void testExportToJSON() {
         // Setup test data
-        persistenceService.saveComment("TEST_Category", 2025, "Test comment");
-        persistenceService.saveScenario("TEST_Scenario", "Test description", 2025, "{\"test\":\"data\"}");
-        persistenceService.savePreference("TEST_PREF_KEY", "test_value");
+        userData.saveComment("TEST_Category", 2025, "Test comment");
+        userData.saveScenario("TEST_Scenario", "Test description", 2025, "{\"test\":\"data\"}");
+        userData.savePreference("TEST_PREF_KEY", "test_value");
         
         // Export
         boolean result = service.exportToJSON(testExportPath);
@@ -97,9 +96,9 @@ class DataExportImportServiceTest {
     @Test
     void testExportToJSONFileContent() {
         // Setup test data
-        persistenceService.saveComment("TEST_Category", 2025, "Test comment");
-        persistenceService.saveScenario("TEST_Scenario", "Test description", 2025, "{\"test\":\"data\"}");
-        persistenceService.savePreference("TEST_PREF_KEY", "test_value");
+        userData.saveComment("TEST_Category", 2025, "Test comment");
+        userData.saveScenario("TEST_Scenario", "Test description", 2025, "{\"test\":\"data\"}");
+        userData.savePreference("TEST_PREF_KEY", "test_value");
         
         // Export
         service.exportToJSON(testExportPath);
@@ -122,30 +121,30 @@ class DataExportImportServiceTest {
     @Test
     void testImportFromJSON() {
         // First export some data
-        persistenceService.saveComment("TEST_Category", 2025, "Original comment");
-        persistenceService.saveScenario("TEST_Scenario", "Original description", 2025, "{\"original\":\"data\"}");
-        persistenceService.savePreference("TEST_PREF_KEY", "original_value");
+        userData.saveComment("TEST_Category", 2025, "Original comment");
+        userData.saveScenario("TEST_Scenario", "Original description", 2025, "{\"original\":\"data\"}");
+        userData.savePreference("TEST_PREF_KEY", "original_value");
         
         service.exportToJSON(testExportPath);
         
         // Delete the data
-        persistenceService.deleteComment("TEST_Category", 2025);
-        persistenceService.deleteScenario("TEST_Scenario");
-        persistenceService.deletePreference("TEST_PREF_KEY");
+        userData.deleteComment("TEST_Category", 2025);
+        userData.deleteScenario("TEST_Scenario");
+        userData.deletePreference("TEST_PREF_KEY");
         
         // Import
         boolean result = service.importFromJSON(testExportPath);
         assertTrue(result);
         
         // Verify data was restored
-        String comment = persistenceService.getComment("TEST_Category", 2025);
+        String comment = userData.getComment("TEST_Category", 2025);
         assertEquals("Original comment", comment);
         
-        DataPersistenceService.SavedScenario scenario = persistenceService.getScenario("TEST_Scenario");
+        UserData.SavedScenario scenario = userData.getScenario("TEST_Scenario");
         assertNotNull(scenario);
         assertEquals("Original description", scenario.getDescription());
         
-        String preference = persistenceService.getPreference("TEST_PREF_KEY");
+        String preference = userData.getPreference("TEST_PREF_KEY");
         assertEquals("original_value", preference);
     }
     
@@ -153,44 +152,6 @@ class DataExportImportServiceTest {
     void testImportFromJSONNonExistentFile() {
         boolean result = service.importFromJSON("non_existent_file.json");
         assertFalse(result);
-    }
-    
-    @Test
-    void testExportToXML() {
-        // Setup test data
-        persistenceService.saveComment("TEST_Category", 2025, "Test comment");
-        persistenceService.saveScenario("TEST_Scenario", "Test description", 2025, "{\"test\":\"data\"}");
-        
-        // Export
-        boolean result = service.exportToXML("test_export.xml");
-        assertTrue(result);
-        
-        // Verify file was created
-        File file = new File("test_export.xml");
-        assertTrue(file.exists());
-        assertTrue(file.length() > 0);
-    }
-    
-    @Test
-    void testExportToXMLFileContent() {
-        // Setup test data
-        persistenceService.saveComment("TEST_Category", 2025, "Test comment");
-        
-        // Export
-        service.exportToXML("test_export.xml");
-        
-        // Read and verify content
-        try {
-            String content = new String(Files.readAllBytes(Paths.get("test_export.xml")));
-            assertNotNull(content);
-            assertTrue(content.contains("<?xml"));
-            assertTrue(content.contains("<export>"));
-            assertTrue(content.contains("<comments>"));
-            assertTrue(content.contains("<scenarios>"));
-            assertTrue(content.contains("<preferences>"));
-        } catch (Exception e) {
-            fail("Failed to read exported XML file: " + e.getMessage());
-        }
     }
     
     @Test
@@ -258,19 +219,19 @@ class DataExportImportServiceTest {
             assertTrue(result);
             
             // Verify all items were imported
-            assertEquals("Comment 1", persistenceService.getComment("TEST_Category", 2025));
-            assertEquals("Comment 2", persistenceService.getComment("TEST_Category2", 2025));
+            assertEquals("Comment 1", userData.getComment("TEST_Category", 2025));
+            assertEquals("Comment 2", userData.getComment("TEST_Category2", 2025));
             
-            DataPersistenceService.SavedScenario scenario1 = persistenceService.getScenario("TEST_Scenario");
+            UserData.SavedScenario scenario1 = userData.getScenario("TEST_Scenario");
             assertNotNull(scenario1);
             assertEquals("Desc 1", scenario1.getDescription());
             
-            DataPersistenceService.SavedScenario scenario2 = persistenceService.getScenario("TEST_Scenario2");
+            UserData.SavedScenario scenario2 = userData.getScenario("TEST_Scenario2");
             assertNotNull(scenario2);
             assertEquals("Desc 2", scenario2.getDescription());
             
-            assertEquals("value1", persistenceService.getPreference("TEST_PREF_KEY"));
-            assertEquals("value2", persistenceService.getPreference("TEST_PREF_KEY2"));
+            assertEquals("value1", userData.getPreference("TEST_PREF_KEY"));
+            assertEquals("value2", userData.getPreference("TEST_PREF_KEY2"));
         } catch (Exception e) {
             fail("Failed to create or import test file: " + e.getMessage());
         }
@@ -279,31 +240,31 @@ class DataExportImportServiceTest {
     @Test
     void testExportImportRoundTrip() {
         // Setup original data
-        persistenceService.saveComment("TEST_Category", 2025, "Round trip comment");
-        persistenceService.saveScenario("TEST_Scenario", "Round trip scenario", 2025, "{\"test\":\"roundtrip\"}");
-        persistenceService.savePreference("TEST_PREF_KEY", "roundtrip_value");
+        userData.saveComment("TEST_Category", 2025, "Round trip comment");
+        userData.saveScenario("TEST_Scenario", "Round trip scenario", 2025, "{\"test\":\"roundtrip\"}");
+        userData.savePreference("TEST_PREF_KEY", "roundtrip_value");
         
         // Export
         service.exportToJSON(testExportPath);
         
         // Clear data
-        persistenceService.deleteComment("TEST_Category", 2025);
-        persistenceService.deleteScenario("TEST_Scenario");
-        persistenceService.deletePreference("TEST_PREF_KEY");
+        userData.deleteComment("TEST_Category", 2025);
+        userData.deleteScenario("TEST_Scenario");
+        userData.deletePreference("TEST_PREF_KEY");
         
         // Verify cleared
-        assertNull(persistenceService.getComment("TEST_Category", 2025));
-        assertNull(persistenceService.getScenario("TEST_Scenario"));
-        assertNull(persistenceService.getPreference("TEST_PREF_KEY"));
+        assertNull(userData.getComment("TEST_Category", 2025));
+        assertNull(userData.getScenario("TEST_Scenario"));
+        assertNull(userData.getPreference("TEST_PREF_KEY"));
         
         // Import
         service.importFromJSON(testExportPath);
         
         // Verify restored
-        assertEquals("Round trip comment", persistenceService.getComment("TEST_Category", 2025));
-        assertNotNull(persistenceService.getScenario("TEST_Scenario"));
-        assertEquals("Round trip scenario", persistenceService.getScenario("TEST_Scenario").getDescription());
-        assertEquals("roundtrip_value", persistenceService.getPreference("TEST_PREF_KEY"));
+        assertEquals("Round trip comment", userData.getComment("TEST_Category", 2025));
+        assertNotNull(userData.getScenario("TEST_Scenario"));
+        assertEquals("Round trip scenario", userData.getScenario("TEST_Scenario").getDescription());
+        assertEquals("roundtrip_value", userData.getPreference("TEST_PREF_KEY"));
     }
     
     @Test
@@ -314,4 +275,3 @@ class DataExportImportServiceTest {
         assertNotNull(Boolean.valueOf(result));
     }
 }
-

@@ -63,9 +63,9 @@ public class HomeController {
     private static UserType currentUserType = UserType.CITIZEN;
     
     /**
-     * User repository for authentication
+     * Authentication service
      */
-    private UserRepository userRepository = new UserRepository();
+    private Authentication authentication = new Authentication();
     
     /**
      * Sets the current user type.
@@ -135,7 +135,7 @@ public class HomeController {
         
         private static String calculateStatus(double currentAmount, double previousAmount) {
             if (previousAmount == 0) return "Νέο";
-            double changePercent = BudgetStatisticsCalculator.calculatePercentageChange(currentAmount, previousAmount);
+            double changePercent = StatisticalAnalysis.calculatePercentageChange(currentAmount, previousAmount);
             if (changePercent > 5) return "Αύξηση";
             if (changePercent < -5) return "Μείωση";
             return "Σταθερό";
@@ -200,8 +200,8 @@ public class HomeController {
         public String getChangeFromPrevious() {
             if (previousYearAmount.get() == 0) return "Νέο";
             double changeValue = amount.get() - previousYearAmount.get();
-            double changePercent = BudgetStatisticsCalculator.calculatePercentageChange(amount.get(), previousYearAmount.get());
-            return BudgetAmountFormatter.formatChange(changePercent, changeValue);
+            double changePercent = StatisticalAnalysis.calculatePercentageChange(amount.get(), previousYearAmount.get());
+            return AmountFormatter.formatChange(changePercent, changeValue);
         }
         
         public String getComments() {
@@ -581,9 +581,9 @@ public class HomeController {
     private TableColumn<CategoryData, Double> adminPercentageColumn;
     
 
-    private BudgetDataService dataService;
-    private DataPersistenceService persistenceService;
-    private DataExportImportService exportImportService;
+    private BudgetData budgetData;
+    private UserData userData;
+    private ExportsImports exportImportService;
     
     /**
      * Check if a year allows modifications (current year or future years only)
@@ -629,7 +629,7 @@ public class HomeController {
                 if (empty || amount == null) {
                     setText(null);
                 } else {
-                    setText(BudgetAmountFormatter.formatCurrency(amount));
+                    setText(AmountFormatter.formatCurrency(amount));
                 }
             }
         });
@@ -642,7 +642,7 @@ public class HomeController {
                 if (empty || percentage == null) {
                     setText(null);
                 } else {
-                    setText(BudgetAmountFormatter.formatPercentage(percentage));
+                    setText(AmountFormatter.formatPercentage(percentage));
                 }
             }
         });
@@ -712,9 +712,9 @@ public class HomeController {
                 isEditable = isYearEditable(year);
                 
                 // Load comments for selected category
-                if (internalCommentsArea != null && persistenceService != null) {
+                if (internalCommentsArea != null && userData != null) {
                     String categoryName = newSelection.getCategory();
-                    String comments = persistenceService.getComment(categoryName, year);
+                    String comments = userData.getComment(categoryName, year);
                     if (comments != null) {
                         internalCommentsArea.setText(comments);
                         newSelection.setComments(comments);
@@ -799,9 +799,9 @@ public class HomeController {
     @FXML
     private void initialize() {
         // Initialize data service
-        dataService = BudgetDataService.getInstance();
-        persistenceService = DataPersistenceService.getInstance();
-        exportImportService = DataExportImportService.getInstance();
+        budgetData = BudgetData.getInstance();
+        userData = UserData.getInstance();
+        exportImportService = ExportsImports.getInstance();
         
         // Initialize published years table
         initializePublishedYearsTable();
@@ -935,7 +935,7 @@ public class HomeController {
                     if (empty || amount == null) {
                         setText(null);
                     } else {
-                        setText(BudgetAmountFormatter.formatCurrency(amount));
+                        setText(AmountFormatter.formatCurrency(amount));
                     }
                 }
             });
@@ -948,7 +948,7 @@ public class HomeController {
                     if (empty || percentage == null) {
                         setText(null);
                     } else {
-                        setText(BudgetAmountFormatter.formatPercentage(percentage));
+                        setText(AmountFormatter.formatPercentage(percentage));
                     }
                 }
             });
@@ -1037,7 +1037,7 @@ public class HomeController {
                 if (empty || amount == null) {
                     setText(null);
                 } else {
-                    setText(BudgetAmountFormatter.formatCurrency(amount));
+                    setText(AmountFormatter.formatCurrency(amount));
                 }
             }
         });
@@ -1050,7 +1050,7 @@ public class HomeController {
                 if (empty || percentage == null) {
                     setText(null);
                 } else {
-                    setText(BudgetAmountFormatter.formatPercentageOneDecimal(percentage));
+                    setText(AmountFormatter.formatPercentageOneDecimal(percentage));
                 }
             }
         });
@@ -1067,7 +1067,7 @@ public class HomeController {
                 if (empty || amount == null) {
                     setText(null);
                 } else {
-                    setText(BudgetAmountFormatter.formatCurrency(amount));
+                    setText(AmountFormatter.formatCurrency(amount));
                 }
             }
         });
@@ -1079,7 +1079,7 @@ public class HomeController {
                 if (empty || percentage == null) {
                     setText(null);
                 } else {
-                    setText(BudgetAmountFormatter.formatPercentageOneDecimal(percentage));
+                    setText(AmountFormatter.formatPercentageOneDecimal(percentage));
                 }
             }
         });
@@ -1096,7 +1096,7 @@ public class HomeController {
                 if (empty || amount == null) {
                     setText(null);
                 } else {
-                    setText(BudgetAmountFormatter.formatCurrency(amount));
+                    setText(AmountFormatter.formatCurrency(amount));
                 }
             }
         });
@@ -1108,7 +1108,7 @@ public class HomeController {
                 if (empty || percentage == null) {
                     setText(null);
                 } else {
-                    setText(BudgetAmountFormatter.formatPercentageOneDecimal(percentage));
+                    setText(AmountFormatter.formatPercentageOneDecimal(percentage));
                 }
             }
         });
@@ -1125,7 +1125,7 @@ public class HomeController {
                 if (empty || amount == null) {
                     setText(null);
                 } else {
-                    setText(BudgetAmountFormatter.formatCurrency(amount));
+                    setText(AmountFormatter.formatCurrency(amount));
                 }
             }
         });
@@ -1137,7 +1137,7 @@ public class HomeController {
                 if (empty || percentage == null) {
                     setText(null);
                 } else {
-                    setText(BudgetAmountFormatter.formatPercentageOneDecimal(percentage));
+                    setText(AmountFormatter.formatPercentageOneDecimal(percentage));
                 }
             }
         });
@@ -1400,8 +1400,8 @@ public class HomeController {
             usernameField.textProperty().addListener((obs, oldText, newText) -> {
                 usernamePrompt.setVisible(newText == null || newText.isEmpty());
                 // Real-time validation
-                DataValidator.ValidationResult result = DataValidator.validateUsername(newText);
-                DataValidator.applyValidationStyle(usernameField, result.isValid(), usernameErrorLabel, result.getErrorMessage());
+                Constraints.ValidationResult result = Constraints.validateUsername(newText);
+                Constraints.applyValidationStyle(usernameField, result.isValid(), usernameErrorLabel, result.getErrorMessage());
             });
 
             // Password field with validation
@@ -1428,8 +1428,8 @@ public class HomeController {
             passwordField.textProperty().addListener((obs, oldText, newText) -> {
                 passwordPrompt.setVisible(newText == null || newText.isEmpty());
                 // Real-time validation
-                DataValidator.ValidationResult result = DataValidator.validatePassword(newText);
-                DataValidator.applyValidationStyle(passwordField, result.isValid(), passwordErrorLabel, result.getErrorMessage());
+                Constraints.ValidationResult result = Constraints.validatePassword(newText);
+                Constraints.applyValidationStyle(passwordField, result.isValid(), passwordErrorLabel, result.getErrorMessage());
             });
 
             javafx.scene.control.Button loginButton = new javafx.scene.control.Button("Σύνδεση");
@@ -1441,17 +1441,17 @@ public class HomeController {
                 String password = passwordField.getText();
                 
                 // Validate inputs
-                DataValidator.ValidationResult usernameResult = DataValidator.validateUsername(username);
-                DataValidator.ValidationResult passwordResult = DataValidator.validatePassword(password);
+                Constraints.ValidationResult usernameResult = Constraints.validateUsername(username);
+                Constraints.ValidationResult passwordResult = Constraints.validatePassword(password);
                 
                 // Apply validation styles
-                DataValidator.applyValidationStyle(usernameField, usernameResult.isValid(), usernameErrorLabel, usernameResult.getErrorMessage());
-                DataValidator.applyValidationStyle(passwordField, passwordResult.isValid(), passwordErrorLabel, passwordResult.getErrorMessage());
+                Constraints.applyValidationStyle(usernameField, usernameResult.isValid(), usernameErrorLabel, usernameResult.getErrorMessage());
+                Constraints.applyValidationStyle(passwordField, passwordResult.isValid(), passwordErrorLabel, passwordResult.getErrorMessage());
                 
                 // Check if all validations pass
                 if (usernameResult.isValid() && passwordResult.isValid()) {
                     // Check credentials against database
-                    if (userRepository.checkLogin(username, password)) {
+                    if (authentication.checkLogin(username, password)) {
                     // Set user type to government
                             currentUserType = UserType.GOVERNMENT;
                             updateAuthButton();
@@ -1540,8 +1540,8 @@ public class HomeController {
             usernameErrorLabel.setPrefWidth(300);
 
             usernameField.textProperty().addListener((obs, oldText, newText) -> {
-                DataValidator.ValidationResult result = DataValidator.validateUsername(newText);
-                DataValidator.applyValidationStyle(usernameField, result.isValid(), usernameErrorLabel, result.getErrorMessage());
+                Constraints.ValidationResult result = Constraints.validateUsername(newText);
+                Constraints.applyValidationStyle(usernameField, result.isValid(), usernameErrorLabel, result.getErrorMessage());
             });
 
             // Password field
@@ -1557,8 +1557,8 @@ public class HomeController {
             passwordErrorLabel.setPrefWidth(300);
 
             passwordField.textProperty().addListener((obs, oldText, newText) -> {
-                DataValidator.ValidationResult result = DataValidator.validatePassword(newText);
-                DataValidator.applyValidationStyle(passwordField, result.isValid(), passwordErrorLabel, result.getErrorMessage());
+                Constraints.ValidationResult result = Constraints.validatePassword(newText);
+                Constraints.applyValidationStyle(passwordField, result.isValid(), passwordErrorLabel, result.getErrorMessage());
             });
 
             // Sign up button
@@ -1571,21 +1571,21 @@ public class HomeController {
                 String password = passwordField.getText();
 
                 // Validate
-                DataValidator.ValidationResult usernameResult = DataValidator.validateUsername(username);
-                DataValidator.ValidationResult passwordResult = DataValidator.validatePassword(password);
+                Constraints.ValidationResult usernameResult = Constraints.validateUsername(username);
+                Constraints.ValidationResult passwordResult = Constraints.validatePassword(password);
 
-                DataValidator.applyValidationStyle(usernameField, usernameResult.isValid(), usernameErrorLabel, usernameResult.getErrorMessage());
-                DataValidator.applyValidationStyle(passwordField, passwordResult.isValid(), passwordErrorLabel, passwordResult.getErrorMessage());
+                Constraints.applyValidationStyle(usernameField, usernameResult.isValid(), usernameErrorLabel, usernameResult.getErrorMessage());
+                Constraints.applyValidationStyle(passwordField, passwordResult.isValid(), passwordErrorLabel, passwordResult.getErrorMessage());
 
                 if (usernameResult.isValid() && passwordResult.isValid()) {
                     // Check if username exists
-                    if (userRepository.usernameExists(username)) {
+                    if (authentication.usernameExists(username)) {
                         usernameErrorLabel.setText("Το όνομα χρήστη υπάρχει ήδη");
                         usernameErrorLabel.setVisible(true);
                         usernameField.setStyle("-fx-border-color: #dc2626; -fx-font-size: 14px; -fx-padding: 10;");
                     } else {
                         // Create user
-                        if (userRepository.saveUser(username, password)) {
+                        if (authentication.saveUser(username, password)) {
                             Alert success = new Alert(Alert.AlertType.INFORMATION);
                             success.setTitle("Επιτυχία");
                             success.setHeaderText(null);
@@ -1690,52 +1690,52 @@ public class HomeController {
         int year = Integer.parseInt(selectedYear);
         if (revenuesView != null && revenuesView.isVisible()) {
             if (pieRevenue != null) {
-                ChartService.fillPieChart(pieRevenue, dataService.getRevenueBreakdownForGraphs(year), "Έσοδα " + selectedYear);
+                Charts.fillPieChart(pieRevenue, budgetData.getRevenueBreakdownForGraphs(year), "Έσοδα " + selectedYear);
             }
             if (barRevenueTop != null) {
-                ChartService.loadBarChartForTopCategories(barRevenueTop, dataService.getRevenueBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
+                Charts.loadBarChartForTopCategories(barRevenueTop, budgetData.getRevenueBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
             }
             if (areaRevenueTrend != null) {
-                ChartService.loadAreaChart(areaRevenueTrend, dataService, "total_revenue", "Διαχρονική Εξέλιξη Εσόδων");
+                Charts.loadAreaChart(areaRevenueTrend, budgetData, "total_revenue", "Διαχρονική Εξέλιξη Εσόδων");
             }
             if (stackedRevenue != null) {
-                ChartService.loadStackedBarChart(stackedRevenue, dataService, "revenue", "Σύνθεση Εσόδων ανά Έτος");
+                Charts.loadStackedBarChart(stackedRevenue, budgetData, "revenue", "Σύνθεση Εσόδων ανά Έτος");
             }
         }
         if (expensesView != null && expensesView.isVisible()) {
             if (pieExpenses != null) {
-                ChartService.fillPieChart(pieExpenses, dataService.getExpenseBreakdownForGraphs(year), "Έξοδα " + selectedYear);
+                Charts.fillPieChart(pieExpenses, budgetData.getExpenseBreakdownForGraphs(year), "Έξοδα " + selectedYear);
             }
             if (barExpenseTop != null) {
-                ChartService.loadBarChartForTopCategories(barExpenseTop, dataService.getExpenseBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
+                Charts.loadBarChartForTopCategories(barExpenseTop, budgetData.getExpenseBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
             }
             if (areaExpenseTrend != null) {
-                ChartService.loadAreaChart(areaExpenseTrend, dataService, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών");
+                Charts.loadAreaChart(areaExpenseTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών");
             }
             if (stackedExpense != null) {
-                ChartService.loadStackedBarChart(stackedExpense, dataService, "expense", "Σύνθεση Δαπανών ανά Έτος");
+                Charts.loadStackedBarChart(stackedExpense, budgetData, "expense", "Σύνθεση Δαπανών ανά Έτος");
             }
         }
         if (ministriesView != null && ministriesView.isVisible()) {
             if (pieMinistries != null) {
-                ChartService.fillPieChart(pieMinistries, dataService.getMinistriesBreakdown(year), "Υπουργεία " + selectedYear);
+                Charts.fillPieChart(pieMinistries, budgetData.getMinistriesBreakdown(year), "Υπουργεία " + selectedYear);
             }
             if (barMinistriesTop != null) {
-                ChartService.loadBarChartForMinistries(barMinistriesTop, dataService.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία", 10);
+                Charts.loadBarChartForMinistries(barMinistriesTop, budgetData.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία", 10);
             }
             if (areaMinistriesTrend != null) {
-                ChartService.loadAreaChart(areaMinistriesTrend, dataService, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Υπουργείων");
+                Charts.loadAreaChart(areaMinistriesTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Υπουργείων");
             }
         }
         if (administrationsView != null && administrationsView.isVisible()) {
             if (pieAdministrations != null) {
-                ChartService.fillPieChart(pieAdministrations, dataService.getDecentralizedAdministrationsBreakdown(year), "Αποκεντρωμένες Διοικήσεις " + selectedYear);
+                Charts.fillPieChart(pieAdministrations, budgetData.getDecentralizedAdministrationsBreakdown(year), "Αποκεντρωμένες Διοικήσεις " + selectedYear);
             }
             if (barAdministrationsTop != null) {
-                ChartService.loadBarChartForTopCategories(barAdministrationsTop, dataService.getDecentralizedAdministrationsBreakdown(year), "Κορυφαίες Διοικήσεις", 7);
+                Charts.loadBarChartForTopCategories(barAdministrationsTop, budgetData.getDecentralizedAdministrationsBreakdown(year), "Κορυφαίες Διοικήσεις", 7);
             }
             if (areaAdministrationsTrend != null) {
-                ChartService.loadAreaChart(areaAdministrationsTrend, dataService, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Αποκεντρωμένων Διοικήσεων");
+                Charts.loadAreaChart(areaAdministrationsTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Αποκεντρωμένων Διοικήσεων");
             }
         }
     }
@@ -1744,23 +1744,23 @@ public class HomeController {
         int yearInt = Integer.parseInt(year);
         
         // Load real data from service
-        double totalRevenues = dataService.getTotalRevenues(yearInt);
-        double totalExpenses = dataService.getTotalExpenses(yearInt);
-        double balance = dataService.getBalance(yearInt);
-        double revenuesChange = dataService.getRevenuesChange(yearInt);
-        double expensesChange = dataService.getExpensesChange(yearInt);
+        double totalRevenues = budgetData.getTotalRevenues(yearInt);
+        double totalExpenses = budgetData.getTotalExpenses(yearInt);
+        double balance = budgetData.getBalance(yearInt);
+        double revenuesChange = budgetData.getRevenuesChange(yearInt);
+        double expensesChange = budgetData.getExpensesChange(yearInt);
         
         // Update revenues
-        totalRevenuesLabel.setText(BudgetAmountFormatter.formatCurrency(totalRevenues));
-        String revenuesChangeText = BudgetAmountFormatter.formatPercentageChangeOneDecimal(revenuesChange) + " από πέρυσι";
+        totalRevenuesLabel.setText(AmountFormatter.formatCurrency(totalRevenues));
+        String revenuesChangeText = AmountFormatter.formatPercentageChangeOneDecimal(revenuesChange) + " από πέρυσι";
         revenuesDeltaLabel.setText(revenuesChangeText);
         revenuesDeltaLabel.getStyleClass().removeAll("negative", "positive");
         revenuesDeltaLabel.getStyleClass().add(revenuesChange >= 0 ? "positive" : "negative");
         revenuesDeltaLabel.setStyle("-fx-text-fill: white;");
         
         // Update expenses
-        totalExpensesLabel.setText(BudgetAmountFormatter.formatCurrency(totalExpenses));
-        String expensesChangeText = BudgetAmountFormatter.formatPercentageChangeOneDecimal(expensesChange) + " από πέρυσι";
+        totalExpensesLabel.setText(AmountFormatter.formatCurrency(totalExpenses));
+        String expensesChangeText = AmountFormatter.formatPercentageChangeOneDecimal(expensesChange) + " από πέρυσι";
         expensesDeltaLabel.setText(expensesChangeText);
         expensesDeltaLabel.getStyleClass().removeAll("negative", "positive");
         expensesDeltaLabel.getStyleClass().add(expensesChange >= 0 ? "positive" : "negative");
@@ -1768,13 +1768,13 @@ public class HomeController {
         
         // Update balance
         if (balance >= 0) {
-            balanceLabel.setText("+" + BudgetAmountFormatter.formatCurrency(balance));
+            balanceLabel.setText("+" + AmountFormatter.formatCurrency(balance));
             balanceStatusLabel.setText("Πλεόνασμα");
             balanceStatusLabel.getStyleClass().removeAll("negative");
             balanceStatusLabel.getStyleClass().add("positive");
             balanceStatusLabel.setStyle("-fx-text-fill: white;");
         } else {
-            balanceLabel.setText(BudgetAmountFormatter.formatCurrency(balance));
+            balanceLabel.setText(AmountFormatter.formatCurrency(balance));
             balanceStatusLabel.setText("Έλλειμμα");
             balanceStatusLabel.getStyleClass().removeAll("positive");
             balanceStatusLabel.getStyleClass().add("negative");
@@ -1787,27 +1787,27 @@ public class HomeController {
         if (selectedYear == null) return;
         
         int yearInt = Integer.parseInt(selectedYear);
-        List<BudgetDataService.CategoryInfo> categories = dataService.getCategories(yearInt);
+        List<BudgetData.CategoryInfo> categories = budgetData.getCategories(yearInt);
         
         // Get previous year data for comparison
-        List<BudgetDataService.CategoryInfo> prevCategories = dataService.getCategories(yearInt - 1);
+        List<BudgetData.CategoryInfo> prevCategories = budgetData.getCategories(yearInt - 1);
         boolean hasPreviousYearData = !prevCategories.isEmpty();
         Map<String, Double> prevYearMap = new HashMap<>();
-        for (BudgetDataService.CategoryInfo cat : prevCategories) {
+        for (BudgetData.CategoryInfo cat : prevCategories) {
             prevYearMap.put(cat.getName(), cat.getAmount());
         }
         
         // Convert to table data
         ObservableList<CategoryData> tableData = FXCollections.observableArrayList();
-        for (BudgetDataService.CategoryInfo cat : categories) {
+        for (BudgetData.CategoryInfo cat : categories) {
             String changeText;
             if (!hasPreviousYearData || !prevYearMap.containsKey(cat.getName())) {
                 changeText = "-";
             } else {
                 double prevAmount = prevYearMap.get(cat.getName());
                 if (prevAmount > 0) {
-                    double change = BudgetStatisticsCalculator.calculatePercentageChange(cat.getAmount(), prevAmount);
-                    changeText = BudgetAmountFormatter.formatPercentageChangeOneDecimal(change);
+                    double change = StatisticalAnalysis.calculatePercentageChange(cat.getAmount(), prevAmount);
+                    changeText = AmountFormatter.formatPercentageChangeOneDecimal(change);
                 } else {
                     changeText = "-";
                 }
@@ -1822,10 +1822,10 @@ public class HomeController {
         if (selectedYear == null) return;
         
         int yearInt = Integer.parseInt(selectedYear);
-        List<BudgetDataService.CategoryInfo> revenues = dataService.getRevenueBreakdown(yearInt);
+        List<BudgetData.CategoryInfo> revenues = budgetData.getRevenueBreakdown(yearInt);
         
         ObservableList<CategoryData> tableData = FXCollections.observableArrayList();
-        for (BudgetDataService.CategoryInfo revenue : revenues) {
+        for (BudgetData.CategoryInfo revenue : revenues) {
             tableData.add(new CategoryData(revenue.getName(), revenue.getAmount(), revenue.getPercentage(), ""));
         }
         
@@ -1836,10 +1836,10 @@ public class HomeController {
         if (selectedYear == null) return;
         
         int yearInt = Integer.parseInt(selectedYear);
-        List<BudgetDataService.CategoryInfo> expenses = dataService.getExpensesBreakdown(yearInt);
+        List<BudgetData.CategoryInfo> expenses = budgetData.getExpensesBreakdown(yearInt);
         
         ObservableList<CategoryData> tableData = FXCollections.observableArrayList();
-        for (BudgetDataService.CategoryInfo expense : expenses) {
+        for (BudgetData.CategoryInfo expense : expenses) {
             tableData.add(new CategoryData(expense.getName(), expense.getAmount(), expense.getPercentage(), ""));
         }
         
@@ -1850,10 +1850,10 @@ public class HomeController {
         if (selectedYear == null) return;
         
         int yearInt = Integer.parseInt(selectedYear);
-        List<BudgetDataService.CategoryInfo> administrations = dataService.getDecentralizedAdministrations(yearInt);
+        List<BudgetData.CategoryInfo> administrations = budgetData.getDecentralizedAdministrations(yearInt);
         
         ObservableList<CategoryData> tableData = FXCollections.observableArrayList();
-        for (BudgetDataService.CategoryInfo admin : administrations) {
+        for (BudgetData.CategoryInfo admin : administrations) {
             tableData.add(new CategoryData(admin.getName(), admin.getAmount(), admin.getPercentage(), ""));
         }
         
@@ -1873,15 +1873,15 @@ public class HomeController {
             int year = Integer.parseInt(selectedYear);
             // Update ministries pie chart
             if (pieMinistries != null) {
-                ChartService.fillPieChart(pieMinistries, dataService.getMinistriesBreakdown(year), "Υπουργεία " + selectedYear);
+                Charts.fillPieChart(pieMinistries, budgetData.getMinistriesBreakdown(year), "Υπουργεία " + selectedYear);
             }
             // Update bar chart - top ministries
             if (barMinistriesTop != null) {
-                ChartService.loadBarChartForMinistries(barMinistriesTop, dataService.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία", 10);
+                Charts.loadBarChartForMinistries(barMinistriesTop, budgetData.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία", 10);
             }
             // Update area chart - trend
             if (areaMinistriesTrend != null) {
-                ChartService.loadAreaChart(areaMinistriesTrend, dataService, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Υπουργείων");
+                Charts.loadAreaChart(areaMinistriesTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Υπουργείων");
             }
         }
     }
@@ -1893,19 +1893,19 @@ public class HomeController {
             int year = Integer.parseInt(selectedYear);
             // Update revenues pie chart
             if (pieRevenue != null) {
-                ChartService.fillPieChart(pieRevenue, dataService.getRevenueBreakdownForGraphs(year), "Έσοδα " + selectedYear);
+                Charts.fillPieChart(pieRevenue, budgetData.getRevenueBreakdownForGraphs(year), "Έσοδα " + selectedYear);
             }
             // Update bar chart - top categories
             if (barRevenueTop != null) {
-                ChartService.loadBarChartForTopCategories(barRevenueTop, dataService.getRevenueBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
+                Charts.loadBarChartForTopCategories(barRevenueTop, budgetData.getRevenueBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
             }
             // Update area chart - trend
             if (areaRevenueTrend != null) {
-                ChartService.loadAreaChart(areaRevenueTrend, dataService, "total_revenue", "Διαχρονική Εξέλιξη Εσόδων");
+                Charts.loadAreaChart(areaRevenueTrend, budgetData, "total_revenue", "Διαχρονική Εξέλιξη Εσόδων");
             }
             // Update stacked bar chart
             if (stackedRevenue != null) {
-                ChartService.loadStackedBarChart(stackedRevenue, dataService, "revenue", "Σύνθεση Εσόδων ανά Έτος");
+                Charts.loadStackedBarChart(stackedRevenue, budgetData, "revenue", "Σύνθεση Εσόδων ανά Έτος");
             }
         }
     }
@@ -1917,19 +1917,19 @@ public class HomeController {
             int year = Integer.parseInt(selectedYear);
             // Update expenses pie chart
             if (pieExpenses != null) {
-                ChartService.fillPieChart(pieExpenses, dataService.getExpenseBreakdownForGraphs(year), "Έξοδα " + selectedYear);
+                Charts.fillPieChart(pieExpenses, budgetData.getExpenseBreakdownForGraphs(year), "Έξοδα " + selectedYear);
             }
             // Update bar chart - top categories
             if (barExpenseTop != null) {
-                ChartService.loadBarChartForTopCategories(barExpenseTop, dataService.getExpenseBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
+                Charts.loadBarChartForTopCategories(barExpenseTop, budgetData.getExpenseBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
             }
             // Update area chart - trend
             if (areaExpenseTrend != null) {
-                ChartService.loadAreaChart(areaExpenseTrend, dataService, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών");
+                Charts.loadAreaChart(areaExpenseTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών");
             }
             // Update stacked bar chart
             if (stackedExpense != null) {
-                ChartService.loadStackedBarChart(stackedExpense, dataService, "expense", "Σύνθεση Δαπανών ανά Έτος");
+                Charts.loadStackedBarChart(stackedExpense, budgetData, "expense", "Σύνθεση Δαπανών ανά Έτος");
             }
         }
     }
@@ -1941,16 +1941,16 @@ public class HomeController {
             int year = Integer.parseInt(selectedYear);
             // Update administrations pie chart
             if (pieAdministrations != null) {
-                ChartService.fillPieChart(pieAdministrations, dataService.getDecentralizedAdministrationsBreakdown(year), "Αποκεντρωμένες Διοικήσεις " + selectedYear);
+                Charts.fillPieChart(pieAdministrations, budgetData.getDecentralizedAdministrationsBreakdown(year), "Αποκεντρωμένες Διοικήσεις " + selectedYear);
             }
             // Update bar chart - top administrations
             if (barAdministrationsTop != null) {
-                ChartService.loadBarChartForTopCategories(barAdministrationsTop, dataService.getDecentralizedAdministrationsBreakdown(year), "Κορυφαίες Διοικήσεις", 7);
+                Charts.loadBarChartForTopCategories(barAdministrationsTop, budgetData.getDecentralizedAdministrationsBreakdown(year), "Κορυφαίες Διοικήσεις", 7);
             }
             // Update area chart - trend (using total_da if available, otherwise total_expenses)
             if (areaAdministrationsTrend != null) {
                 // For administrations, we'll use total_expenses as proxy since they are part of expenses
-                ChartService.loadAreaChart(areaAdministrationsTrend, dataService, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Αποκεντρωμένων Διοικήσεων");
+                Charts.loadAreaChart(areaAdministrationsTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Αποκεντρωμένων Διοικήσεων");
             }
         }
     }
@@ -2126,13 +2126,13 @@ public class HomeController {
         int endYear = Calendar.getInstance().get(Calendar.YEAR) + 1;
         
         for (int year = startYear; year <= endYear; year++) {
-            double revenues = dataService.getTotalRevenues(year);
-            double expenses = dataService.getTotalExpenses(year);
-            double balance = BudgetStatisticsCalculator.calculateBalance(revenues, expenses);
-            double prevRevenues = year > startYear ? dataService.getTotalRevenues(year - 1) : 0;
-            double change = BudgetStatisticsCalculator.calculatePercentageChange(revenues, prevRevenues);
+            double revenues = budgetData.getTotalRevenues(year);
+            double expenses = budgetData.getTotalExpenses(year);
+            double balance = StatisticalAnalysis.calculateBalance(revenues, expenses);
+            double prevRevenues = year > startYear ? budgetData.getTotalRevenues(year - 1) : 0;
+            double change = StatisticalAnalysis.calculatePercentageChange(revenues, prevRevenues);
             
-            String changeText = prevRevenues > 0 ? BudgetAmountFormatter.formatPercentageChange(change) : "Νέο";
+            String changeText = prevRevenues > 0 ? AmountFormatter.formatPercentageChange(change) : "Νέο";
             data.add(new CategoryData(
                 String.valueOf(year),
                 revenues,
@@ -2170,8 +2170,8 @@ public class HomeController {
             
             if (exploreMinistryComboBox.getItems().isEmpty()) {
                 int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-                List<BudgetDataService.CategoryInfo> ministries = dataService.getCategories(currentYear);
-                for (BudgetDataService.CategoryInfo m : ministries) {
+                List<BudgetData.CategoryInfo> ministries = budgetData.getCategories(currentYear);
+                for (BudgetData.CategoryInfo m : ministries) {
                     exploreMinistryComboBox.getItems().add(m.getName());
                 }
                 if (!exploreMinistryComboBox.getItems().isEmpty()) {
@@ -2199,12 +2199,12 @@ public class HomeController {
         int endYear = Calendar.getInstance().get(Calendar.YEAR) + 1;
         
         for (int year = startYear; year <= endYear; year++) {
-            List<BudgetDataService.CategoryInfo> ministries = dataService.getCategories(year);
-            for (BudgetDataService.CategoryInfo m : ministries) {
+            List<BudgetData.CategoryInfo> ministries = budgetData.getCategories(year);
+            for (BudgetData.CategoryInfo m : ministries) {
                 if (m.getName().equals(ministryName)) {
                     double prevAmount = year > startYear ? getMinistryAmountForYear(ministryName, year - 1) : 0;
                     String change = prevAmount > 0 ? 
-                        BudgetAmountFormatter.formatPercentageChange(BudgetStatisticsCalculator.calculatePercentageChange(m.getAmount(), prevAmount)) : "Νέο";
+                        AmountFormatter.formatPercentageChange(StatisticalAnalysis.calculatePercentageChange(m.getAmount(), prevAmount)) : "Νέο";
                     data.add(new CategoryData(
                         String.valueOf(year),
                         m.getAmount(),
@@ -2224,8 +2224,8 @@ public class HomeController {
     }
     
     private double getMinistryAmountForYear(String ministryName, int year) {
-        List<BudgetDataService.CategoryInfo> ministries = dataService.getCategories(year);
-        for (BudgetDataService.CategoryInfo m : ministries) {
+        List<BudgetData.CategoryInfo> ministries = budgetData.getCategories(year);
+        for (BudgetData.CategoryInfo m : ministries) {
             if (m.getName().equals(ministryName)) {
                 return m.getAmount();
             }
@@ -2240,7 +2240,7 @@ public class HomeController {
      */
     private void updateCharts(int year) {
         // Update Line Chart
-        ChartService.loadLineChart(lineHistory, dataService);
+        Charts.loadLineChart(lineHistory, budgetData);
     }
 
     
@@ -2266,8 +2266,8 @@ public class HomeController {
             
             if (exploreRevenueCategoryComboBox.getItems().isEmpty()) {
                 int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-                List<BudgetDataService.CategoryInfo> revenues = dataService.getRevenueBreakdown(currentYear);
-                for (BudgetDataService.CategoryInfo r : revenues) {
+                List<BudgetData.CategoryInfo> revenues = budgetData.getRevenueBreakdown(currentYear);
+                for (BudgetData.CategoryInfo r : revenues) {
                     exploreRevenueCategoryComboBox.getItems().add(r.getName());
                 }
                 if (!exploreRevenueCategoryComboBox.getItems().isEmpty()) {
@@ -2295,12 +2295,12 @@ public class HomeController {
         int endYear = Calendar.getInstance().get(Calendar.YEAR) + 1;
         
         for (int year = startYear; year <= endYear; year++) {
-            List<BudgetDataService.CategoryInfo> revenues = dataService.getRevenueBreakdown(year);
-            for (BudgetDataService.CategoryInfo r : revenues) {
+            List<BudgetData.CategoryInfo> revenues = budgetData.getRevenueBreakdown(year);
+            for (BudgetData.CategoryInfo r : revenues) {
                 if (r.getName().equals(categoryName)) {
                     double prevAmount = year > startYear ? getRevenueCategoryAmountForYear(categoryName, year - 1) : 0;
                     String change = prevAmount > 0 ? 
-                        BudgetAmountFormatter.formatPercentageChange(BudgetStatisticsCalculator.calculatePercentageChange(r.getAmount(), prevAmount)) : "Νέο";
+                        AmountFormatter.formatPercentageChange(StatisticalAnalysis.calculatePercentageChange(r.getAmount(), prevAmount)) : "Νέο";
                     data.add(new CategoryData(
                         String.valueOf(year),
                         r.getAmount(),
@@ -2320,8 +2320,8 @@ public class HomeController {
     }
     
     private double getRevenueCategoryAmountForYear(String categoryName, int year) {
-        List<BudgetDataService.CategoryInfo> revenues = dataService.getRevenueBreakdown(year);
-        for (BudgetDataService.CategoryInfo r : revenues) {
+        List<BudgetData.CategoryInfo> revenues = budgetData.getRevenueBreakdown(year);
+        for (BudgetData.CategoryInfo r : revenues) {
             if (r.getName().equals(categoryName)) {
                 return r.getAmount();
             }
@@ -2351,8 +2351,8 @@ public class HomeController {
             
             if (exploreExpenseCategoryComboBox.getItems().isEmpty()) {
                 int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-                List<BudgetDataService.CategoryInfo> expenses = dataService.getExpensesBreakdown(currentYear);
-                for (BudgetDataService.CategoryInfo e : expenses) {
+                List<BudgetData.CategoryInfo> expenses = budgetData.getExpensesBreakdown(currentYear);
+                for (BudgetData.CategoryInfo e : expenses) {
                     exploreExpenseCategoryComboBox.getItems().add(e.getName());
                 }
                 if (!exploreExpenseCategoryComboBox.getItems().isEmpty()) {
@@ -2380,12 +2380,12 @@ public class HomeController {
         int endYear = Calendar.getInstance().get(Calendar.YEAR) + 1;
         
         for (int year = startYear; year <= endYear; year++) {
-            List<BudgetDataService.CategoryInfo> expenses = dataService.getExpensesBreakdown(year);
-            for (BudgetDataService.CategoryInfo e : expenses) {
+            List<BudgetData.CategoryInfo> expenses = budgetData.getExpensesBreakdown(year);
+            for (BudgetData.CategoryInfo e : expenses) {
                 if (e.getName().equals(categoryName)) {
                     double prevAmount = year > startYear ? getExpenseCategoryAmountForYear(categoryName, year - 1) : 0;
                     String change = prevAmount > 0 ? 
-                        BudgetAmountFormatter.formatPercentageChange(BudgetStatisticsCalculator.calculatePercentageChange(e.getAmount(), prevAmount)) : "Νέο";
+                        AmountFormatter.formatPercentageChange(StatisticalAnalysis.calculatePercentageChange(e.getAmount(), prevAmount)) : "Νέο";
                     data.add(new CategoryData(
                         String.valueOf(year),
                         e.getAmount(),
@@ -2405,8 +2405,8 @@ public class HomeController {
     }
     
     private double getExpenseCategoryAmountForYear(String categoryName, int year) {
-        List<BudgetDataService.CategoryInfo> expenses = dataService.getExpensesBreakdown(year);
-        for (BudgetDataService.CategoryInfo e : expenses) {
+        List<BudgetData.CategoryInfo> expenses = budgetData.getExpensesBreakdown(year);
+        for (BudgetData.CategoryInfo e : expenses) {
             if (e.getName().equals(categoryName)) {
                 return e.getAmount();
             }
@@ -2432,22 +2432,22 @@ public class HomeController {
         int currentYear = Calendar.getInstance().get(Calendar.YEAR);
         int previousYear = currentYear - 1;
         
-        List<BudgetDataService.CategoryInfo> currentMinistries = dataService.getCategories(currentYear);
-        List<BudgetDataService.CategoryInfo> prevMinistries = dataService.getCategories(previousYear);
+        List<BudgetData.CategoryInfo> currentMinistries = budgetData.getCategories(currentYear);
+        List<BudgetData.CategoryInfo> prevMinistries = budgetData.getCategories(previousYear);
         Map<String, Double> prevMinistryMap = new HashMap<>();
-        for (BudgetDataService.CategoryInfo m : prevMinistries) {
+        for (BudgetData.CategoryInfo m : prevMinistries) {
             prevMinistryMap.put(m.getName(), m.getAmount());
         }
         
-        for (BudgetDataService.CategoryInfo m : currentMinistries) {
+        for (BudgetData.CategoryInfo m : currentMinistries) {
             double prevAmount = prevMinistryMap.getOrDefault(m.getName(), 0.0);
-            double change = BudgetStatisticsCalculator.calculatePercentageChange(m.getAmount(), prevAmount);
+            double change = StatisticalAnalysis.calculatePercentageChange(m.getAmount(), prevAmount);
             String trend = change > 5 ? "↑ Αύξηση" : change < -5 ? "↓ Μείωση" : "— Σταθερό";
             data.add(new CategoryData(
                 m.getName(),
                 m.getAmount(),
                 prevAmount,
-                BudgetAmountFormatter.formatPercentageChange(change),
+                AmountFormatter.formatPercentageChange(change),
                 trend,
                 0
             ));
@@ -2623,8 +2623,8 @@ public class HomeController {
     }
     
     private void loadComparisonData(int year1, int year2) throws Exception {
-        ComparisonService comparisonService = new ComparisonService();
-        ComparisonService.ComparisonResults results = comparisonService.compareYears(year1, year2);
+        Comparisons comparisons = new Comparisons();
+        Comparisons.ComparisonResults results = comparisons.compareYears(year1, year2);
         
         ObservableList<CategoryData> data = FXCollections.observableArrayList();
         
@@ -2635,12 +2635,12 @@ public class HomeController {
         long totalRevenues1 = 0, totalRevenues2 = 0;
         long totalExpenses1 = 0, totalExpenses2 = 0;
         
-        for (ComparisonService.ComparisonData compData : results.getRevenues().values()) {
+        for (Comparisons.ComparisonData compData : results.getRevenues().values()) {
             totalRevenues1 += compData.getYear1Value();
             totalRevenues2 += compData.getYear2Value();
         }
         
-        for (ComparisonService.ComparisonData compData : results.getExpenses().values()) {
+        for (Comparisons.ComparisonData compData : results.getExpenses().values()) {
             totalExpenses1 += compData.getYear1Value();
             totalExpenses2 += compData.getYear2Value();
         }
@@ -2661,7 +2661,7 @@ public class HomeController {
         
         // Add Revenues
         data.add(new CategoryData("━━━ ΕΣΟΔΑ ━━━", 0, 0, "", "", 0));
-        for (ComparisonService.ComparisonData compData : results.getRevenues().values()) {
+        for (Comparisons.ComparisonData compData : results.getRevenues().values()) {
             data.add(new CategoryData(compData.getCategoryName(), 
                 compData.getYear1Value(), compData.getYear2Value(),
                 String.format("%,d €", compData.getDifference()),
@@ -2670,7 +2670,7 @@ public class HomeController {
         
         // Add Expenses
         data.add(new CategoryData("━━━ ΔΑΠΑΝΕΣ ━━━", 0, 0, "", "", 0));
-        for (ComparisonService.ComparisonData compData : results.getExpenses().values()) {
+        for (Comparisons.ComparisonData compData : results.getExpenses().values()) {
             data.add(new CategoryData(compData.getCategoryName(),
                 compData.getYear1Value(), compData.getYear2Value(),
                 String.format("%,d €", compData.getDifference()),
@@ -2679,7 +2679,7 @@ public class HomeController {
         
         // Add Administrations
         data.add(new CategoryData("━━━ ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ ━━━", 0, 0, "", "", 0));
-        for (ComparisonService.ComparisonData compData : results.getAdministrations().values()) {
+        for (Comparisons.ComparisonData compData : results.getAdministrations().values()) {
             data.add(new CategoryData(compData.getCategoryName(),
                 compData.getYear1Value(), compData.getYear2Value(),
                 String.format("%,d €", compData.getDifference()),
@@ -2688,7 +2688,7 @@ public class HomeController {
         
         // Add Ministries
         data.add(new CategoryData("━━━ ΥΠΟΥΡΓΕΙΑ ━━━", 0, 0, "", "", 0));
-        for (ComparisonService.ComparisonData compData : results.getMinistries().values()) {
+        for (Comparisons.ComparisonData compData : results.getMinistries().values()) {
             data.add(new CategoryData(compData.getCategoryName(),
                 compData.getYear1Value(), compData.getYear2Value(),
                 String.format("%,d €", compData.getDifference()),
@@ -2819,7 +2819,7 @@ public class HomeController {
         
         try {
             int year = Integer.parseInt(simulationBaseYearComboBox.getValue());
-            BudgetDataService service = BudgetDataService.getInstance();
+            BudgetData service = BudgetData.getInstance();
             
             simulationBaseYear = year;
             simulationBaseRevenue = service.getTotalRevenues(year);
@@ -2828,9 +2828,9 @@ public class HomeController {
             if (simulationResultsArea != null) {
                 simulationResultsArea.setText("✅ Δεδομένα φορτώθηκαν επιτυχώς!\n\n" +
                     "Έτος: " + year + "\n" +
-                    "Συνολικά Έσοδα: " + BudgetAmountFormatter.formatCurrency(simulationBaseRevenue) + "\n" +
-                    "Συνολικές Δαπάνες: " + BudgetAmountFormatter.formatCurrency(simulationBaseExpense) + "\n" +
-                    "Ισοζύγιο: " + BudgetAmountFormatter.formatCurrency(simulationBaseRevenue - simulationBaseExpense) + "\n\n" +
+                    "Συνολικά Έσοδα: " + AmountFormatter.formatCurrency(simulationBaseRevenue) + "\n" +
+                    "Συνολικές Δαπάνες: " + AmountFormatter.formatCurrency(simulationBaseExpense) + "\n" +
+                    "Ισοζύγιο: " + AmountFormatter.formatCurrency(simulationBaseRevenue - simulationBaseExpense) + "\n\n" +
                     "Επιλέξτε ένα σενάριο για να δείτε τα αποτελέσματα.");
             }
         } catch (NumberFormatException e) {
@@ -2858,7 +2858,7 @@ public class HomeController {
         
         try {
             double percent = Double.parseDouble(revenueIncreasePercentField.getText());
-            String result = BudgetSimulations.simulateRevenueIncrease(
+            String result = Simulations.simulateRevenueIncrease(
                 simulationBaseRevenue, simulationBaseExpense, percent
             );
             if (simulationResultsArea != null) {
@@ -2878,7 +2878,7 @@ public class HomeController {
         
         try {
             double percent = Double.parseDouble(expenseDecreasePercentField.getText());
-            String result = BudgetSimulations.simulateExpenseDecrease(
+            String result = Simulations.simulateExpenseDecrease(
                 simulationBaseRevenue, simulationBaseExpense, percent
             );
             if (simulationResultsArea != null) {
@@ -2899,7 +2899,7 @@ public class HomeController {
         try {
             double revenueChange = Double.parseDouble(combinedRevenueChangeField.getText());
             double expenseChange = Double.parseDouble(combinedExpenseChangeField.getText());
-            String result = BudgetSimulations.simulateCombinedScenario(
+            String result = Simulations.simulateCombinedScenario(
                 simulationBaseRevenue, simulationBaseExpense, revenueChange, expenseChange
             );
             if (simulationResultsArea != null) {
@@ -2927,7 +2927,7 @@ public class HomeController {
             double revenueTrend = Double.parseDouble(revenueTrendField.getText());
             double expenseTrend = Double.parseDouble(expenseTrendField.getText());
             
-            String result = BudgetSimulations.simulateFutureYear(
+            String result = Simulations.simulateFutureYear(
                 simulationBaseYear, futureYear,
                 simulationBaseRevenue, simulationBaseExpense,
                 revenueTrend, expenseTrend
@@ -2993,7 +2993,7 @@ public class HomeController {
                     if (empty || item == null) {
                         setText(null);
                     } else {
-                        setText(BudgetAmountFormatter.formatCurrency(item));
+                        setText(AmountFormatter.formatCurrency(item));
                     }
                 }
             });
@@ -3062,7 +3062,7 @@ public class HomeController {
     
     private void calculateAndDisplayStatistics(int startYear, int endYear) {
         try {
-            BudgetDataService service = BudgetDataService.getInstance();
+            BudgetData service = BudgetData.getInstance();
             
             // Get revenue and expense arrays
             double[] revenues = service.getRevenuesAcrossYears(startYear, endYear);
@@ -3086,16 +3086,16 @@ public class HomeController {
             
             // Display revenue statistics
             if (statsRevenueMeanLabel != null) {
-                statsRevenueMeanLabel.setText(BudgetAmountFormatter.formatCurrency(revenueMean));
+                statsRevenueMeanLabel.setText(AmountFormatter.formatCurrency(revenueMean));
             }
             if (statsRevenueMedianLabel != null) {
-                statsRevenueMedianLabel.setText(BudgetAmountFormatter.formatCurrency(revenueMedian));
+                statsRevenueMedianLabel.setText(AmountFormatter.formatCurrency(revenueMedian));
             }
             if (statsRevenueStdDevLabel != null) {
-                statsRevenueStdDevLabel.setText(BudgetAmountFormatter.formatCurrency(revenueStdDev));
+                statsRevenueStdDevLabel.setText(AmountFormatter.formatCurrency(revenueStdDev));
             }
             if (statsRevenueVarianceLabel != null) {
-                statsRevenueVarianceLabel.setText(BudgetAmountFormatter.formatCurrency(revenueVariance));
+                statsRevenueVarianceLabel.setText(AmountFormatter.formatCurrency(revenueVariance));
             }
             if (statsRevenueCoeffVarLabel != null) {
                 statsRevenueCoeffVarLabel.setText(String.format("%.2f%%", revenueCoeffVar * 100));
@@ -3111,16 +3111,16 @@ public class HomeController {
                 
                 // Display expense statistics
                 if (statsExpenseMeanLabel != null) {
-                    statsExpenseMeanLabel.setText(BudgetAmountFormatter.formatCurrency(expenseMean));
+                    statsExpenseMeanLabel.setText(AmountFormatter.formatCurrency(expenseMean));
                 }
                 if (statsExpenseMedianLabel != null) {
-                    statsExpenseMedianLabel.setText(BudgetAmountFormatter.formatCurrency(expenseMedian));
+                    statsExpenseMedianLabel.setText(AmountFormatter.formatCurrency(expenseMedian));
                 }
                 if (statsExpenseStdDevLabel != null) {
-                    statsExpenseStdDevLabel.setText(BudgetAmountFormatter.formatCurrency(expenseStdDev));
+                    statsExpenseStdDevLabel.setText(AmountFormatter.formatCurrency(expenseStdDev));
                 }
                 if (statsExpenseVarianceLabel != null) {
-                    statsExpenseVarianceLabel.setText(BudgetAmountFormatter.formatCurrency(expenseVariance));
+                    statsExpenseVarianceLabel.setText(AmountFormatter.formatCurrency(expenseVariance));
                 }
                 if (statsExpenseCoeffVarLabel != null) {
                     statsExpenseCoeffVarLabel.setText(String.format("%.2f%%", expenseCoeffVar * 100));
@@ -3307,7 +3307,7 @@ public class HomeController {
     
     // Data Management Methods
     private void loadDataManagementTable() {
-        if (dataService != null) {
+        if (budgetData != null) {
             allDataManagementItems.clear();
             revenuesItems.clear();
             expensesItems.clear();
@@ -3322,26 +3322,26 @@ public class HomeController {
             
             // Get previous year data for comparison
             Map<String, Double> previousYearMap = new HashMap<>();
-            List<BudgetDataService.CategoryInfo> prevMinistries = dataService.getCategories(previousYear);
-            for (BudgetDataService.CategoryInfo cat : prevMinistries) {
+            List<BudgetData.CategoryInfo> prevMinistries = budgetData.getCategories(previousYear);
+            for (BudgetData.CategoryInfo cat : prevMinistries) {
                 previousYearMap.put(cat.getName() + "|Υπουργείο", cat.getAmount());
             }
-            List<BudgetDataService.CategoryInfo> prevExpenses = dataService.getExpensesBreakdown(previousYear);
-            for (BudgetDataService.CategoryInfo cat : prevExpenses) {
+            List<BudgetData.CategoryInfo> prevExpenses = budgetData.getExpensesBreakdown(previousYear);
+            for (BudgetData.CategoryInfo cat : prevExpenses) {
                 previousYearMap.put(cat.getName() + "|Δαπάνη", cat.getAmount());
             }
-            List<BudgetDataService.CategoryInfo> prevRevenues = dataService.getRevenueBreakdown(previousYear);
-            for (BudgetDataService.CategoryInfo cat : prevRevenues) {
+            List<BudgetData.CategoryInfo> prevRevenues = budgetData.getRevenueBreakdown(previousYear);
+            for (BudgetData.CategoryInfo cat : prevRevenues) {
                 previousYearMap.put(cat.getName() + "|Έσοδο", cat.getAmount());
             }
-            List<BudgetDataService.CategoryInfo> prevAdmins = dataService.getDecentralizedAdministrations(previousYear);
-            for (BudgetDataService.CategoryInfo cat : prevAdmins) {
+            List<BudgetData.CategoryInfo> prevAdmins = budgetData.getDecentralizedAdministrations(previousYear);
+            for (BudgetData.CategoryInfo cat : prevAdmins) {
                 previousYearMap.put(cat.getName() + "|Αποκεντρωμένη Διοίκηση", cat.getAmount());
             }
             
             // Check if data exists for selected year
-            double totalRevenues = dataService.getTotalRevenues(selectedYear);
-            double totalExpenses = dataService.getTotalExpenses(selectedYear);
+            double totalRevenues = budgetData.getTotalRevenues(selectedYear);
+            double totalExpenses = budgetData.getTotalExpenses(selectedYear);
             
             if (totalRevenues == 0 && totalExpenses == 0) {
                 updateDataManagementStatistics(selectedYear, previousYear);
@@ -3350,8 +3350,8 @@ public class HomeController {
             }
             
             // Load revenues (by revenue type) - ONLY revenues
-            List<BudgetDataService.CategoryInfo> revenues = dataService.getRevenueBreakdown(selectedYear);
-            for (BudgetDataService.CategoryInfo cat : revenues) {
+            List<BudgetData.CategoryInfo> revenues = budgetData.getRevenueBreakdown(selectedYear);
+            for (BudgetData.CategoryInfo cat : revenues) {
                 double prevAmount = previousYearMap.getOrDefault(cat.getName() + "|Έσοδο", 0.0);
                 CategoryData revenueData = new CategoryData(
                     cat.getName(), 
@@ -3366,8 +3366,8 @@ public class HomeController {
             }
             
             // Load expense breakdown (by expense type) - ONLY expenses
-            List<BudgetDataService.CategoryInfo> expenses = dataService.getExpensesBreakdown(selectedYear);
-            for (BudgetDataService.CategoryInfo cat : expenses) {
+            List<BudgetData.CategoryInfo> expenses = budgetData.getExpensesBreakdown(selectedYear);
+            for (BudgetData.CategoryInfo cat : expenses) {
                 double prevAmount = previousYearMap.getOrDefault(cat.getName() + "|Δαπάνη", 0.0);
                 CategoryData expenseData = new CategoryData(
                     cat.getName(), 
@@ -3382,8 +3382,8 @@ public class HomeController {
             }
             
             // Load ministries (expenses by ministry) - add to expenses
-            List<BudgetDataService.CategoryInfo> ministries = dataService.getCategories(selectedYear);
-            for (BudgetDataService.CategoryInfo cat : ministries) {
+            List<BudgetData.CategoryInfo> ministries = budgetData.getCategories(selectedYear);
+            for (BudgetData.CategoryInfo cat : ministries) {
                 double prevAmount = previousYearMap.getOrDefault(cat.getName() + "|Υπουργείο", 0.0);
                 CategoryData ministryData = new CategoryData(
                     cat.getName(), 
@@ -3398,8 +3398,8 @@ public class HomeController {
             }
             
             // Load decentralized administrations - add to expenses
-            List<BudgetDataService.CategoryInfo> administrations = dataService.getDecentralizedAdministrations(selectedYear);
-            for (BudgetDataService.CategoryInfo cat : administrations) {
+            List<BudgetData.CategoryInfo> administrations = budgetData.getDecentralizedAdministrations(selectedYear);
+            for (BudgetData.CategoryInfo cat : administrations) {
                 double prevAmount = previousYearMap.getOrDefault(cat.getName() + "|Αποκεντρωμένη Διοίκηση", 0.0);
                 CategoryData adminData = new CategoryData(
                     cat.getName(), 
@@ -3422,24 +3422,24 @@ public class HomeController {
     }
     
     private void updateDataManagementStatistics(int currentYear, int previousYear) {
-        double totalRevenues = dataService.getTotalRevenues(currentYear);
-        double totalExpenses = dataService.getTotalExpenses(currentYear);
-        double balance = dataService.getBalance(currentYear);
+        double totalRevenues = budgetData.getTotalRevenues(currentYear);
+        double totalExpenses = budgetData.getTotalExpenses(currentYear);
+        double balance = budgetData.getBalance(currentYear);
         
         if (dmTotalRevenuesLabel != null) {
-            dmTotalRevenuesLabel.setText(BudgetAmountFormatter.formatAmount(totalRevenues) + " €");
+            dmTotalRevenuesLabel.setText(AmountFormatter.formatAmount(totalRevenues) + " €");
             // Ensure large and bold styling
             dmTotalRevenuesLabel.getStyleClass().clear();
             dmTotalRevenuesLabel.getStyleClass().addAll("stat-value-large", "revenue-value");
         }
         if (dmTotalExpensesLabel != null) {
-            dmTotalExpensesLabel.setText(BudgetAmountFormatter.formatAmount(totalExpenses) + " €");
+            dmTotalExpensesLabel.setText(AmountFormatter.formatAmount(totalExpenses) + " €");
             // Ensure large and bold styling
             dmTotalExpensesLabel.getStyleClass().clear();
             dmTotalExpensesLabel.getStyleClass().addAll("stat-value-large", "expense-value");
         }
         if (dmBalanceLabel != null) {
-            dmBalanceLabel.setText(BudgetAmountFormatter.formatAmount(balance) + " €");
+            dmBalanceLabel.setText(AmountFormatter.formatAmount(balance) + " €");
             // Ensure large and bold styling
             dmBalanceLabel.getStyleClass().clear();
             dmBalanceLabel.getStyleClass().add("stat-value-large");
@@ -3582,14 +3582,14 @@ public class HomeController {
         
         // Real-time validation for category
         categoryField.textProperty().addListener((obs, oldText, newText) -> {
-            DataValidator.ValidationResult result = DataValidator.validateCategory(newText);
-            DataValidator.applyValidationStyle(categoryField, result.isValid(), categoryErrorLabel, result.getErrorMessage());
+            Constraints.ValidationResult result = Constraints.validateCategory(newText);
+            Constraints.applyValidationStyle(categoryField, result.isValid(), categoryErrorLabel, result.getErrorMessage());
         });
         
         // Real-time validation for amount
         amountField.textProperty().addListener((obs, oldText, newText) -> {
-            DataValidator.ValidationResult result = DataValidator.validateAmount(newText);
-            DataValidator.applyValidationStyle(amountField, result.isValid(), amountErrorLabel, result.getErrorMessage());
+            Constraints.ValidationResult result = Constraints.validateAmount(newText);
+            Constraints.applyValidationStyle(amountField, result.isValid(), amountErrorLabel, result.getErrorMessage());
         });
         
         grid.add(new Label("Κατηγορία:"), 0, 0);
@@ -3614,13 +3614,13 @@ public class HomeController {
                 String amountText = amountField.getText();
                 String type = typeCombo.getValue();
                 
-                DataValidator.ValidationResult categoryResult = DataValidator.validateCategory(category);
-                DataValidator.ValidationResult amountResult = DataValidator.validateAmount(amountText);
-                DataValidator.ValidationResult typeResult = DataValidator.validateComboBoxSelection(type, "τύπος");
+                Constraints.ValidationResult categoryResult = Constraints.validateCategory(category);
+                Constraints.ValidationResult amountResult = Constraints.validateAmount(amountText);
+                Constraints.ValidationResult typeResult = Constraints.validateComboBoxSelection(type, "τύπος");
                 
                 // Apply validation styles
-                DataValidator.applyValidationStyle(categoryField, categoryResult.isValid(), categoryErrorLabel, categoryResult.getErrorMessage());
-                DataValidator.applyValidationStyle(amountField, amountResult.isValid(), amountErrorLabel, amountResult.getErrorMessage());
+                Constraints.applyValidationStyle(categoryField, categoryResult.isValid(), categoryErrorLabel, categoryResult.getErrorMessage());
+                Constraints.applyValidationStyle(amountField, amountResult.isValid(), amountErrorLabel, amountResult.getErrorMessage());
                 
                 // Check if all validations pass
                 if (!categoryResult.isValid() || !amountResult.isValid() || !typeResult.isValid()) {
@@ -3726,14 +3726,14 @@ public class HomeController {
         
         // Real-time validation for category
         categoryField.textProperty().addListener((obs, oldText, newText) -> {
-            DataValidator.ValidationResult result = DataValidator.validateCategory(newText);
-            DataValidator.applyValidationStyle(categoryField, result.isValid(), categoryErrorLabel, result.getErrorMessage());
+            Constraints.ValidationResult result = Constraints.validateCategory(newText);
+            Constraints.applyValidationStyle(categoryField, result.isValid(), categoryErrorLabel, result.getErrorMessage());
         });
         
         // Real-time validation for amount
         amountField.textProperty().addListener((obs, oldText, newText) -> {
-            DataValidator.ValidationResult result = DataValidator.validateAmount(newText);
-            DataValidator.applyValidationStyle(amountField, result.isValid(), amountErrorLabel, result.getErrorMessage());
+            Constraints.ValidationResult result = Constraints.validateAmount(newText);
+            Constraints.applyValidationStyle(amountField, result.isValid(), amountErrorLabel, result.getErrorMessage());
         });
         
         grid.add(new Label("Κατηγορία:"), 0, 0);
@@ -3754,12 +3754,12 @@ public class HomeController {
                 String category = categoryField.getText();
                 String amountText = amountField.getText();
                 
-                DataValidator.ValidationResult categoryResult = DataValidator.validateCategory(category);
-                DataValidator.ValidationResult amountResult = DataValidator.validateAmount(amountText);
+                Constraints.ValidationResult categoryResult = Constraints.validateCategory(category);
+                Constraints.ValidationResult amountResult = Constraints.validateAmount(amountText);
                 
                 // Apply validation styles
-                DataValidator.applyValidationStyle(categoryField, categoryResult.isValid(), categoryErrorLabel, categoryResult.getErrorMessage());
-                DataValidator.applyValidationStyle(amountField, amountResult.isValid(), amountErrorLabel, amountResult.getErrorMessage());
+                Constraints.applyValidationStyle(categoryField, categoryResult.isValid(), categoryErrorLabel, categoryResult.getErrorMessage());
+                Constraints.applyValidationStyle(amountField, amountResult.isValid(), amountErrorLabel, amountResult.getErrorMessage());
                 
                 // Check if all validations pass
                 if (!categoryResult.isValid() || !amountResult.isValid()) {
@@ -3785,8 +3785,8 @@ public class HomeController {
                     // Business constraints validation
                     // Check if amount change is reasonable
                     double previousAmount = selected.getPreviousYearAmount();
-                    BusinessConstraintsValidator.ValidationResult amountChangeResult = 
-                        BusinessConstraintsValidator.validateAmountChange(amount, previousAmount);
+                    Constraints.ValidationResult amountChangeResult = 
+                        Constraints.validateAmountChange(amount, previousAmount);
                     if (!amountChangeResult.isValid()) {
                         Alert alert = new Alert(Alert.AlertType.WARNING);
                         alert.setTitle("Περιορισμός Επιχειρηματικής Λογικής");
@@ -3868,8 +3868,6 @@ public class HomeController {
         fileChooser.getExtensionFilters().addAll(
             new FileChooser.ExtensionFilter("CSV Files", "*.csv"),
             new FileChooser.ExtensionFilter("JSON Files", "*.json"),
-            new FileChooser.ExtensionFilter("XML Files", "*.xml"),
-            new FileChooser.ExtensionFilter("Excel Files", "*.xlsx", "*.xls"),
             new FileChooser.ExtensionFilter("All Files", "*.*")
         );
         
@@ -3900,28 +3898,13 @@ public class HomeController {
                     } else {
                         throw new Exception("Αποτυχία εισαγωγής JSON");
                     }
-                } else if (fileName.endsWith(".xml")) {
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Εισαγωγή Δεδομένων");
-                    alert.setHeaderText("Μη υποστηριζόμενη μορφή");
-                    alert.setContentText("Η εισαγωγή από XML δεν είναι ακόμα διαθέσιμη. Παρακαλώ χρησιμοποιήστε JSON.");
-                    alert.showAndWait();
-                    return;
                 } else if (fileName.endsWith(".csv")) {
                     importedCount = importFromCSV(file);
-                } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
-                    // For Excel files, we'll show a message that it's not fully implemented yet
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Εισαγωγή Αρχείου");
-                    alert.setHeaderText("Υποστήριξη Excel");
-                    alert.setContentText("Η εισαγωγή από Excel αρχεία (.xlsx, .xls) θα προστεθεί σύντομα. Παρακαλώ χρησιμοποιήστε CSV αρχεία.");
-                    alert.showAndWait();
-                    return;
                 } else {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Σφάλμα");
                     alert.setHeaderText("Μη υποστηριζόμενος τύπος αρχείου");
-                    alert.setContentText("Παρακαλώ επιλέξτε CSV, JSON ή XML αρχείο");
+                    alert.setContentText("Παρακαλώ επιλέξτε CSV ή JSON αρχείο");
                     alert.showAndWait();
                     return;
                 }
@@ -4028,7 +4011,7 @@ public class HomeController {
             return;
         }
         
-        boolean success = persistenceService.saveComment(categoryName, year, comments);
+        boolean success = userData.saveComment(categoryName, year, comments);
         
         if (success) {
             // Update the CategoryData object as well
@@ -4050,7 +4033,25 @@ public class HomeController {
     
     @FXML
     private void onExportData() {
-        if (dataManagementTable == null || dataManagementTable.getItems().isEmpty()) {
+        // Dialog για επιλογή τύπου εξαγωγής
+        ChoiceDialog<String> typeDialog = new ChoiceDialog<>("User Data", "User Data", "Budget Data");
+        typeDialog.setTitle("Εξαγωγή Δεδομένων");
+        typeDialog.setHeaderText("Επιλέξτε τύπο εξαγωγής");
+        typeDialog.setContentText("Τι θέλετε να εξάγετε;");
+        
+        Stage dialogStage = (Stage) (dataManagementTable != null ? dataManagementTable.getScene().getWindow() : null);
+        typeDialog.initOwner(dialogStage);
+        
+        java.util.Optional<String> result = typeDialog.showAndWait();
+        if (!result.isPresent()) {
+            return; // Ο χρήστης ακύρωσε
+        }
+        
+        String exportType = result.get();
+        boolean isBudgetData = exportType.equals("Budget Data");
+        
+        // Αν είναι Budget Data, δεν χρειάζεται έλεγχος για άδειο πίνακα
+        if (!isBudgetData && (dataManagementTable == null || dataManagementTable.getItems().isEmpty())) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Εξαγωγή Δεδομένων");
             alert.setHeaderText("Καμία εγγραφή");
@@ -4061,12 +4062,21 @@ public class HomeController {
         
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Εξαγωγή Δεδομένων");
-        fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("CSV Files", "*.csv"),
-            new FileChooser.ExtensionFilter("JSON Files", "*.json"),
-            new FileChooser.ExtensionFilter("XML Files", "*.xml"),
-            new FileChooser.ExtensionFilter("All Files", "*.*")
-        );
+        
+        if (isBudgetData) {
+            // Για Budget Data, μόνο JSON
+            fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("JSON Files", "*.json"),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+            );
+        } else {
+            // Για User Data, CSV και JSON
+            fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv"),
+                new FileChooser.ExtensionFilter("JSON Files", "*.json"),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+            );
+        }
         
         Stage stage = (Stage) (dataManagementTable != null ? dataManagementTable.getScene().getWindow() : null);
         java.io.File file = fileChooser.showSaveDialog(stage);
@@ -4074,8 +4084,21 @@ public class HomeController {
         if (file != null) {
             String fileName = file.getName().toLowerCase();
             try {
-                if (fileName.endsWith(".json")) {
-                    // Export to JSON using export service
+                if (isBudgetData) {
+                    // Export Budget Data to JSON
+                    int year = dataManagementSelectedYear;
+                    boolean success = exportImportService.exportBudgetDataToJSON(file.getAbsolutePath(), year);
+                    if (success) {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Εξαγωγή Δεδομένων");
+                        alert.setHeaderText("Επιτυχής Εξαγωγή");
+                        alert.setContentText("Εξήχθησαν τα δεδομένα προϋπολογισμού για το έτος " + year + " στο αρχείο " + file.getName());
+                        alert.showAndWait();
+                    } else {
+                        throw new Exception("Αποτυχία εξαγωγής Budget Data");
+                    }
+                } else if (fileName.endsWith(".json")) {
+                    // Export User Data to JSON
                     boolean success = exportImportService.exportToJSON(file.getAbsolutePath());
                     if (success) {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -4086,20 +4109,8 @@ public class HomeController {
                     } else {
                         throw new Exception("Αποτυχία εξαγωγής JSON");
                     }
-                } else if (fileName.endsWith(".xml")) {
-                    // Export to XML using export service
-                    boolean success = exportImportService.exportToXML(file.getAbsolutePath());
-                    if (success) {
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("Εξαγωγή Δεδομένων");
-                        alert.setHeaderText("Επιτυχής Εξαγωγή");
-                        alert.setContentText("Εξήχθησαν όλα τα δεδομένα (σχόλια, scenarios, preferences) στο αρχείο " + file.getName());
-                        alert.showAndWait();
-                    } else {
-                        throw new Exception("Αποτυχία εξαγωγής XML");
-                    }
                 } else {
-                    // Default CSV export
+                    // Default CSV export (User Data from table)
                     java.io.FileWriter writer = new java.io.FileWriter(file);
                     
                     // Write header
@@ -4208,8 +4219,8 @@ public class HomeController {
             try {
                 org.json.JSONObject scenarioData = new org.json.JSONObject();
                 scenarioData.put("year", year);
-                scenarioData.put("totalRevenues", dataService.getTotalRevenues(year));
-                scenarioData.put("totalExpenses", dataService.getTotalExpenses(year));
+                scenarioData.put("totalRevenues", budgetData.getTotalRevenues(year));
+                scenarioData.put("totalExpenses", budgetData.getTotalExpenses(year));
                 
                 // Add current table data if available
                 if (dataManagementTable != null && !dataManagementTable.getItems().isEmpty()) {
@@ -4224,7 +4235,7 @@ public class HomeController {
                     scenarioData.put("items", items);
                 }
                 
-                boolean success = persistenceService.saveScenario(scenarioName, description, year, scenarioData.toString());
+                boolean success = userData.saveScenario(scenarioName, description, year, scenarioData.toString());
                 
                 if (success) {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -4255,7 +4266,7 @@ public class HomeController {
      */
     @FXML
     private void onLoadScenario() {
-        List<DataPersistenceService.SavedScenario> scenarios = persistenceService.getAllScenarios();
+        List<UserData.SavedScenario> scenarios = userData.getAllScenarios();
         
         if (scenarios.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -4266,16 +4277,16 @@ public class HomeController {
             return;
         }
         
-        Dialog<DataPersistenceService.SavedScenario> dialog = new Dialog<>();
+        Dialog<UserData.SavedScenario> dialog = new Dialog<>();
         dialog.setTitle("Φόρτωση Scenario");
         dialog.setHeaderText("Επιλέξτε scenario προς φόρτωση");
         
-        ListView<DataPersistenceService.SavedScenario> listView = new ListView<>();
-        ObservableList<DataPersistenceService.SavedScenario> items = FXCollections.observableArrayList(scenarios);
+        ListView<UserData.SavedScenario> listView = new ListView<>();
+        ObservableList<UserData.SavedScenario> items = FXCollections.observableArrayList(scenarios);
         listView.setItems(items);
-        listView.setCellFactory(param -> new ListCell<DataPersistenceService.SavedScenario>() {
+        listView.setCellFactory(param -> new ListCell<UserData.SavedScenario>() {
             @Override
-            protected void updateItem(DataPersistenceService.SavedScenario item, boolean empty) {
+            protected void updateItem(UserData.SavedScenario item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(null);
@@ -4295,14 +4306,14 @@ public class HomeController {
         dialog.getDialogPane().getButtonTypes().addAll(loadButton, deleteButton, ButtonType.CANCEL);
         
         dialog.setResultConverter(dialogButton -> {
-            DataPersistenceService.SavedScenario selected = listView.getSelectionModel().getSelectedItem();
+            UserData.SavedScenario selected = listView.getSelectionModel().getSelectedItem();
             if (selected == null) {
                 return null;
             }
             
             if (dialogButton == deleteButton) {
                 // Delete scenario
-                boolean success = persistenceService.deleteScenario(selected.getScenarioName());
+                boolean success = userData.deleteScenario(selected.getScenarioName());
                 if (success) {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Διαγραφή Scenario");
@@ -4319,7 +4330,7 @@ public class HomeController {
             return null;
         });
         
-        java.util.Optional<DataPersistenceService.SavedScenario> result = dialog.showAndWait();
+        java.util.Optional<UserData.SavedScenario> result = dialog.showAndWait();
         result.ifPresent(scenario -> {
             try {
                 // Parse scenario data and apply it
@@ -4390,30 +4401,30 @@ public class HomeController {
         valueField.textProperty().addListener((obs, oldText, newText) -> {
             if (actionCombo.getValue() != null) {
                 String action = actionCombo.getValue();
-                DataValidator.ValidationResult result;
+                Constraints.ValidationResult result;
                 
                 if (action.contains("%")) {
                     // Percentage validation
-                    result = DataValidator.validatePercentage(newText);
+                    result = Constraints.validatePercentage(newText);
                 } else {
                     // Amount validation
-                    result = DataValidator.validateAmount(newText);
+                    result = Constraints.validateAmount(newText);
                 }
                 
-                DataValidator.applyValidationStyle(valueField, result.isValid(), valueErrorLabel, result.getErrorMessage());
+                Constraints.applyValidationStyle(valueField, result.isValid(), valueErrorLabel, result.getErrorMessage());
             }
         });
         
         // Also validate when action changes
         actionCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !valueField.getText().isEmpty()) {
-                DataValidator.ValidationResult result;
+                Constraints.ValidationResult result;
                 if (newVal.contains("%")) {
-                    result = DataValidator.validatePercentage(valueField.getText());
+                    result = Constraints.validatePercentage(valueField.getText());
                 } else {
-                    result = DataValidator.validateAmount(valueField.getText());
+                    result = Constraints.validateAmount(valueField.getText());
                 }
-                DataValidator.applyValidationStyle(valueField, result.isValid(), valueErrorLabel, result.getErrorMessage());
+                Constraints.applyValidationStyle(valueField, result.isValid(), valueErrorLabel, result.getErrorMessage());
             }
         });
         
@@ -4435,7 +4446,7 @@ public class HomeController {
                 String value = valueField.getText();
                 
                 // Validate action selection
-                DataValidator.ValidationResult actionResult = DataValidator.validateComboBoxSelection(action, "ενέργεια");
+                Constraints.ValidationResult actionResult = Constraints.validateComboBoxSelection(action, "ενέργεια");
                 
                 if (!actionResult.isValid()) {
                     Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -4447,14 +4458,14 @@ public class HomeController {
                 }
                 
                 // Validate value based on action type
-                DataValidator.ValidationResult valueResult;
+                Constraints.ValidationResult valueResult;
                 if (action.contains("%")) {
-                    valueResult = DataValidator.validatePercentage(value);
+                    valueResult = Constraints.validatePercentage(value);
                 } else {
-                    valueResult = DataValidator.validateAmount(value);
+                    valueResult = Constraints.validateAmount(value);
                 }
                 
-                DataValidator.applyValidationStyle(valueField, valueResult.isValid(), valueErrorLabel, valueResult.getErrorMessage());
+                Constraints.applyValidationStyle(valueField, valueResult.isValid(), valueErrorLabel, valueResult.getErrorMessage());
                 
                 if (!valueResult.isValid()) {
                     Alert alert = new Alert(Alert.AlertType.WARNING);

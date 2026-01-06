@@ -431,5 +431,43 @@ class StatisticalAnalysisTest {
         double range = StatisticalAnalysis.calculateRange(values);
         assertEquals(40.0, range, 0.01);
     }
+
+    // Test calculatePercentageChange (moved from BudgetStatisticsCalculator)
+    @Test
+    void testCalculatePercentageChange() {
+        // Test positive change
+        assertEquals(25.0, StatisticalAnalysis.calculatePercentageChange(125.0, 100.0), 0.01);
+        
+        // Test negative change
+        assertEquals(-20.0, StatisticalAnalysis.calculatePercentageChange(80.0, 100.0), 0.01);
+        
+        // Test no change
+        assertEquals(0.0, StatisticalAnalysis.calculatePercentageChange(100.0, 100.0), 0.01);
+        
+        // Test division by zero (should return 0.0)
+        assertEquals(0.0, StatisticalAnalysis.calculatePercentageChange(100.0, 0.0), 0.01);
+        
+        // Test from zero to positive
+        assertEquals(0.0, StatisticalAnalysis.calculatePercentageChange(100.0, 0.0), 0.01);
+    }
+
+    // Test calculateBalance (moved from BudgetStatisticsCalculator)
+    @Test
+    void testCalculateBalance() {
+        // Test surplus
+        assertEquals(500.0, StatisticalAnalysis.calculateBalance(1000.0, 500.0), 0.01);
+        
+        // Test deficit
+        assertEquals(-500.0, StatisticalAnalysis.calculateBalance(500.0, 1000.0), 0.01);
+        
+        // Test balanced
+        assertEquals(0.0, StatisticalAnalysis.calculateBalance(1000.0, 1000.0), 0.01);
+        
+        // Test with zero revenues
+        assertEquals(-500.0, StatisticalAnalysis.calculateBalance(0.0, 500.0), 0.01);
+        
+        // Test with zero expenses
+        assertEquals(1000.0, StatisticalAnalysis.calculateBalance(1000.0, 0.0), 0.01);
+    }
 }
 
