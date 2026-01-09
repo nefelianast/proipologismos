@@ -30,6 +30,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
+import ui.Comparisons;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -2622,33 +2623,27 @@ public class HomeController {
         // Add Budget Summary
         data.add(new CategoryData("━━━ ΣΥΝΟΨΗ ΠΡΟΥΠΟΛΟΓΙΣΜΟΥ ━━━", 0, 0, "", "", 0));
         
-        // Calculate totals for budget summary
-        long totalRevenues1 = 0, totalRevenues2 = 0;
-        long totalExpenses1 = 0, totalExpenses2 = 0;
+        long balance1 = results.getTotalRevenueSummary1() - results.getTotalExpensesSummary1();
+        long balance2 = results.getTotalRevenueSummary2() - results.getTotalExpensesSummary2();
         
-        for (Comparisons.ComparisonData compData : results.getRevenues().values()) {
-            totalRevenues1 += compData.getYear1Value();
-            totalRevenues2 += compData.getYear2Value();
-        }
-        
-        for (Comparisons.ComparisonData compData : results.getExpenses().values()) {
-            totalExpenses1 += compData.getYear1Value();
-            totalExpenses2 += compData.getYear2Value();
-        }
-        
-        long balance1 = totalRevenues1 - totalExpenses1;
-        long balance2 = totalRevenues2 - totalExpenses2;
-        
-        // Use: category, amount (year1), percentage (year2 as double), change (difference), status (% change)
-        data.add(new CategoryData("Συνολικά Έσοδα", totalRevenues1, totalRevenues2, 
-            String.format("%,d €", totalRevenues2 - totalRevenues1),
-            formatPercentageChange(totalRevenues1, totalRevenues2), 0));
-        data.add(new CategoryData("Συνολικές Δαπάνες", totalExpenses1, totalExpenses2,
-            String.format("%,d €", totalExpenses2 - totalExpenses1),
-            formatPercentageChange(totalExpenses1, totalExpenses2), 0));
+        data.add(new CategoryData("Budget result", results.getBudgetResult1(), results.getBudgetResult2(),
+            String.format("%,d €", results.getBudgetResult2() - results.getBudgetResult1()),
+            formatPercentageChange(results.getBudgetResult1(), results.getBudgetResult2()), 0));
+        data.add(new CategoryData("Συνολικά Έσοδα", results.getTotalRevenueSummary1(), results.getTotalRevenueSummary2(), 
+            String.format("%,d €", results.getTotalRevenueSummary2() - results.getTotalRevenueSummary1()),
+            formatPercentageChange(results.getTotalRevenueSummary1(), results.getTotalRevenueSummary2()), 0));
+        data.add(new CategoryData("Συνολικές Δαπάνες", results.getTotalExpensesSummary1(), results.getTotalExpensesSummary2(),
+            String.format("%,d €", results.getTotalExpensesSummary2() - results.getTotalExpensesSummary1()),
+            formatPercentageChange(results.getTotalExpensesSummary1(), results.getTotalExpensesSummary2()), 0));
         data.add(new CategoryData("Υπόλοιπο", balance1, balance2,
             String.format("%,d €", balance2 - balance1),
             formatPercentageChange(balance1, balance2), 0));
+        data.add(new CategoryData("Συνολικά Υπουργεία", results.getTotalMinistriesSummary1(), results.getTotalMinistriesSummary2(),
+            String.format("%,d €", results.getTotalMinistriesSummary2() - results.getTotalMinistriesSummary1()),
+            formatPercentageChange(results.getTotalMinistriesSummary1(), results.getTotalMinistriesSummary2()), 0));
+        data.add(new CategoryData("Συνολικές Αποκεντρωμένες Διοικήσεις", results.getTotalDASummary1(), results.getTotalDASummary2(),
+            String.format("%,d €", results.getTotalDASummary2() - results.getTotalDASummary1()),
+            formatPercentageChange(results.getTotalDASummary1(), results.getTotalDASummary2()), 0));
         
         // Add Revenues
         data.add(new CategoryData("━━━ ΕΣΟΔΑ ━━━", 0, 0, "", "", 0));
