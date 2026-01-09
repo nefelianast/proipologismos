@@ -146,15 +146,12 @@ public class Comparisons {
         }
     }
     
-    // New method for GUI - returns data instead of printing
+    // method for gui to return data instead of printing
     public ComparisonResults compareYears(int year1, int year2) throws SQLException {
-        // Reuse the existing logic from comparisons_of_two_years
-        // We'll extract the data reading part and return it
         String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
         Connection connection = DriverManager.getConnection(DB);
         Statement stmt = connection.createStatement();
-        
-        // Read all data (same as comparisons_of_two_years)
+    
         String sql = "SELECT * FROM revenue_"+year1;
         ResultSet rs = stmt.executeQuery(sql);
         
@@ -238,7 +235,6 @@ public class Comparisons {
         long budget_result2 = 0, total_revenue4 = 0, total_expenses4 = 0;
         long total_ministries4 = 0, total_da4 = 0;
         
-        // Read year1 revenue data
         while (rs.next()) {
             total_revenue1 = rs.getLong("total_revenue");
             taxes1 = rs.getLong("taxes");
@@ -259,7 +255,6 @@ public class Comparisons {
         }
         rs.close();
         
-        // Read year2 revenue data
         String sq2 = "SELECT * FROM revenue_"+year2;
         ResultSet rs2 = stmt.executeQuery(sq2);
         while (rs2.next()) {
@@ -282,7 +277,6 @@ public class Comparisons {
         }
         rs2.close();
         
-        // Read year1 expense data
         String sq3 = "SELECT * FROM expenses_"+year1;
         ResultSet rs3 = stmt.executeQuery(sq3);
         while (rs3.next()) {
@@ -304,7 +298,6 @@ public class Comparisons {
         }
         rs3.close();
         
-        // Read year2 expense data
         String sq4 = "SELECT * FROM expenses_"+year2;
         ResultSet rs4 = stmt.executeQuery(sq4);
         while (rs4.next()) {
@@ -326,7 +319,6 @@ public class Comparisons {
         }
         rs4.close();
         
-        // Read year1 decentralized administrations
         String sq5 = "SELECT * FROM decentralized_administrations_"+year1;
         ResultSet rs5 = stmt.executeQuery(sq5);
         while (rs5.next()) {
@@ -341,7 +333,6 @@ public class Comparisons {
         }
         rs5.close();
         
-        // Read year2 decentralized administrations
         String sq6 = "SELECT * FROM decentralized_administrations_"+year2;
         ResultSet rs6 = stmt.executeQuery(sq6);
         while (rs6.next()) {
@@ -356,7 +347,6 @@ public class Comparisons {
         }
         rs6.close();
         
-        // Read year1 ministries
         String sq7 = "SELECT * FROM ministries_"+year1;
         ResultSet rs7 = stmt.executeQuery(sq7);
         while (rs7.next()) {
@@ -391,7 +381,6 @@ public class Comparisons {
         }
         rs7.close();
         
-        // Read year2 ministries
         String sq8 = "SELECT * FROM ministries_"+year2;
         ResultSet rs8 = stmt.executeQuery(sq8);
         while (rs8.next()) {
@@ -426,7 +415,6 @@ public class Comparisons {
         }
         rs8.close();
         
-        // Read budget summary for year1
         String sq9 = "SELECT * FROM budget_summary_"+year1;
         ResultSet rs9 = stmt.executeQuery(sq9);
         while (rs9.next()) {
@@ -438,7 +426,6 @@ public class Comparisons {
         }
         rs9.close();
         
-        // Read budget summary for year2
         String sq10 = "SELECT * FROM budget_summary_"+year2;
         ResultSet rs10 = stmt.executeQuery(sq10);
         while (rs10.next()) {
@@ -453,7 +440,6 @@ public class Comparisons {
         stmt.close();
         connection.close();
         
-        // Build comparison data maps
         Map<String, ComparisonData> revenues = new HashMap<>();
         revenues.put("Total revenue", new ComparisonData("Total revenue", total_revenue1, total_revenue2));
         revenues.put("Taxes", new ComparisonData("Taxes", taxes1, taxes2));
@@ -540,10 +526,8 @@ public class Comparisons {
     
     public void comparisons_of_two_years(int year1, int year2) {
         try {
-            // Use the new compareYears method to get data
             ComparisonResults results = compareYears(year1, year2);
             
-            // Print summary section
             System.out.println("================================ SUMMARY ====================================================");
             System.out.printf(
                     "%-35s | %12s | %12s | %12s | %8s%n",
@@ -561,7 +545,6 @@ public class Comparisons {
             printComparison("Total ministries", results.getTotalMinistriesSummary1(), results.getTotalMinistriesSummary2(), year1, year2);
             printComparison("Total decentralized administrations", results.getTotalDASummary1(), results.getTotalDASummary2(), year1, year2);
 
-            // Print revenues
             System.out.println();
             System.out.println("================================ REVENUE =====================================================");
             System.out.printf(
@@ -578,7 +561,6 @@ public class Comparisons {
                 printComparison(compData.getCategoryName(), compData.getYear1Value(), compData.getYear2Value(), year1, year2);
             }
 
-            // Print expenses
             System.out.println();
             System.out.println("================================ EXPENSES ===================================================");
             System.out.printf(
@@ -595,7 +577,6 @@ public class Comparisons {
                 printComparison(compData.getCategoryName(), compData.getYear1Value(), compData.getYear2Value(), year1, year2);
             }
 
-            // Print decentralized administrations
             System.out.println();
             System.out.println("=========================== DECENTRALIZED ADMINISTRATIONS ===================================");
             System.out.printf(
@@ -612,7 +593,6 @@ public class Comparisons {
                 printComparison(compData.getCategoryName(), compData.getYear1Value(), compData.getYear2Value(), year1, year2);
             }
 
-            // Print ministries
             System.out.println();
             System.out.println("================================ MINISTRIES ================================================");
             System.out.printf(
