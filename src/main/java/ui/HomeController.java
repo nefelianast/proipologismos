@@ -2460,8 +2460,8 @@ public class HomeController {
         
         // Hide the single year ComboBox
         if (exploreYearComboBox != null) {
-            exploreYearComboBox.setVisible(false);
-            exploreYearComboBox.setManaged(false);
+            exploreYearComboBox.setVisible(true);
+            exploreYearComboBox.setManaged(true);
         }
         
         // Show comparison controls
@@ -2551,8 +2551,16 @@ public class HomeController {
         if (exploreResultsTable != null) {
             exploreResultsTable.setItems(FXCollections.observableArrayList());
         }
+        Comparisons comparisons = new Comparisons();
+
+        ObservableList<CategoryData> data =
+                comparisons.getComparisonTableData(2026, 2023);
+
+        exploreResultsTable.setItems(data);
+
     }
     
+
     @FXML
     private void onLoadComparison() {
         if (exploreYear1ComboBox == null || exploreYear2ComboBox == null) return;
@@ -4516,4 +4524,5 @@ public class HomeController {
         }
     }
 }
+
 
