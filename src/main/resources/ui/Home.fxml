@@ -36,7 +36,7 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="ui.HomeController"
-            prefWidth="1400.0" prefHeight="900.0"
+            prefWidth="1400.0" prefHeight="800.0"
             styleClass="root-pane">
 
     <!-- HEADER -->
@@ -90,17 +90,17 @@
     <center>
         <ScrollPane fitToWidth="true" styleClass="content-scroll" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER">
             <content>
-                <VBox spacing="24" styleClass="content-container">
+                <VBox spacing="16" styleClass="content-container">
                     <padding>
-                        <Insets top="24" right="80" bottom="24" left="80"/>
+                        <Insets top="16" right="80" bottom="16" left="80"/>
                     </padding>
                     <children>
                         
-                        <!-- HOME VIEW (Summary Cards) -->
-                        <VBox fx:id="homeView" spacing="20" alignment="TOP_CENTER">
+                                        <!-- HOME VIEW (Summary Cards) -->
+                        <VBox fx:id="homeView" spacing="12" alignment="TOP_CENTER">
                             <children>
                                 <!-- MAIN CONTENT: Year Selection + Summary Cards Full Width + Split Layout -->
-                                <VBox spacing="16" alignment="TOP_CENTER">
+                                <VBox spacing="12" alignment="TOP_CENTER">
                                     <children>
                                         <!-- YEAR SELECTION (Full Width) -->
                                 <HBox spacing="12" alignment="CENTER" styleClass="year-buttons-container">
@@ -161,7 +161,7 @@
                                                 <ColumnConstraints hgrow="ALWAYS" minWidth="600" prefWidth="650"/>
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints vgrow="ALWAYS" prefHeight="500"/>
+                                                <RowConstraints vgrow="ALWAYS" prefHeight="420"/>
                                             </rowConstraints>
                                             
                                             <!-- LEFT: QUICK NAVIGATION CARDS -->
@@ -186,7 +186,12 @@
                                                         <Label text="1" styleClass="quick-nav-number"/>
                                                         <Label text="Υπουργεία &amp; Φορείς" styleClass="quick-nav-title"/>
                                                                 <Label text="Ανάλυση Δαπανών ανά Υπουργείο" styleClass="quick-nav-description"/>
-                                                                <Label text="→" styleClass="quick-nav-link"/>
+                                                                <HBox spacing="4" alignment="CENTER">
+                                                                    <children>
+                                                                        <Label text="Δείτε περισσότερα" styleClass="quick-nav-link" style="-fx-font-size: 12px;"/>
+                                                                        <Label text="→" styleClass="quick-nav-link"/>
+                                                                    </children>
+                                                                </HBox>
                                                     </children>
                                                 </VBox>
 
@@ -195,7 +200,12 @@
                                                         <Label text="2" styleClass="quick-nav-number"/>
                                                         <Label text="Έσοδα" styleClass="quick-nav-title"/>
                                                                 <Label text="Ανάλυση Εσόδων" styleClass="quick-nav-description"/>
-                                                                <Label text="→" styleClass="quick-nav-link"/>
+                                                                <HBox spacing="4" alignment="CENTER">
+                                                                    <children>
+                                                                        <Label text="Δείτε περισσότερα" styleClass="quick-nav-link" style="-fx-font-size: 12px;"/>
+                                                                        <Label text="→" styleClass="quick-nav-link"/>
+                                                                    </children>
+                                                                </HBox>
                                                     </children>
                                                 </VBox>
 
@@ -204,7 +214,12 @@
                                                         <Label text="3" styleClass="quick-nav-number"/>
                                                         <Label text="Δαπάνες" styleClass="quick-nav-title"/>
                                                                 <Label text="Ανάλυση Δαπανών ανά Είδος" styleClass="quick-nav-description"/>
-                                                                <Label text="→" styleClass="quick-nav-link"/>
+                                                                <HBox spacing="4" alignment="CENTER">
+                                                                    <children>
+                                                                        <Label text="Δείτε περισσότερα" styleClass="quick-nav-link" style="-fx-font-size: 12px;"/>
+                                                                        <Label text="→" styleClass="quick-nav-link"/>
+                                                                    </children>
+                                                                </HBox>
                                                     </children>
                                                 </VBox>
 
@@ -213,7 +228,12 @@
                                                         <Label text="4" styleClass="quick-nav-number"/>
                                                         <Label text="Αποκεντρωμένες Διοικήσεις" styleClass="quick-nav-title"/>
                                                                 <Label text="Γεωγραφική Κατανομή Δαπανών" styleClass="quick-nav-description"/>
-                                                                <Label text="→" styleClass="quick-nav-link"/>
+                                                                <HBox spacing="4" alignment="CENTER">
+                                                                    <children>
+                                                                        <Label text="Δείτε περισσότερα" styleClass="quick-nav-link" style="-fx-font-size: 12px;"/>
+                                                                        <Label text="→" styleClass="quick-nav-link"/>
+                                                                    </children>
+                                                                </HBox>
                                                     </children>
                                                 </VBox>
                                                     </GridPane>
@@ -229,7 +249,7 @@
                                                             <Insets top="16" right="16" bottom="16" left="16"/>
                                                         </padding>
                                                         <children>
-                                                            <LineChart fx:id="lineHistory" title="Πορεία Προϋπολογισμού" prefHeight="250" legendVisible="true" VBox.vgrow="ALWAYS">
+                                                            <LineChart fx:id="lineHistory" title="Πορεία Προϋπολογισμού" prefHeight="250" legendVisible="true" animated="false" VBox.vgrow="ALWAYS">
                                                                 <xAxis>
                                                                     <CategoryAxis label="Έτος" />
                                                                 </xAxis>
@@ -268,38 +288,20 @@
                                     </columnConstraints>
                                     <rowConstraints>
                                         <RowConstraints vgrow="ALWAYS" prefHeight="350"/>
-                                        <RowConstraints vgrow="ALWAYS" prefHeight="350"/>
                                     </rowConstraints>
                                     <children>
-                                        <!-- Pie Chart -->
+                                        <!-- Pie Chart - Top Ministries -->
                                         <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="0" GridPane.rowIndex="0">
                                             <padding>
                                                 <Insets top="20" right="20" bottom="20" left="20"/>
                                             </padding>
                                             <children>
-                                                <Label text="Κατανομή ανά Υπουργείο" styleClass="section-title"/>
-                                                <PieChart fx:id="pieMinistries" title="Υπουργεία" prefHeight="300" legendVisible="false" VBox.vgrow="ALWAYS"/>
-                                            </children>
-                                        </VBox>
-                                        <!-- Bar Chart - Top Ministries -->
-                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                                            <padding>
-                                                <Insets top="20" right="20" bottom="20" left="20"/>
-                                            </padding>
-                                            <children>
                                                 <Label text="Κορυφαία Υπουργεία" styleClass="section-title"/>
-                                                <BarChart fx:id="barMinistriesTop" title="Top Υπουργεία" prefHeight="300" legendVisible="true" VBox.vgrow="ALWAYS">
-                                                    <xAxis>
-                                                        <CategoryAxis label="Υπουργείο" />
-                                                    </xAxis>
-                                                    <yAxis>
-                                                        <NumberAxis label="Ποσό (€)" />
-                                                    </yAxis>
-                                                </BarChart>
+                                                <PieChart fx:id="pieMinistries" title="Κορυφαία Υπουργεία" prefHeight="300" legendVisible="false" VBox.vgrow="ALWAYS"/>
                                             </children>
                                         </VBox>
                                         <!-- Area Chart - Historical Trend -->
-                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="1">
+                                        <VBox styleClass="section-card chart-card" spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                             <padding>
                                                 <Insets top="20" right="20" bottom="20" left="20"/>
                                             </padding>

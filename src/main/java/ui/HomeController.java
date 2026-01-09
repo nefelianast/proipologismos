@@ -477,8 +477,6 @@ public class HomeController {
     
     // New Charts for Ministries View
     @FXML
-    private BarChart<String, Number> barMinistriesTop;
-    @FXML
     private AreaChart<String, Number> areaMinistriesTrend;
     
     // New Charts for Administrations View
@@ -1718,10 +1716,7 @@ public class HomeController {
         }
         if (ministriesView != null && ministriesView.isVisible()) {
             if (pieMinistries != null) {
-                Charts.fillPieChart(pieMinistries, budgetData.getMinistriesBreakdown(year), "Υπουργεία " + selectedYear);
-            }
-            if (barMinistriesTop != null) {
-                Charts.loadBarChartForMinistries(barMinistriesTop, budgetData.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία", 10);
+                Charts.loadTopPieChart(pieMinistries, budgetData.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία " + selectedYear, 3);
             }
             if (areaMinistriesTrend != null) {
                 Charts.loadAreaChart(areaMinistriesTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Υπουργείων");
@@ -1873,11 +1868,7 @@ public class HomeController {
             int year = Integer.parseInt(selectedYear);
             // Update ministries pie chart
             if (pieMinistries != null) {
-                Charts.fillPieChart(pieMinistries, budgetData.getMinistriesBreakdown(year), "Υπουργεία " + selectedYear);
-            }
-            // Update bar chart - top ministries
-            if (barMinistriesTop != null) {
-                Charts.loadBarChartForMinistries(barMinistriesTop, budgetData.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία", 10);
+                Charts.loadTopPieChart(pieMinistries, budgetData.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία " + selectedYear, 3);
             }
             // Update area chart - trend
             if (areaMinistriesTrend != null) {

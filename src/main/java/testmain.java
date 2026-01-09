@@ -2,24 +2,7 @@ import java.io.IOException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-/**
- * Test class for demonstrating and testing various budget data operations.
- * Provides a menu-driven CLI interface for testing backend operations:
- * - DataDownload: Download budget PDFs from Ministry of Finance
- * - SQLmaker: Create database tables and populate with data
- * 
- * This class is useful for:
- * - Initial project setup (downloading PDFs, creating database)
- * - Testing backend operations without GUI
- * - Demonstrating data processing workflow
- */
 public class testmain {
-    
-    /**
-     * Main method that provides an interactive menu for testing different budget operations.
-     * 
-     * @param args Command line arguments (not used)
-     */
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
         
@@ -50,7 +33,7 @@ public class testmain {
                     }
                 } catch (InputMismatchException e) {
                     System.out.println("\n⚠️  Παρακαλώ εισάγετε έναν αριθμό.\n");
-                    scan.nextLine(); // Clear invalid input
+                    scan.nextLine(); 
                 }
             }
         } catch (Exception e) {
@@ -61,9 +44,6 @@ public class testmain {
         }
     }
     
-    /**
-     * Prints welcome message
-     */
     private static void printWelcomeMessage() {
         System.out.println("═══════════════════════════════════════════════════════════");
         System.out.println("  Budget Analysis System - Test/Demo Interface");
@@ -74,9 +54,6 @@ public class testmain {
         System.out.println("═══════════════════════════════════════════════════════════\n");
     }
     
-    /**
-     * Prints the main menu
-     */
     private static void printMenu() {
         System.out.println("Επιλέξτε μια λειτουργία:");
         System.out.println("  1. Κατέβασμα Budget PDFs (DataDownload)");
@@ -85,11 +62,6 @@ public class testmain {
         System.out.print("\nΕπιλογή: ");
     }
     
-    /**
-     * Handles the download operation
-     * 
-     * @param scan Scanner for user input
-     */
     private static void handleDownload(Scanner scan) {
         System.out.println("\n📥 Κατέβασμα Budget PDFs...");
         System.out.println("Σημείωση: Αυτή η λειτουργία θα κατεβάσει PDFs για όλα τα έτη (2023-2026)");
@@ -111,9 +83,6 @@ public class testmain {
         }
     }
     
-    /**
-     * Handles the SQL setup operation
-     */
     private static void handleSQLSetup() {
         System.out.println("\n🗄️  Δημιουργία Database Tables...");
         System.out.println("Σημείωση: Αυτή η λειτουργία θα:");

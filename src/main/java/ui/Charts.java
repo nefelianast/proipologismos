@@ -4,6 +4,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.chart.*;
 import javafx.application.Platform;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -12,15 +14,176 @@ public class Charts {
 
     // γεμίζει ένα pie chart με δεδομένα από ένα map
     public static void fillPieChart(PieChart chart, Map<String, Double> data, String title) {
-        if (chart == null) return;
+        if (chart == null || data == null) return;
         
         ObservableList<PieChart.Data> list = FXCollections.observableArrayList();
         // προσθήκη δεδομένων στο chart (μόνο θετικά ποσά)
         data.forEach((k, v) -> {
-            if (v > 0) list.add(new PieChart.Data(k, v));
+            if (v != null && v > 0) list.add(new PieChart.Data(k, v));
         });
         chart.setData(list);
         chart.setTitle(title);
+        
+        // Ενεργοποίηση labels για όλα τα slices - πάνω στο διάγραμμα, όχι στο legend
+        chart.setLabelsVisible(true);
+        chart.setLabelLineLength(30);
+        chart.setLegendVisible(false); // Απενεργοποίηση legend για να φαίνονται όλα τα labels πάνω
+        
+        // Εφαρμογή custom χρωμάτων για όλα τα slices
+        // Χρησιμοποιούμε 8 χρώματα που επαναλαμβάνονται
+        String[] colors = {
+            "#1e40af",  // μπλε
+            "#22c55e",  // πράσινο
+            "#f59e0b",  // πορτοκαλί
+            "#ef4444",  // κόκκινο
+            "#6366f1",  // indigo
+            "#a855f7",  // purple
+            "#14b8a6",  // teal
+            "#eab308"   // yellow
+        };
+        
+        final String[] colorArray = colors;
+        final ObservableList<PieChart.Data> chartData = chart.getData();
+        
+        // Εφαρμογή χρωμάτων μετά τη δημιουργία των nodes
+        Platform.runLater(() -> {
+            chart.applyCss();
+            chart.layout();
+            
+            // Εφαρμογή χρωμάτων σε όλα τα slices
+            for (int i = 0; i < chartData.size(); i++) {
+                final int index = i;
+                PieChart.Data slice = chartData.get(i);
+                String color = colorArray[index % colorArray.length];
+                
+                // Εφαρμογή χρώματος στο slice
+                if (slice.getNode() != null) {
+                    slice.getNode().setStyle("-fx-pie-color: " + color + ";");
+                }
+                
+                // Προσθήκη listener για όταν δημιουργηθεί το node
+                slice.nodeProperty().addListener((obs, oldNode, newNode) -> {
+                    if (newNode != null) {
+                        Platform.runLater(() -> {
+                            String sliceColor = colorArray[index % colorArray.length];
+                            newNode.setStyle("-fx-pie-color: " + sliceColor + ";");
+                        });
+                    }
+                });
+            }
+            
+            // Επιπλέον: χρήση PauseTransition για delayed styling και εξασφάλιση ότι όλα τα labels είναι ορατά
+            PauseTransition pause = new PauseTransition(Duration.millis(300));
+            pause.setOnFinished(e -> {
+                chart.applyCss();
+                chart.layout();
+                for (int i = 0; i < chartData.size(); i++) {
+                    PieChart.Data slice = chartData.get(i);
+                    if (slice.getNode() != null) {
+                        String color = colorArray[i % colorArray.length];
+                        slice.getNode().setStyle("-fx-pie-color: " + color + ";");
+                    }
+                }
+                
+                // Εξασφάλιση ότι όλα τα labels είναι ορατά - ακόμα και για μικρά slices
+                // Χρήση lookupAll για όλα τα label nodes
+                chart.lookupAll(".chart-pie-label").forEach(node -> {
+                    node.setVisible(true);
+                    node.setManaged(true);
+                    node.setStyle("-fx-font-size: 11px; -fx-opacity: 1.0;");
+                });
+                
+                // Επίσης, εξασφάλιση ότι όλες οι label lines είναι ορατές
+                chart.lookupAll(".chart-pie-label-line").forEach(node -> {
+                    node.setVisible(true);
+                    node.setManaged(true);
+                });
+            });
+            pause.play();
+            
+            // Επιπλέον delay για να βεβαιωθούμε ότι όλα τα labels έχουν δημιουργηθεί
+            PauseTransition pause2 = new PauseTransition(Duration.millis(600));
+            pause2.setOnFinished(e -> {
+                chart.applyCss();
+                chart.layout();
+                
+                // Εξαναγκασμός όλων των labels να είναι ορατά
+                chart.lookupAll(".chart-pie-label").forEach(node -> {
+                    node.setVisible(true);
+                    node.setManaged(true);
+                    node.setStyle("-fx-font-size: 11px !important; -fx-opacity: 1.0 !important; -fx-visible: true !important;");
+                });
+                chart.lookupAll(".chart-pie-label-line").forEach(node -> {
+                    node.setVisible(true);
+                    node.setManaged(true);
+                    node.setStyle("-fx-opacity: 1.0 !important; -fx-visible: true !important;");
+                });
+                
+                // Επίσης, προσπάθεια να βρούμε και να ενεργοποιήσουμε labels που μπορεί να είναι κρυμμένα
+                chart.lookupAll("*").forEach(node -> {
+                    if (node.getStyleClass().contains("chart-pie-label") || 
+                        node.getStyleClass().contains("chart-pie-label-line")) {
+                        node.setVisible(true);
+                        node.setManaged(true);
+                    }
+                });
+            });
+            pause2.play();
+            
+            // Τρίτο delay για τελική εξασφάλιση
+            PauseTransition pause3 = new PauseTransition(Duration.millis(1000));
+            pause3.setOnFinished(e -> {
+                chart.lookupAll(".chart-pie-label").forEach(node -> {
+                    node.setVisible(true);
+                    node.setManaged(true);
+                });
+                chart.lookupAll(".chart-pie-label-line").forEach(node -> {
+                    node.setVisible(true);
+                    node.setManaged(true);
+                });
+            });
+            pause3.play();
+        });
+        
+        // CSS για να εξασφαλιστεί ότι όλα τα labels είναι ορατά
+        // Χρήση !important για να override το default behavior
+        chart.setStyle(
+            "-fx-pie-label-visible: true !important; " +
+            ".chart-pie-label { " +
+            "    -fx-font-size: 11px !important; " +
+            "    -fx-visible: true !important; " +
+            "    -fx-managed: true !important; " +
+            "    -fx-opacity: 1.0 !important; " +
+            "} " +
+            ".chart-pie-label-line { " +
+            "    -fx-visible: true !important; " +
+            "    -fx-managed: true !important; " +
+            "    -fx-opacity: 1.0 !important; " +
+            "} " +
+            ".chart-pie { " +
+            "    -fx-pie-label-visible: true !important; " +
+            "}"
+        );
+    }
+
+    /**
+     * Γεμίζει ένα pie chart μόνο με τα top N στοιχεία (κατά φθίνουσα τιμή).
+     */
+    public static void loadTopPieChart(PieChart chart, Map<String, Double> data, String title, int topN) {
+        if (chart == null || data == null) return;
+
+        Map<String, Double> limited = data.entrySet().stream()
+                .filter(e -> e.getValue() != null && e.getValue() > 0)
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(topN)
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                ));
+
+        fillPieChart(chart, limited, title);
     }
 
     // φορτώνει ένα line chart με ιστορικά δεδομένα εσόδων και δαπανών
@@ -63,8 +226,7 @@ public class Charts {
             lineChart.applyCss();
             lineChart.layout();
             
-            // ορισμός στιλ και χρωμάτων
-
+            // ορισμός στιλ και χρωμάτων για τις γραμμές
             if (revSeries.getNode() != null) {
                 revSeries.getNode().setStyle("-fx-stroke: #22c55e; -fx-stroke-width: 2px;");
             }
@@ -72,7 +234,7 @@ public class Charts {
                 expSeries.getNode().setStyle("-fx-stroke: #ef4444; -fx-stroke-width: 2px;");
             }
             
-            
+            // ορισμός χρωμάτων για όλα τα data points (κουκίδες)
             for (XYChart.Data<String, Number> data : revSeries.getData()) {
                 if (data.getNode() != null) {
                     data.getNode().setStyle("-fx-background-color: #22c55e, white; -fx-background-radius: 4px; -fx-padding: 4px;");
@@ -83,6 +245,40 @@ public class Charts {
                     data.getNode().setStyle("-fx-background-color: #ef4444, white; -fx-background-radius: 4px; -fx-padding: 4px;");
                 }
             }
+            
+            // Επιπλέον: ορισμός χρωμάτων μέσω CSS classes για να εξασφαλιστεί ότι λειτουργεί για όλα τα έτη
+            // Χρησιμοποιούμε lookupAll με delay για να βεβαιωθούμε ότι τα nodes έχουν δημιουργηθεί
+            PauseTransition pause = new PauseTransition(Duration.millis(100));
+            pause.setOnFinished(e -> {
+                lineChart.lookupAll(".default-color0.chart-line-symbol").forEach(node -> {
+                    node.setStyle("-fx-background-color: #22c55e, white; -fx-background-radius: 4px; -fx-padding: 4px;");
+                });
+                lineChart.lookupAll(".default-color1.chart-line-symbol").forEach(node -> {
+                    node.setStyle("-fx-background-color: #ef4444, white; -fx-background-radius: 4px; -fx-padding: 4px;");
+                });
+            });
+            pause.play();
+        });
+        
+        // Επίσης, προσθήκη listener για να ενημερώνονται τα χρώματα όταν αλλάζουν τα nodes
+        revSeries.getData().forEach(data -> {
+            data.nodeProperty().addListener((obs, oldNode, newNode) -> {
+                if (newNode != null) {
+                    Platform.runLater(() -> {
+                        newNode.setStyle("-fx-background-color: #22c55e, white; -fx-background-radius: 4px; -fx-padding: 4px;");
+                    });
+                }
+            });
+        });
+        
+        expSeries.getData().forEach(data -> {
+            data.nodeProperty().addListener((obs, oldNode, newNode) -> {
+                if (newNode != null) {
+                    Platform.runLater(() -> {
+                        newNode.setStyle("-fx-background-color: #ef4444, white; -fx-background-radius: 4px; -fx-padding: 4px;");
+                    });
+                }
+            });
         });
         
         // ορισμός άξονα y με στρογγυλοποίηση τιμών
