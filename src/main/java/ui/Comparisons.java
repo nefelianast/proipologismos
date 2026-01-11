@@ -7,7 +7,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import ui.HomeController.CategoryData;
 
 public class Comparisons {
     
@@ -639,5 +641,164 @@ public class Comparisons {
         percent
     );
 }
+public ObservableList<CategoryData> getComparisonTableData(int year1, int year2) {
+    ObservableList<CategoryData> data = FXCollections.observableArrayList();
+
+    try {
+        ComparisonResults results = compareYears(year1, year2);
+
+        // ===== SUMMARY =====
+        data.add(createRow("Αποτέλεσμα Προϋπολογισμού",
+                results.getBudgetResult1(),
+                results.getBudgetResult2()));
+
+        data.add(createRow("Σύνολο Εσόδων",
+                results.getTotalRevenueSummary1(),
+                results.getTotalRevenueSummary2()));
+
+        data.add(createRow("Σύνολο Εξόδων",
+                results.getTotalExpensesSummary1(),
+                results.getTotalExpensesSummary2()));
+
+        data.add(createRow("Σύνολο Υπουργείων",
+                results.getTotalMinistriesSummary1(),
+                results.getTotalMinistriesSummary2()));
+
+        data.add(createRow("Σύνολο Αποκεντρωμένων Διοικήσεων",
+                results.getTotalDASummary1(),
+                results.getTotalDASummary2()));
+
+        // ===== REVENUES =====
+        for (ComparisonData c : results.getRevenues().values()) {
+            data.add(createRow(
+                    c.getCategoryName(),
+                    c.getYear1Value(),
+                    c.getYear2Value()
+            ));
+        }
+
+        // ===== EXPENSES =====
+        for (ComparisonData c : results.getExpenses().values()) {
+            data.add(createRow(
+                    c.getCategoryName(),
+                    c.getYear1Value(),
+                    c.getYear2Value()
+            ));
+        }
+
+        // ===== DECENTRALIZED ADMINISTRATIONS =====
+        for (ComparisonData c : results.getAdministrations().values()) {
+            data.add(createRow(
+                    c.getCategoryName(),
+                    c.getYear1Value(),
+                    c.getYear2Value()
+            ));
+        }
+
+        // ===== MINISTRIES =====
+        for (ComparisonData c : results.getMinistries().values()) {
+            data.add(createRow(
+                    c.getCategoryName(),
+                    c.getYear1Value(),
+                    c.getYear2Value()
+            ));
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return data;
+}
+private static final Map<String, String> GREEK_LABELS = Map.ofEntries(
+
+    // ===== SUMMARY =====
+    Map.entry("Budget result", "Αποτέλεσμα Προϋπολογισμού"),
+    Map.entry("Total revenue", "Σύνολο Εσόδων"),
+    Map.entry("Total expenses", "Σύνολο Εξόδων"),
+    Map.entry("Total ministries", "Σύνολο Υπουργείων"),
+    Map.entry("Total decentralized administrations", "Σύνολο Αποκεντρωμένων Διοικήσεων"),
+
+    // ===== REVENUE =====
+    Map.entry("Taxes", "Φόροι"),
+    Map.entry("Social contributions", "Κοινωνικές Εισφορές"),
+    Map.entry("Transfers", "Μεταβιβάσεις"),
+    Map.entry("Sales of goods & services", "Πωλήσεις Αγαθών & Υπηρεσιών"),
+    Map.entry("Other current revenue", "Λοιπά Τρέχοντα Έσοδα"),
+    Map.entry("Fixed assets", "Πάγια Στοιχεία"),
+    Map.entry("Debt securities", "Χρεόγραφα"),
+    Map.entry("Loans", "Δάνεια"),
+    Map.entry("Equity securities & fund shares", "Συμμετοχικοί Τίτλοι & Μερίδια"),
+    Map.entry("Currency & deposits liabilities", "Υποχρεώσεις Νομίσματος & Καταθέσεων"),
+    Map.entry("Debt securities liabilities", "Υποχρεώσεις Χρεογράφων"),
+    Map.entry("Loans liabilities", "Υποχρεώσεις Δανείων"),
+    Map.entry("Financial derivatives", "Χρηματοοικονομικά Παράγωγα"),
+
+    // ===== EXPENSES =====
+    Map.entry("Employee benefits", "Αμοιβές Προσωπικού"),
+    Map.entry("Social benefits", "Κοινωνικές Παροχές"),
+    Map.entry("Transfers (expenses)", "Μεταβιβάσεις"),
+    Map.entry("Purchases of goods & services", "Αγορές Αγαθών & Υπηρεσιών"),
+    Map.entry("Subsidies", "Επιδοτήσεις"),
+    Map.entry("Interest", "Τόκοι"),
+    Map.entry("Other expenditures", "Λοιπές Δαπάνες"),
+    Map.entry("Loans (expenses)", "Δάνεια"),
+    Map.entry("Appropriations", "Πιστώσεις"),
+    Map.entry("Fixed assets (expenses)", "Πάγια"),
+    Map.entry("Valuables", "Αξιόγραφα"),
+    Map.entry("Equity securities & fund shares (exp)", "Συμμετοχικοί Τίτλοι"),
+    Map.entry("Debt securities liabilities (exp)", "Υποχρεώσεις Χρεογράφων"),
+    Map.entry("Loans liabilities (exp)", "Υποχρεώσεις Δανείων"),
+
+    // ===== ADMINISTRATIONS =====
+    Map.entry("Attica", "Αττική"),
+    Map.entry("Thessaly & Central Greece", "Θεσσαλία & Στερεά Ελλάδα"),
+    Map.entry("Epirus & Western Macedonia", "Ήπειρος & Δυτική Μακεδονία"),
+    Map.entry("Peloponnese, Western Greece & Ionian", "Πελοπόννησος, Δυτική Ελλάδα & Ιόνιο"),
+    Map.entry("Aegean", "Αιγαίο"),
+    Map.entry("Crete", "Κρήτη"),
+    Map.entry("Macedonia & Thrace", "Μακεδονία & Θράκη"),
+
+    // ===== MINISTRIES =====
+    Map.entry("Presidency of the Republic", "Προεδρία της Δημοκρατίας"),
+    Map.entry("Hellenic Parliament", "Ελληνικό Κοινοβούλιο"),
+    Map.entry("Presidency of the Government", "Προεδρία της Κυβέρνησης"),
+    Map.entry("Ministry of Interior", "Υπουργείο Εσωτερικών"),
+    Map.entry("Ministry of Foreign Affairs", "Υπουργείο Εξωτερικών"),
+    Map.entry("Ministry of National Defence", "Υπουργείο Εθνικής Άμυνας"),
+    Map.entry("Ministry of Health", "Υπουργείο Υγείας"),
+    Map.entry("Ministry of Justice", "Υπουργείο Δικαιοσύνης"),
+    Map.entry("Ministry of Education, Religious Affairs & Sports", "Υπουργείο Παιδείας"),
+    Map.entry("Ministry of Culture", "Υπουργείο Πολιτισμού"),
+    Map.entry("Ministry of National Economy & Finance", "Υπουργείο Εθνικής Οικονομίας & Οικονομικών"),
+    Map.entry("Ministry of Agricultural Development & Food", "Υπουργείο Αγροτικής Ανάπτυξης"),
+    Map.entry("Ministry of Environment & Energy", "Υπουργείο Περιβάλλοντος & Ενέργειας"),
+    Map.entry("Ministry of Labor & Social Security", "Υπουργείο Εργασίας"),
+    Map.entry("Ministry of Social Cohesion & Family", "Υπουργείο Κοινωνικής Συνοχής"),
+    Map.entry("Ministry of Development", "Υπουργείο Ανάπτυξης"),
+    Map.entry("Ministry of Infrastructure & Transport", "Υπουργείο Υποδομών & Μεταφορών"),
+    Map.entry("Ministry of Maritime Affairs & Insular Policy", "Υπουργείο Ναυτιλίας"),
+    Map.entry("Ministry of Tourism", "Υπουργείο Τουρισμού"),
+    Map.entry("Ministry of Digital Governance", "Υπουργείο Ψηφιακής Διακυβέρνησης"),
+    Map.entry("Ministry of Migration & Asylum", "Υπουργείο Μετανάστευσης & Ασύλου"),
+    Map.entry("Ministry of Citizen Protection", "Υπουργείο Προστασίας του Πολίτη"),
+    Map.entry("Ministry of Climate Crisis & Civil Protection", "Υπουργείο Κλιματικής Κρίσης")
+);
+
+private CategoryData createRow(String name, long v1, long v2) {
+
+    String greekName = GREEK_LABELS.getOrDefault(name, name);
+
+    String percentage;
+    if (v1 == 0) {
+        percentage = "N/A";
+    } else {
+        percentage = String.format("%.2f%%", ((double) (v2 - v1) / v1) * 100);
+    }
+
+    return new CategoryData(greekName, v1, v2, percentage);
+}
+
 
 }
+
