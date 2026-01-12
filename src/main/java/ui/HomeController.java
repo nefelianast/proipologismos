@@ -19,14 +19,19 @@ import javafx.util.Callback;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.FileChooser;
+import javafx.scene.Node;
+import javafx.beans.value.ChangeListener;
+import java.util.Optional;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.HashMap;
 import java.util.Calendar;
 import java.util.Set;
@@ -2420,7 +2425,10 @@ public class HomeController {
             case "ministry": loadMinistryView(); break;
             case "revenue_category": loadRevenueCategoryView(); break;
             case "expense_category": loadExpenseCategoryView(); break;
-            case "comparison": loadComparisonView(); break;
+            case "comparison":
+            // ΜΗΝ το ξαναφορτώνεις
+            break;
+
             case "trends": loadTrendsView(); break;
         }
     }
@@ -3046,7 +3054,93 @@ public class HomeController {
             exploreResultsTable.setItems(data);
         }
     }
-    
+    private void loadComparisonResults(int year1, int year2) {
+
+    Comparisons comparisons = new Comparisons();
+
+    ObservableList<CategoryData> data =
+            comparisons.getComparisonTableData(year1, year2);
+
+    exploreResultsTable.setItems(data);
+}
+
+    private void showComparisonYearDialog() {
+
+    Dialog<ButtonType> dialog = new Dialog<>();
+    dialog.setTitle("Σύγκριση Ετών");
+    dialog.setHeaderText("Εισάγετε δύο έτη");
+
+    ButtonType compareBtn =
+            new ButtonType("Σύγκριση", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes()
+            .addAll(compareBtn, ButtonType.CANCEL);
+
+    TextField year1 = new TextField();
+    year1.setPromptText("2023");
+
+    TextField year2 = new TextField();
+    year2.setPromptText("2024");
+    Label errorLabel = new Label();
+    errorLabel.setStyle("-fx-text-fill: red;");
+
+    GridPane grid = new GridPane();
+    grid.setHgap(10);
+    grid.setVgap(10);
+
+    grid.add(new Label("Έτος 1:"), 0, 0);
+    grid.add(year1, 1, 0);
+    grid.add(new Label("Έτος 2:"), 0, 1);
+    grid.add(year2, 1, 1);
+    grid.add(errorLabel, 1, 2);
+
+
+    dialog.getDialogPane().setContent(grid);
+
+    Node okButton = dialog.getDialogPane().lookupButton(compareBtn);
+    okButton.setDisable(true);
+
+   ChangeListener<String> validator = (obs, oldV, newV) -> {
+
+    String y1 = year1.getText();
+    String y2 = year2.getText();
+
+    errorLabel.setText("");
+
+    boolean validFormat =
+            y1.matches("\\d{4}") && y2.matches("\\d{4}");
+
+    if (!validFormat) {
+        okButton.setDisable(true);
+        return;
+    }
+
+    if (y1.equals(y2)) {
+        errorLabel.setText("Τα έτη πρέπει να είναι διαφορετικά");
+        okButton.setDisable(true);
+        return;
+    }
+
+    okButton.setDisable(false);
+};
+
+
+    year1.textProperty().addListener(validator);
+    year2.textProperty().addListener(validator);
+
+    dialog.setResultConverter(btn -> {
+        if (btn == compareBtn) {
+            int y1 = Integer.parseInt(year1.getText());
+            int y2 = Integer.parseInt(year2.getText());
+            loadComparisonData(y1, y2);
+        }
+        return null;
+    });
+
+    dialog.showAndWait();
+}
+
+
+
     private void loadComparisonView() {
         if (exploreViewTitleLabel != null) {
             exploreViewTitleLabel.setText("Σύγκριση Προϋπολογισμού μεταξύ δύο ετών");
@@ -3079,12 +3173,12 @@ public class HomeController {
             }
         }
         if (exploreYear2Label != null) {
-            exploreYear2Label.setVisible(true);
-            exploreYear2Label.setManaged(true);
+            exploreYear2Label.setVisible(false);
+            exploreYear2Label.setManaged(false);
         }
         if (exploreYear2ComboBox != null) {
-            exploreYear2ComboBox.setVisible(true);
-            exploreYear2ComboBox.setManaged(true);
+            exploreYear2ComboBox.setVisible(false);
+            exploreYear2ComboBox.setManaged(false);
             // Always refresh the list to ensure it reflects current database state
             List<String> availableYears = getAvailableYearsFromDatabase();
             exploreYear2ComboBox.getItems().clear();
@@ -3143,8 +3237,11 @@ public class HomeController {
         if (exploreResultsTable != null) {
             exploreResultsTable.setItems(FXCollections.observableArrayList());
         }
+       exploreLoadComparisonButton.setOnAction(e ->{ loadComparisonView(); showComparisonYearDialog(); });
+
     }
     
+
     @FXML
     private void onLoadComparison() {
         if (exploreYear1ComboBox == null || exploreYear2ComboBox == null) return;
@@ -3205,86 +3302,23 @@ public class HomeController {
             alert.showAndWait();
         }
     }
-    
-    private void loadComparisonData(int year1, int year2) throws Exception {
-        Comparisons comparisons = new Comparisons();
-        Comparisons.ComparisonResults results = comparisons.compareYears(year1, year2);
-        
-        ObservableList<CategoryData> data = FXCollections.observableArrayList();
-        
-        // Add Budget Summary
-        data.add(new CategoryData("━━━ ΣΥΝΟΨΗ ΠΡΟΥΠΟΛΟΓΙΣΜΟΥ ━━━", 0, 0, "", "", 0));
-        
-        long balance1 = results.getTotalRevenueSummary1() - results.getTotalExpensesSummary1();
-        long balance2 = results.getTotalRevenueSummary2() - results.getTotalExpensesSummary2();
-        
-        data.add(new CategoryData("Budget result", results.getBudgetResult1(), results.getBudgetResult2(),
-            String.format("%,d €", results.getBudgetResult2() - results.getBudgetResult1()),
-            formatPercentageChange(results.getBudgetResult1(), results.getBudgetResult2()), 0));
-        data.add(new CategoryData("Συνολικά Έσοδα", results.getTotalRevenueSummary1(), results.getTotalRevenueSummary2(), 
-            String.format("%,d €", results.getTotalRevenueSummary2() - results.getTotalRevenueSummary1()),
-            formatPercentageChange(results.getTotalRevenueSummary1(), results.getTotalRevenueSummary2()), 0));
-        data.add(new CategoryData("Συνολικές Δαπάνες", results.getTotalExpensesSummary1(), results.getTotalExpensesSummary2(),
-            String.format("%,d €", results.getTotalExpensesSummary2() - results.getTotalExpensesSummary1()),
-            formatPercentageChange(results.getTotalExpensesSummary1(), results.getTotalExpensesSummary2()), 0));
-        data.add(new CategoryData("Υπόλοιπο", balance1, balance2,
-            String.format("%,d €", balance2 - balance1),
-            formatPercentageChange(balance1, balance2), 0));
-        data.add(new CategoryData("Συνολικά Υπουργεία", results.getTotalMinistriesSummary1(), results.getTotalMinistriesSummary2(),
-            String.format("%,d €", results.getTotalMinistriesSummary2() - results.getTotalMinistriesSummary1()),
-            formatPercentageChange(results.getTotalMinistriesSummary1(), results.getTotalMinistriesSummary2()), 0));
-        data.add(new CategoryData("Συνολικές Αποκεντρωμένες Διοικήσεις", results.getTotalDASummary1(), results.getTotalDASummary2(),
-            String.format("%,d €", results.getTotalDASummary2() - results.getTotalDASummary1()),
-            formatPercentageChange(results.getTotalDASummary1(), results.getTotalDASummary2()), 0));
-        
-        // Add Revenues
-        data.add(new CategoryData("━━━ ΕΣΟΔΑ ━━━", 0, 0, "", "", 0));
-        for (Comparisons.ComparisonData compData : results.getRevenues().values()) {
-            data.add(new CategoryData(compData.getCategoryName(), 
-                compData.getYear1Value(), compData.getYear2Value(),
-                String.format("%,d €", compData.getDifference()),
-                compData.getPercentageChangeAsString(), 0));
-        }
-        
-        // Add Expenses
-        data.add(new CategoryData("━━━ ΔΑΠΑΝΕΣ ━━━", 0, 0, "", "", 0));
-        for (Comparisons.ComparisonData compData : results.getExpenses().values()) {
-            data.add(new CategoryData(compData.getCategoryName(),
-                compData.getYear1Value(), compData.getYear2Value(),
-                String.format("%,d €", compData.getDifference()),
-                compData.getPercentageChangeAsString(), 0));
-        }
-        
-        // Add Administrations
-        data.add(new CategoryData("━━━ ΑΠΟΚΕΝΤΡΩΜΕΝΕΣ ΔΙΟΙΚΗΣΕΙΣ ━━━", 0, 0, "", "", 0));
-        for (Comparisons.ComparisonData compData : results.getAdministrations().values()) {
-            data.add(new CategoryData(compData.getCategoryName(),
-                compData.getYear1Value(), compData.getYear2Value(),
-                String.format("%,d €", compData.getDifference()),
-                compData.getPercentageChangeAsString(), 0));
-        }
-        
-        // Add Ministries
-        data.add(new CategoryData("━━━ ΥΠΟΥΡΓΕΙΑ ━━━", 0, 0, "", "", 0));
-        for (Comparisons.ComparisonData compData : results.getMinistries().values()) {
-            data.add(new CategoryData(compData.getCategoryName(),
-                compData.getYear1Value(), compData.getYear2Value(),
-                String.format("%,d €", compData.getDifference()),
-                compData.getPercentageChangeAsString(), 0));
-        }
-        
-        if (exploreResultsTable != null) {
-            exploreResultsTable.setItems(data);
-        }
+    @FXML
+    private void onComparisonYearsClicked() {
+        loadComparisonView();
+        showComparisonYearDialog();
     }
-    
-    private String formatPercentageChange(long value1, long value2) {
-        if (value1 == 0) {
-            return value2 > 0 ? "Νέο" : "0.00%";
-        }
-        double change = ((double)(value2 - value1) / value1) * 100.0;
-        return String.format("%.2f%%", change);
-    }
+
+    private void loadComparisonData(int year1, int year2) {
+
+    Comparisons comparisons = new Comparisons();
+
+    ObservableList<CategoryData> data =
+            comparisons.getComparisonTableData(year1, year2);
+
+    exploreResultsTable.setItems(data);
+}
+
+
     
     @FXML
     private void onNavigateDataManagement() {

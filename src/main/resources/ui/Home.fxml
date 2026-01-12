@@ -755,12 +755,12 @@
                                             <children>
                                                 <Label text="Τύπος Προβολής" styleClass="section-title" style="-fx-font-size: 16px; -fx-padding: 6 0 8 0;"/>
                                                 
-                                                <Button text="Συνολικά Έσοδα/Δαπάνες" onAction="#onSelectExplorationView" fx:id="exploreTotalButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
-                                                <Button text="Ανά Υπουργείο" onAction="#onSelectExplorationView" fx:id="exploreMinistryButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
-                                                <Button text="Ανά Κατηγορία Έσόδων" onAction="#onSelectExplorationView" fx:id="exploreRevenueCategoryButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
-                                                <Button text="Ανά Κατηγορία Δαπανών" onAction="#onSelectExplorationView" fx:id="exploreExpenseCategoryButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
-                                                <Button text="Σύγκριση Ετών" onAction="#onSelectExplorationView" fx:id="exploreComparisonButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
-                                                <Button text="Τάσεις &amp; Αλλαγές" onAction="#onSelectExplorationView" fx:id="exploreTrendsButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
+                                                <Button text="📊 Συνολικά Έσοδα/Δαπάνες" onAction="#onSelectExplorationView" fx:id="exploreTotalButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
+                                                <Button text="🏛️ Ανά Υπουργείο" onAction="#onSelectExplorationView" fx:id="exploreMinistryButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
+                                                <Button text="💰 Ανά Κατηγορία Έσόδων" onAction="#onSelectExplorationView" fx:id="exploreRevenueCategoryButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
+                                                <Button text="💸 Ανά Κατηγορία Δαπανών" onAction="#onSelectExplorationView" fx:id="exploreExpenseCategoryButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
+                                                <Button text="⚖️ Σύγκριση Ετών" onAction="#onComparisonYearsClicked" fx:id="exploreComparisonButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
+                                                <Button text="📉 Τάσεις &amp; Αλλαγές" onAction="#onSelectExplorationView" fx:id="exploreTrendsButton" styleClass="exploration-category-button" style="-fx-alignment: CENTER_LEFT;"/>
                                             </children>
                                         </VBox>
                                         
