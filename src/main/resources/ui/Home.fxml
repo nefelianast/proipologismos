@@ -58,7 +58,7 @@
                                         <items>
                                             <MenuItem text="🏠 Αρχική" onAction="#onNavigateHome" fx:id="homeMenuItem" styleClass="menu-item"/>
                                             <MenuItem text="📈 Προεπισκοπήσεις Αλλαγών" onAction="#onNavigateProjections" fx:id="projectionsMenuItem" styleClass="menu-item"/>
-                                            <MenuItem text="🔍 Εξερεύνηση Δεδομένων" onAction="#onNavigateDataExploration" fx:id="dataExplorationMenuItem" styleClass="menu-item"/>
+                                            <MenuItem text="⚖️ Σύγκριση ετών" onAction="#onNavigateComparison" fx:id="dataExplorationMenuItem" styleClass="menu-item"/>
                                             <MenuItem text="📊 Στατιστικές Αναλύσεις" onAction="#onNavigateStatistics" fx:id="statisticsMenuItem" styleClass="menu-item"/>
                                             <SeparatorMenuItem styleClass="separator-menu-item"/>
                                             <MenuItem text="Σύνδεση ως Κυβέρνηση" onAction="#onAuthButtonClicked" fx:id="authMenuItem" styleClass="menu-item"/>
@@ -748,7 +748,7 @@
                                     </padding>
                                     <children>
                                         <!-- Sidebar with view categories -->
-                                        <VBox spacing="12" styleClass="exploration-sidebar" prefWidth="280">
+                                        <VBox fx:id="explorationSidebar" spacing="12" styleClass="exploration-sidebar" prefWidth="280">
                                             <padding>
                                                 <Insets top="20" right="16" bottom="20" left="16"/>
                                             </padding>
@@ -765,61 +765,58 @@
                                         </VBox>
                                         
                                         <!-- Main content area -->
-                                        <VBox spacing="16" HBox.hgrow="ALWAYS">
+                                        <VBox spacing="24" HBox.hgrow="ALWAYS" alignment="CENTER">
                                             <children>
-                                                <!-- Filters and controls -->
-                                                <HBox spacing="12" alignment="CENTER_LEFT">
-                                                    <children>
-                                                        <Label text="Έτος:" styleClass="section-subtitle"/>
-                                                        <ComboBox fx:id="exploreYearComboBox" prefWidth="120" onAction="#onExploreYearSelected"/>
-                                                        <Region HBox.hgrow="ALWAYS"/>
-                                                        
-                                                        <!-- Dynamic filters based on selected view -->
-                                                        <VBox fx:id="exploreDynamicFilters" spacing="8" visible="false" managed="false">
-                                                            <children>
-                                                                <Label text="Υπουργείο:" styleClass="section-subtitle" fx:id="exploreMinistryLabel" visible="false" managed="false"/>
-                                                                <ComboBox fx:id="exploreMinistryComboBox" prefWidth="250" visible="false" managed="false" onAction="#onExploreFilterChanged"/>
-                                                                
-                                                                <Label text="Κατηγορία Έσόδων:" styleClass="section-subtitle" fx:id="exploreRevenueCategoryLabel" visible="false" managed="false"/>
-                                                                <ComboBox fx:id="exploreRevenueCategoryComboBox" prefWidth="250" visible="false" managed="false" onAction="#onExploreFilterChanged"/>
-                                                                
-                                                                <Label text="Κατηγορία Δαπανών:" styleClass="section-subtitle" fx:id="exploreExpenseCategoryLabel" visible="false" managed="false"/>
-                                                                <ComboBox fx:id="exploreExpenseCategoryComboBox" prefWidth="250" visible="false" managed="false" onAction="#onExploreFilterChanged"/>
-                                                                
-                                                                <HBox fx:id="exploreComparisonControls" spacing="12" alignment="CENTER_LEFT" visible="false" managed="false">
-                                                                    <children>
-                                                                        <Label text="Έτος 1:" styleClass="section-subtitle" fx:id="exploreYear1Label"/>
-                                                                        <ComboBox fx:id="exploreYear1ComboBox" prefWidth="120"/>
-                                                                        <Label text="Έτος 2:" styleClass="section-subtitle" fx:id="exploreYear2Label"/>
-                                                                        <ComboBox fx:id="exploreYear2ComboBox" prefWidth="120"/>
-                                                                        <Button text="🔄 Φόρτωση Σύγκρισης" onAction="#onLoadComparison" styleClass="action-button" fx:id="exploreLoadComparisonButton"/>
-                                                                    </children>
-                                                                </HBox>
-                                                            </children>
-                                                        </VBox>
-                                                    </children>
-                                                </HBox>
+                                                <!-- Title -->
+                                                <Label fx:id="exploreViewTitleLabel" text="Σύγκριση Προϋπολογισμού μεταξύ δύο ετών" styleClass="comparison-results-title">
+                                                    <VBox.margin>
+                                                        <Insets top="0" bottom="30"/>
+                                                    </VBox.margin>
+                                                </Label>
                                                 
-                                                <!-- Results table -->
-                                                <VBox spacing="12" styleClass="section-card" HBox.hgrow="ALWAYS">
-                                                    <padding>
-                                                        <Insets top="20" right="24" bottom="24" left="24"/>
-                                                    </padding>
+                                                <!-- Comparison Controls - Always visible at top, centered -->
+                                                <VBox fx:id="exploreComparisonControls" spacing="16" alignment="CENTER" visible="true" managed="true">
                                                     <children>
-                                                        <Label fx:id="exploreViewTitleLabel" text="Επιλέξτε τύπο προβολής" styleClass="section-title"/>
-                                                        <Label fx:id="exploreViewDescriptionLabel" text="" styleClass="section-subtitle"/>
-                                                        
-                                                        <TableView fx:id="exploreResultsTable" prefHeight="500">
-                                                            <columns>
-                                                                <TableColumn fx:id="exploreColumn1" text="Έτος" prefWidth="100" sortable="true"/>
-                                                                <TableColumn fx:id="exploreColumn2" text="Κατηγορία" prefWidth="300" sortable="true"/>
-                                                                <TableColumn fx:id="exploreColumn3" text="Ποσό (€)" prefWidth="180" sortable="true"/>
-                                                                <TableColumn fx:id="exploreColumn4" text="Συμμετοχή (%)" prefWidth="150" sortable="true"/>
-                                                                <TableColumn fx:id="exploreColumn5" text="Αλλαγή" prefWidth="150" sortable="true"/>
-                                                            </columns>
-                                                        </TableView>
+                                                        <HBox spacing="16" alignment="CENTER">
+                                                            <children>
+                                                                <ComboBox fx:id="exploreYear1ComboBox" prefWidth="180" styleClass="comparison-combo" promptText="Επιλογή έτους 1"/>
+                                                                <ComboBox fx:id="exploreYear2ComboBox" prefWidth="180" styleClass="comparison-combo" promptText="Επιλογή έτους 2"/>
+                                                            </children>
+                                                        </HBox>
+                                                        <Button text="OK" onAction="#onLoadComparison" styleClass="comparison-ok-button" fx:id="exploreLoadComparisonButton"/>
                                                     </children>
                                                 </VBox>
+                                                
+                                                <!-- Dynamic filters for other views -->
+                                                <VBox fx:id="exploreDynamicFilters" spacing="12" visible="false" managed="false">
+                                                    <children>
+                                                        <Label text="Υπουργείο:" styleClass="section-subtitle" fx:id="exploreMinistryLabel" visible="false" managed="false"/>
+                                                        <ComboBox fx:id="exploreMinistryComboBox" prefWidth="250" visible="false" managed="false" onAction="#onExploreFilterChanged"/>
+                                                        
+                                                        <Label text="Κατηγορία Έσόδων:" styleClass="section-subtitle" fx:id="exploreRevenueCategoryLabel" visible="false" managed="false"/>
+                                                        <ComboBox fx:id="exploreRevenueCategoryComboBox" prefWidth="250" visible="false" managed="false" onAction="#onExploreFilterChanged"/>
+                                                        
+                                                        <Label text="Κατηγορία Δαπανών:" styleClass="section-subtitle" fx:id="exploreExpenseCategoryLabel" visible="false" managed="false"/>
+                                                        <ComboBox fx:id="exploreExpenseCategoryComboBox" prefWidth="250" visible="false" managed="false" onAction="#onExploreFilterChanged"/>
+                                                        
+                                                        <HBox spacing="8" alignment="CENTER_LEFT" visible="true">
+                                                            <children>
+                                                                <ComboBox fx:id="exploreYearComboBox" prefWidth="120" onAction="#onExploreYearSelected"/>
+                                                            </children>
+                                                        </HBox>
+                                                    </children>
+                                                </VBox>
+                                                
+                                                <!-- Results table -->
+                                                <TableView fx:id="exploreResultsTable" prefHeight="500" VBox.vgrow="ALWAYS" visible="false" managed="false">
+                                                    <columns>
+                                                        <TableColumn fx:id="exploreColumn1" text="Κατηγορία" prefWidth="350" sortable="true"/>
+                                                        <TableColumn fx:id="exploreColumn2" text="Έτος 1 (€)" prefWidth="200" sortable="true"/>
+                                                        <TableColumn fx:id="exploreColumn3" text="Έτος 2 (€)" prefWidth="200" sortable="true"/>
+                                                        <TableColumn fx:id="exploreColumn4" text="Διαφορά (€)" prefWidth="200" sortable="true"/>
+                                                        <TableColumn fx:id="exploreColumn5" text="Αλλαγή" prefWidth="150" sortable="true"/>
+                                                    </columns>
+                                                </TableView>
                                             </children>
                                         </VBox>
                                     </children>

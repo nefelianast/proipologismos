@@ -382,6 +382,10 @@ public class HomeController {
     @FXML
     private VBox dataExplorationView;
     @FXML
+    private VBox explorationSidebar;
+    @FXML
+    private VBox exploreComparisonControls;
+    @FXML
     private VBox statisticsView;
     @FXML
     private VBox projectionsView;
@@ -3145,15 +3149,11 @@ public class HomeController {
         if (exploreViewTitleLabel != null) {
             exploreViewTitleLabel.setText("Σύγκριση Προϋπολογισμού μεταξύ δύο ετών");
         }
-        if (exploreViewDescriptionLabel != null) {
-            exploreViewDescriptionLabel.setText("Επιλέξτε δύο έτη για σύγκριση εσόδων, δαπανών, υπουργείων και αποκεντρωμένων διοικήσεων");
-        }
         
-        
-        // Show comparison controls
-        if (exploreDynamicFilters != null) {
-            exploreDynamicFilters.setVisible(true);
-            exploreDynamicFilters.setManaged(true);
+        // Show comparison controls (always visible now)
+        if (exploreComparisonControls != null) {
+            exploreComparisonControls.setVisible(true);
+            exploreComparisonControls.setManaged(true);
         }
         if (exploreYear1Label != null) {
             exploreYear1Label.setVisible(true);
@@ -3166,26 +3166,18 @@ public class HomeController {
             List<String> availableYears = getAvailableYearsFromDatabase();
             exploreYear1ComboBox.getItems().clear();
             exploreYear1ComboBox.getItems().addAll(availableYears);
-            if (exploreYear1ComboBox.getItems().size() > 1) {
-                exploreYear1ComboBox.setValue(exploreYear1ComboBox.getItems().get(exploreYear1ComboBox.getItems().size() - 2));
-            } else if (!exploreYear1ComboBox.getItems().isEmpty()) {
-                exploreYear1ComboBox.setValue(exploreYear1ComboBox.getItems().get(0));
-            }
-        }
-        if (exploreYear2Label != null) {
-            exploreYear2Label.setVisible(false);
-            exploreYear2Label.setManaged(false);
+            // Don't set default value - let user choose
+            exploreYear1ComboBox.setValue(null);
         }
         if (exploreYear2ComboBox != null) {
-            exploreYear2ComboBox.setVisible(false);
-            exploreYear2ComboBox.setManaged(false);
+            exploreYear2ComboBox.setVisible(true);
+            exploreYear2ComboBox.setManaged(true);
             // Always refresh the list to ensure it reflects current database state
             List<String> availableYears = getAvailableYearsFromDatabase();
             exploreYear2ComboBox.getItems().clear();
             exploreYear2ComboBox.getItems().addAll(availableYears);
-            if (!exploreYear2ComboBox.getItems().isEmpty()) {
-                exploreYear2ComboBox.setValue(exploreYear2ComboBox.getItems().get(exploreYear2ComboBox.getItems().size() - 1));
-            }
+            // Don't set default value - let user choose
+            exploreYear2ComboBox.setValue(null);
         }
         if (exploreLoadComparisonButton != null) {
             exploreLoadComparisonButton.setVisible(true);
@@ -3193,6 +3185,10 @@ public class HomeController {
         }
         
         // Hide other filters
+        if (exploreDynamicFilters != null) {
+            exploreDynamicFilters.setVisible(false);
+            exploreDynamicFilters.setManaged(false);
+        }
         if (exploreMinistryLabel != null) exploreMinistryLabel.setVisible(false);
         if (exploreMinistryComboBox != null) exploreMinistryComboBox.setVisible(false);
         if (exploreRevenueCategoryLabel != null) exploreRevenueCategoryLabel.setVisible(false);
@@ -3200,17 +3196,39 @@ public class HomeController {
         if (exploreExpenseCategoryLabel != null) exploreExpenseCategoryLabel.setVisible(false);
         if (exploreExpenseCategoryComboBox != null) exploreExpenseCategoryComboBox.setVisible(false);
         
-        // Set up table columns for comparison
-        if (exploreColumn1 != null) exploreColumn1.setText("Κατηγορία");
-        if (exploreColumn2 != null) exploreColumn2.setText("Έτος 1 (€)");
-        if (exploreColumn3 != null) exploreColumn3.setText("Έτος 2 (€)");
-        if (exploreColumn4 != null) exploreColumn4.setText("Διαφορά (€)");
-        if (exploreColumn5 != null) exploreColumn5.setText("% Αλλαγή");
+        // Hide column 5 (% Αλλαγή) for comparison view
+        if (exploreColumn5 != null) {
+            exploreColumn5.setVisible(false);
+        }
+        
+        // Hide table initially - will be shown after OK is clicked
+        if (exploreResultsTable != null) {
+            exploreResultsTable.setVisible(false);
+            exploreResultsTable.setManaged(false);
+            exploreResultsTable.getStyleClass().add("comparison-table");
+        }
         
         // Set up custom cell value factories for comparison view
         if (exploreResultsTable != null && exploreColumn2 != null && exploreColumn3 != null) {
+            // Column 1 (String): Category name
+            if (exploreColumn1 != null) {
+                exploreColumn1.setCellValueFactory(new PropertyValueFactory<>("category"));
+            }
+            
             // Column 2 (Double): Year 1 value (using amount property directly)
             exploreColumn2.setCellValueFactory(new PropertyValueFactory<>("amount"));
+            // Add custom cell factory for proper formatting
+            exploreColumn2.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+                @Override
+                protected void updateItem(Double amount, boolean empty) {
+                    super.updateItem(amount, empty);
+                    if (empty || amount == null) {
+                        setText(null);
+                    } else {
+                        setText(AmountFormatter.formatCurrency(amount));
+                    }
+                }
+            });
             
             // Column 3 (String): Year 2 value formatted (using change property to store formatted year2)
             exploreColumn3.setCellValueFactory(cellData -> {
@@ -3225,11 +3243,18 @@ public class HomeController {
                     double year2 = cellData.getValue().getPercentage();
                     return new SimpleDoubleProperty(year2 - year1).asObject();
                 });
-            }
-            
-            // Column 5 (String): % Change (already in status property)
-            if (exploreColumn5 != null) {
-                exploreColumn5.setCellValueFactory(new PropertyValueFactory<>("status"));
+                // Add custom cell factory for proper formatting
+                exploreColumn4.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+                    @Override
+                    protected void updateItem(Double difference, boolean empty) {
+                        super.updateItem(difference, empty);
+                        if (empty || difference == null) {
+                            setText(null);
+                        } else {
+                            setText(AmountFormatter.formatCurrency(difference));
+                        }
+                    }
+                });
             }
         }
         
@@ -3237,22 +3262,34 @@ public class HomeController {
         if (exploreResultsTable != null) {
             exploreResultsTable.setItems(FXCollections.observableArrayList());
         }
-       exploreLoadComparisonButton.setOnAction(e ->{ loadComparisonView(); showComparisonYearDialog(); });
 
     }
     
 
     @FXML
     private void onLoadComparison() {
-        if (exploreYear1ComboBox == null || exploreYear2ComboBox == null) return;
+        System.out.println("onLoadComparison called");
+        
+        if (exploreYear1ComboBox == null || exploreYear2ComboBox == null) {
+            System.err.println("ERROR: ComboBoxes are null!");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Σφάλμα αρχικοποίησης");
+            alert.setContentText("Τα πεδία επιλογής ετών δεν είναι διαθέσιμα.");
+            alert.showAndWait();
+            return;
+        }
         
         String year1Str = exploreYear1ComboBox.getValue();
         String year2Str = exploreYear2ComboBox.getValue();
         
-        if (year1Str == null || year2Str == null) {
+        System.out.println("Year1: " + year1Str + ", Year2: " + year2Str);
+        
+        if (year1Str == null || year1Str.isEmpty() || year2Str == null || year2Str.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Σφάλμα");
             alert.setHeaderText("Παρακαλώ επιλέξτε και τα δύο έτη");
+            alert.setContentText("Πρέπει να επιλέξετε ένα έτος από κάθε λίστα.");
             alert.showAndWait();
             return;
         }
@@ -3265,6 +3302,7 @@ public class HomeController {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Σφάλμα");
                 alert.setHeaderText("Παρακαλώ επιλέξτε διαφορετικά έτη");
+                alert.setContentText("Τα δύο έτη πρέπει να είναι διαφορετικά για να γίνει σύγκριση.");
                 alert.showAndWait();
                 return;
             }
@@ -3274,7 +3312,7 @@ public class HomeController {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Σφάλμα");
             alert.setHeaderText("Μη έγκυρα έτη");
-            alert.setContentText("Παρακαλώ επιλέξτε έγκυρα έτη");
+            alert.setContentText("Παρακαλώ επιλέξτε έγκυρα έτη.");
             alert.showAndWait();
         } catch (Exception e) {
             e.printStackTrace();
@@ -3305,18 +3343,88 @@ public class HomeController {
     @FXML
     private void onComparisonYearsClicked() {
         loadComparisonView();
-        showComparisonYearDialog();
+    }
+    
+    @FXML
+    private void onNavigateComparison() {
+        if (dataExplorationView == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Δεν ήταν δυνατή η φόρτωση της προβολής σύγκρισης");
+            alert.setContentText("Παρακαλώ δοκιμάστε ξανά.");
+            alert.showAndWait();
+            return;
+        }
+        
+        // Show the data exploration view
+        showView(dataExplorationView);
+        
+        // Hide the sidebar with all the buttons
+        if (explorationSidebar != null) {
+            explorationSidebar.setVisible(false);
+            explorationSidebar.setManaged(false);
+        }
+        
+        // Hide the year combo box (we use year1 and year2 combo boxes instead)
+        if (exploreYearComboBox != null) {
+            exploreYearComboBox.setVisible(false);
+            exploreYearComboBox.setManaged(false);
+        }
+        
+        // Load comparison view directly
+        loadComparisonView();
     }
 
     private void loadComparisonData(int year1, int year2) {
+        try {
+            System.out.println("Loading comparison data for years: " + year1 + " and " + year2);
+            
+            Comparisons comparisons = new Comparisons();
 
-    Comparisons comparisons = new Comparisons();
+            ObservableList<CategoryData> data =
+                    comparisons.getComparisonTableData(year1, year2);
 
-    ObservableList<CategoryData> data =
-            comparisons.getComparisonTableData(year1, year2);
-
-    exploreResultsTable.setItems(data);
-}
+            System.out.println("Data loaded, items count: " + (data != null ? data.size() : 0));
+            
+            if (exploreResultsTable == null) {
+                System.err.println("ERROR: exploreResultsTable is null!");
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Σφάλμα");
+                alert.setHeaderText("Σφάλμα αρχικοποίησης");
+                alert.setContentText("Ο πίνακας αποτελεσμάτων δεν είναι διαθέσιμος.");
+                alert.showAndWait();
+                return;
+            }
+            
+            exploreResultsTable.setItems(data);
+            System.out.println("Table items set");
+            
+            // Show the table after data is loaded
+            exploreResultsTable.setVisible(true);
+            exploreResultsTable.setManaged(true);
+            System.out.println("Table set to visible and managed");
+            
+            // Force layout update
+            exploreResultsTable.requestLayout();
+            
+            // Update column headers to show actual years
+            if (exploreColumn2 != null) {
+                exploreColumn2.setText(String.format("%d (€)", year1));
+            }
+            if (exploreColumn3 != null) {
+                exploreColumn3.setText(String.format("%d (€)", year2));
+            }
+            
+            System.out.println("Comparison data loaded successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Σφάλμα φόρτωσης δεδομένων");
+            alert.setContentText("Δεν ήταν δυνατή η φόρτωση των δεδομένων σύγκρισης.\n\nΣφάλμα: " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
 
 
     
