@@ -16,10 +16,20 @@ public class Charts {
     public static void fillPieChart(PieChart chart, Map<String, Double> data, String title) {
         if (chart == null || data == null) return;
         
+        // Υπολογισμός συνολικού αθροίσματος για ποσοστά
+        double total = data.values().stream()
+            .filter(v -> v != null && v > 0)
+            .mapToDouble(Double::doubleValue)
+            .sum();
+        
         ObservableList<PieChart.Data> list = FXCollections.observableArrayList();
-        // προσθήκη δεδομένων στο chart (μόνο θετικά ποσά)
+        // προσθήκη δεδομένων στο chart (μόνο θετικά ποσά) με ποσοστά στα labels
         data.forEach((k, v) -> {
-            if (v != null && v > 0) list.add(new PieChart.Data(k, v));
+            if (v != null && v > 0) {
+                double percentage = total > 0 ? (v / total) * 100 : 0;
+                String labelWithPercentage = k + " (" + String.format("%.1f", percentage) + "%)";
+                list.add(new PieChart.Data(labelWithPercentage, v));
+            }
         });
         chart.setData(list);
         chart.setTitle(title);
@@ -304,22 +314,116 @@ public class Charts {
         barChart.getData().clear();
         barChart.setTitle(title);
         
+        // Μείωση του αριθμού κατηγοριών για αποφυγή επικάλυψης labels (max 6)
+        int actualTopN = Math.min(topN, 6);
+        
         // ταξινόμηση κατά τιμή φθίνουσα και επιλογή των top N
         List<Map.Entry<String, Double>> sorted = data.entrySet().stream()
             .filter(e -> e.getValue() > 0)
             .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
-            .limit(topN)
+            .limit(actualTopN)
             .collect(Collectors.toList());
         
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Ποσό");
         
-        // προσθήκη δεδομένων στο chart
+        // προσθήκη δεδομένων στο chart - χωρίς περικοπή, πλήρη ονόματα
         for (Map.Entry<String, Double> entry : sorted) {
             series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
         }
         
         barChart.getData().add(series);
+        
+        // Ρύθμιση Y-axis για περισσότερες διαιρέσεις (μικρότερο tick unit)
+        if (barChart.getYAxis() instanceof NumberAxis) {
+            NumberAxis yAxis = (NumberAxis) barChart.getYAxis();
+            
+            // Εύρεση μέγιστης τιμής από τα δεδομένα
+            double maxValue = series.getData().stream()
+                .mapToDouble(chartData -> chartData.getYValue().doubleValue())
+                .max()
+                .orElse(0);
+            
+            // Υπολογισμός κατάλληλου tick unit (περίπου 8-10 διαιρέσεις)
+            double tickUnit;
+            if (maxValue >= 50_000_000_000.0) {
+                tickUnit = 10_000_000_000.0; // 10 δισεκατομμύρια
+            } else if (maxValue >= 20_000_000_000.0) {
+                tickUnit = 5_000_000_000.0; // 5 δισεκατομμύρια
+            } else if (maxValue >= 10_000_000_000.0) {
+                tickUnit = 2_000_000_000.0; // 2 δισεκατομμύρια
+            } else if (maxValue >= 5_000_000_000.0) {
+                tickUnit = 1_000_000_000.0; // 1 δισεκατομμύριο
+            } else if (maxValue >= 1_000_000_000.0) {
+                tickUnit = 200_000_000.0; // 200 εκατομμύρια
+            } else if (maxValue >= 500_000_000.0) {
+                tickUnit = 100_000_000.0; // 100 εκατομμύρια
+            } else if (maxValue >= 100_000_000.0) {
+                tickUnit = 50_000_000.0; // 50 εκατομμύρια
+            } else if (maxValue >= 50_000_000.0) {
+                tickUnit = 10_000_000.0; // 10 εκατομμύρια
+            } else if (maxValue >= 10_000_000.0) {
+                tickUnit = 5_000_000.0; // 5 εκατομμύρια
+            } else {
+                tickUnit = Math.max(maxValue / 8, 100_000.0); // Δυναμικός υπολογισμός για μικρές τιμές
+            }
+            
+            // Υπολογισμός bounds
+            double upperBound = Math.ceil(maxValue / tickUnit) * tickUnit;
+            if (upperBound < maxValue * 1.1) {
+                upperBound += tickUnit; // Προσθήκη επιπλέον διαίρεσης για καλύτερη οπτική
+            }
+            
+            // Εξασφάλιση ότι το upperBound είναι τουλάχιστον 2 * maxValue για καλύτερη οπτική
+            if (upperBound < maxValue * 2 && maxValue > 0) {
+                upperBound = Math.ceil(maxValue * 1.2 / tickUnit) * tickUnit;
+            }
+            
+            yAxis.setAutoRanging(false);
+            yAxis.setLowerBound(0);
+            yAxis.setUpperBound(upperBound);
+            yAxis.setTickUnit(tickUnit);
+            yAxis.setMinorTickCount(0); // Καμία μικρή διαίρεση για καθαρότητα
+        }
+        
+        // Οριζόντια labels με μικρότερο font για λιγότερο χώρο
+        if (barChart.getXAxis() instanceof CategoryAxis) {
+            CategoryAxis xAxis = (CategoryAxis) barChart.getXAxis();
+            xAxis.setTickLabelRotation(0); // Οριζόντια labels (0 μοίρες)
+            xAxis.setGapStartAndEnd(true); // Αυξάνει το spacing μεταξύ των categories
+            
+            // Εξασφάλιση ότι τα labels είναι ορατά και οριζόντια
+            Platform.runLater(() -> {
+                barChart.applyCss();
+                barChart.layout();
+                
+                PauseTransition pause = new PauseTransition(Duration.millis(100));
+                pause.setOnFinished(e -> {
+                    // Βεβαιώνουμε ότι τα labels είναι οριζόντια
+                    xAxis.setTickLabelRotation(0);
+                    
+                    // Εφαρμογή μικρότερου font size για λιγότερο χώρο
+                    xAxis.setStyle(
+                        "-fx-tick-label-font-size: 9px; " +
+                        "-fx-tick-label-gap: 4;"
+                    );
+                    
+                    // Επίσης εφαρμογή στο chart container για περισσότερο χώρο
+                    barChart.setMinWidth(600);
+                });
+                pause.play();
+                
+                // Επιπλέον delay για εξασφάλιση ότι τα labels είναι ορατά
+                PauseTransition pause2 = new PauseTransition(Duration.millis(300));
+                pause2.setOnFinished(e2 -> {
+                    xAxis.setTickLabelRotation(0); // Εξασφάλιση ότι είναι οριζόντια
+                });
+                pause2.play();
+            });
+            
+            // Αρχικό style με μικρότερα labels
+            xAxis.setStyle("-fx-tick-label-font-size: 9px;");
+        }
     }
 
     // φορτώνει ένα area chart με ιστορικά δεδομένα για έσοδα ή δαπάνες
@@ -328,6 +432,13 @@ public class Charts {
         
         areaChart.getData().clear();
         areaChart.setTitle(title);
+        
+        // Ορισμός των κατηγοριών στον CategoryAxis για να εξασφαλιστεί ότι τα έτη απλώνονται σωστά
+        if (areaChart.getXAxis() instanceof CategoryAxis) {
+            CategoryAxis xAxis = (CategoryAxis) areaChart.getXAxis();
+            ObservableList<String> categories = FXCollections.observableArrayList("2023", "2024", "2025", "2026");
+            xAxis.setCategories(categories);
+        }
         
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName(dataType.equals("total_revenue") ? "Έσοδα" : "Δαπάνες");

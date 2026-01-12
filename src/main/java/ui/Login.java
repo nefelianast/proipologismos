@@ -28,17 +28,39 @@ public class Login {
 
     @FXML
     private void initialize() {
+        try {
+            System.out.println("Login initialize() called");
         // style στο logo
         if (logoImageView != null) {
             logoImageView.getStyleClass().add("login-logo");
+            } else {
+                System.err.println("Warning: logoImageView is null");
         }
         
         // click handlers
-        citizenCard.setOnMouseClicked(e -> onCitizenSelected());
+            if (citizenCard != null) {
+                citizenCard.setOnMouseClicked(e -> {
+                    System.out.println("Citizen card clicked");
+                    onCitizenSelected();
+                });
         citizenCard.setCursor(javafx.scene.Cursor.HAND);
-        
-        governmentCard.setOnMouseClicked(e -> onGovernmentSelected());
+            } else {
+                System.err.println("Error: citizenCard is null - cannot set click handler");
+            }
+            
+            if (governmentCard != null) {
+                governmentCard.setOnMouseClicked(e -> {
+                    System.out.println("Government card clicked");
+                    onGovernmentSelected();
+                });
         governmentCard.setCursor(javafx.scene.Cursor.HAND);
+            } else {
+                System.err.println("Error: governmentCard is null - cannot set click handler");
+            }
+        } catch (Exception e) {
+            System.err.println("Error in initialize(): " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -65,8 +87,15 @@ public class Login {
 
     @FXML
     private void onGovernmentSelected() {
+        try {
+            System.out.println("Government card clicked");
         // εμφάνιση login dialog για κυβέρνηση
         showGovernmentLogin();
+        } catch (Exception e) {
+            System.err.println("Error in onGovernmentSelected: " + e.getMessage());
+            e.printStackTrace();
+            showError("Σφάλμα", "Δεν ήταν δυνατή η προβολή της σελίδας σύνδεσης: " + e.getMessage());
+        }
     }
 
     private void showGovernmentLogin() {
@@ -154,12 +183,20 @@ public class Login {
             loginButton.setPrefHeight(40);
             loginButton.setStyle("-fx-background-color: #1e40af; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
             loginButton.setOnAction(e -> {
+                try {
+                    System.out.println("Login button clicked");
                 String username = usernameField.getText();
                 String password = passwordField.getText();
+                    
+                    System.out.println("Username: " + (username != null ? username : "null"));
+                    System.out.println("Password: " + (password != null && !password.isEmpty() ? "***" : "empty"));
                 
                 // username & password validation
                 Constraints.ValidationResult usernameResult = Constraints.validateUsername(username);
                 Constraints.ValidationResult passwordResult = Constraints.validatePassword(password);
+                    
+                    System.out.println("Username valid: " + usernameResult.isValid());
+                    System.out.println("Password valid: " + passwordResult.isValid());
                 
                 // validation styles
                 Constraints.applyValidationStyle(usernameField, usernameResult.isValid(), usernameErrorLabel, usernameResult.getErrorMessage());
@@ -167,8 +204,10 @@ public class Login {
                 
                 // validation check
                 if (usernameResult.isValid() && passwordResult.isValid()) {
+                        System.out.println("Validation passed, checking login...");
                     // login check
                     if (authentication.checkLogin(username, password)) {
+                            System.out.println("Login successful");
                         // user type set
                         HomeController.setUserType(HomeController.UserType.GOVERNMENT);
                         
@@ -190,9 +229,27 @@ public class Login {
                             showError("Σφάλμα", "Δεν ήταν δυνατή η πρόσβαση στην εφαρμογή: " + ex.getMessage());
                         }
                     } else {
+                            System.out.println("Login failed - invalid credentials");
                         // μη έγκυρα διαπιστευτήρια
                         showError("Σφάλμα Σύνδεσης", "Λάθος όνομα χρήστη ή κωδικός πρόσβασης.\nΠαρακαλώ προσπαθήστε ξανά.");
                     }
+                    } else {
+                        System.out.println("Validation failed");
+                        // Show error message if validation fails
+                        if (!usernameResult.isValid() && !passwordResult.isValid()) {
+                            showError("Σφάλμα Επικύρωσης", "Παρακαλώ συμπληρώστε σωστά τα πεδία.\n" + 
+                                    (usernameResult.getErrorMessage() != null ? usernameResult.getErrorMessage() + "\n" : "") +
+                                    (passwordResult.getErrorMessage() != null ? passwordResult.getErrorMessage() : ""));
+                        } else if (!usernameResult.isValid()) {
+                            showError("Σφάλμα Επικύρωσης", usernameResult.getErrorMessage());
+                        } else if (!passwordResult.isValid()) {
+                            showError("Σφάλμα Επικύρωσης", passwordResult.getErrorMessage());
+                        }
+                    }
+                } catch (Exception ex) {
+                    System.err.println("Error in login button handler: " + ex.getMessage());
+                    ex.printStackTrace();
+                    showError("Σφάλμα", "Παρουσιάστηκε σφάλμα κατά τη σύνδεση: " + ex.getMessage());
                 }
             });
 

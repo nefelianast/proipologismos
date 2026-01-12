@@ -6,7 +6,7 @@ import java.sql.Statement;
 import java.util.*;
 import java.math.BigDecimal;
 
-// βοηθητική κλάση για τη φόρτωση, διαχείριση & πρόσβαση στα budget δεδομένα 
+// βοηθητική κλάση για τη φόρτωση, διαχείριση & πρόσβαση στα δεδομένα προϋπολογισμού
 public class BudgetData {
     
     private static BudgetData instance;
@@ -147,6 +147,9 @@ public class BudgetData {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
+        // Ταξινόμηση κατά δαπάνες (φθίνουσα σειρά)
+        categories.sort((a, b) -> Double.compare(b.getAmount(), a.getAmount()));
         
         return categories;
     }
