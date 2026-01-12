@@ -395,8 +395,8 @@ Button.nav-button:hover {
 .year-combo-box {
     -fx-background-color: rgba(255, 255, 255, 0.95);
     -fx-border-color: transparent;
-    -fx-border-radius: 20;
-    -fx-background-radius: 20;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
     -fx-padding: 10 24;
     -fx-font-size: 16px;
     -fx-font-weight: 700;
@@ -452,6 +452,27 @@ Button.nav-button:hover {
 
 .year-combo-box:focused {
     -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.4), 25, 0, 0, 8);
+}
+
+.home-edit-button {
+    -fx-background-color: rgba(255, 255, 255, 0.95);
+    -fx-border-color: transparent;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 24;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1e40af;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.2), 20, 0, 0, 6);
+    -fx-alignment: CENTER;
+}
+
+.home-edit-button:hover {
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.4), 25, 0, 0, 8);
+    -fx-translate-y: -4;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
 }
 
 .scroll-pane {
@@ -811,140 +832,119 @@ Button.nav-button:hover {
 
 /* Context Menu Styling */
 .context-menu {
-    -fx-background-color: white;
+    -fx-background-color: #ffffff;
     -fx-background-radius: 12;
     -fx-border-radius: 12;
-    -fx-border-color: rgba(30, 64, 175, 0.2);
+    -fx-border-color: #e5e7eb;
     -fx-border-width: 1;
-    -fx-padding: 8;
-    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.3), 20, 0, 0, 8);
+    -fx-padding: 8 4;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 16, 0, 0, 4);
 }
 
 .context-menu .menu-item {
     -fx-background-color: transparent;
-    -fx-padding: 10 16;
+    -fx-padding: 11 16;
     -fx-background-radius: 8;
     -fx-border-radius: 8;
     -fx-font-size: 14px;
     -fx-font-weight: 500;
-    -fx-text-fill: #1e293b;
+    -fx-text-fill: #374151;
     -fx-cursor: hand;
+    -fx-min-width: 220;
 }
 
 .context-menu .menu-item .label {
-    -fx-text-fill: #1e293b !important;
+    -fx-text-fill: #374151 !important;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
 }
 
 .context-menu .menu-item:hover {
-    -fx-background-color: linear-gradient(to right, rgba(30, 64, 175, 0.1) 0%, rgba(30, 64, 175, 0.15) 100%);
+    -fx-background-color: #f3f4f6;
 }
 
 .context-menu .menu-item:hover .label {
-    -fx-text-fill: #1e40af !important;
+    -fx-text-fill: #2563eb !important;
+    -fx-font-weight: 600;
 }
 
 .context-menu .menu-item:focused {
-    -fx-background-color: linear-gradient(to right, rgba(30, 64, 175, 0.15) 0%, rgba(30, 64, 175, 0.2) 100%);
+    -fx-background-color: #eff6ff;
 }
 
 .context-menu .menu-item:focused .label {
-    -fx-text-fill: #1e40af !important;
+    -fx-text-fill: #1d4ed8 !important;
+    -fx-font-weight: 600;
 }
 
 /* General MenuItem styling */
 .menu-item {
     -fx-background-color: transparent;
-    -fx-padding: 10 16;
+    -fx-padding: 11 16;
     -fx-background-radius: 8;
     -fx-border-radius: 8;
     -fx-font-size: 14px;
     -fx-font-weight: 500;
-    -fx-text-fill: #1e293b;
+    -fx-text-fill: #374151;
     -fx-cursor: hand;
 }
 
 .menu-item .label {
-    -fx-text-fill: #1e293b !important;
+    -fx-text-fill: #374151 !important;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
 }
 
 .menu-item:hover {
-    -fx-background-color: linear-gradient(to right, rgba(30, 64, 175, 0.1) 0%, rgba(30, 64, 175, 0.15) 100%);
+    -fx-background-color: #f3f4f6;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.05), 6, 0, 0, 1);
 }
 
 .menu-item:hover .label {
-    -fx-text-fill: #1e40af !important;
+    -fx-text-fill: #2563eb !important;
+    -fx-font-weight: 600;
 }
 
 .menu-item:focused {
-    -fx-background-color: linear-gradient(to right, rgba(30, 64, 175, 0.15) 0%, rgba(30, 64, 175, 0.2) 100%);
+    -fx-background-color: #eff6ff;
 }
 
 .menu-item:focused .label {
-    -fx-text-fill: #1e40af !important;
+    -fx-text-fill: #1d4ed8 !important;
+    -fx-font-weight: 600;
+}
+
+.menu-item-selected {
+    -fx-background-color: #f3f4f6;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+
+.menu-item-selected .label {
+    -fx-text-fill: #2563eb !important;
+    -fx-font-weight: 600;
+    -fx-font-size: 14px;
+}
+
+.menu-item-selected:hover {
+    -fx-background-color: #e5e7eb;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.12), 10, 0, 0, 3);
+}
+
+.menu-item-selected:hover .label {
+    -fx-text-fill: #1d4ed8 !important;
+    -fx-font-weight: 600;
 }
 
 .separator-menu-item {
-    -fx-padding: 4 0;
+    -fx-padding: 8 16;
 }
 
 .separator-menu-item .line {
-    -fx-border-color: rgba(30, 64, 175, 0.2);
+    -fx-border-color: #e5e7eb;
     -fx-border-width: 0 0 1 0;
     -fx-padding: 0;
-}
-
-/* Force text color for all menu items in context menu - JavaFX MenuItem uses different structure */      
-.context-menu {
-    -fx-text-fill: #1e293b;
-}
-
-.context-menu .menu-item {
-    -fx-text-fill: #1e293b;
-}
-
-.context-menu .menu-item .label {
-    -fx-text-fill: #1e293b !important;
-}
-
-.context-menu .menu-item:hover {
-    -fx-text-fill: #1e40af;
-}
-
-.context-menu .menu-item:hover .label {
-    -fx-text-fill: #1e40af !important;
-}
-
-.context-menu .menu-item:focused {
-    -fx-text-fill: #1e40af;
-}
-
-.context-menu .menu-item:focused .label {
-    -fx-text-fill: #1e40af !important;
-}
-
-/* General menu item styling */
-.menu-item {
-    -fx-text-fill: #1e293b;
-}
-
-.menu-item .label {
-    -fx-text-fill: #1e293b !important;
-}
-
-.menu-item:hover {
-    -fx-text-fill: #1e40af;
-}
-
-.menu-item:hover .label {
-    -fx-text-fill: #1e40af !important;
-}
-
-.menu-item:focused {
-    -fx-text-fill: #1e40af;
-}
-
-.menu-item:focused .label {
-    -fx-text-fill: #1e40af !important;
 }
 
 .publish-button {
@@ -1677,3 +1677,16 @@ Button.nav-button:hover {
     -fx-padding: 4px;
 }
 
+/* CheckBoxTableCell styling to ensure tick mark is visible */
+.check-box-table-cell .check-box {
+    -fx-mark-color: #1e40af;
+}
+
+.check-box-table-cell .check-box:selected {
+    -fx-background-color: #1e40af;
+    -fx-mark-color: white;
+}
+
+.check-box-table-cell .check-box:selected .mark {
+    -fx-background-color: white;
+}

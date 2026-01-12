@@ -45,8 +45,18 @@ public class AmountFormatter {
         return String.format("%.2f%%", percentage);
     }
     
-   //μορφοποιεί ποσοστό με 1 δεκαδικό ψηφίο
+   //μορφοποιεί ποσοστό με 1 δεκαδικό ψηφίο, αλλά δείχνει περισσότερα δεκαδικά αν είναι πολύ μικρό
     public static String formatPercentageOneDecimal(double percentage) {
+        // Αν το ποσοστό είναι μικρότερο από 0.1, δείξε περισσότερα δεκαδικά
+        if (percentage > 0 && percentage < 0.1) {
+            // Χρησιμοποιούμε scientific notation ή περισσότερα δεκαδικά
+            // Βρίσκουμε πόσα δεκαδικά χρειάζονται για να δείξουμε τουλάχιστον ένα σημαντικό ψηφίο
+            if (percentage < 0.01) {
+                return String.format("%.4f%%", percentage);
+            } else if (percentage < 0.1) {
+                return String.format("%.3f%%", percentage);
+            }
+        }
         return String.format("%.1f%%", percentage);
     }
     

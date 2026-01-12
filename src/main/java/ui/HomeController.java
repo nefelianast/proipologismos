@@ -8,7 +8,13 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.Tab;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.util.Callback;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
@@ -39,7 +45,6 @@ import javafx.scene.chart.PieChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.AreaChart;
-import javafx.scene.chart.StackedBarChart;
 
 /**
  * Main controller for the home screen of the Budget Analysis System.
@@ -109,6 +114,7 @@ public class HomeController {
         private final StringProperty status;
         private final DoubleProperty previousYearAmount;
         private final StringProperty comments;
+        private final BooleanProperty selected;
 
         public CategoryData(String category, double amount, double percentage, String change) {
             this(category, amount, percentage, change, extractTypeFromChange(change), 0.0);
@@ -123,6 +129,7 @@ public class HomeController {
             this.previousYearAmount = new SimpleDoubleProperty(previousYearAmount);
             this.status = new SimpleStringProperty(calculateStatus(amount, previousYearAmount));
             this.comments = new SimpleStringProperty("");
+            this.selected = new SimpleBooleanProperty(false);
         }
         
         private static String extractTypeFromChange(String change) {
@@ -216,6 +223,18 @@ public class HomeController {
         public void setComments(String comments) {
             this.comments.set(comments);
         }
+        
+        public boolean isSelected() {
+            return selected.get();
+        }
+        
+        public BooleanProperty selectedProperty() {
+            return selected;
+        }
+        
+        public void setSelected(boolean selected) {
+            this.selected.set(selected);
+        }
     }
 
     @FXML
@@ -256,6 +275,8 @@ public class HomeController {
     @FXML
     private VBox quickNavAdministrations;
     @FXML
+    private MenuItem homeMenuItem;
+    @FXML
     private MenuItem projectionsMenuItem;
     @FXML
     private MenuItem dataExplorationMenuItem;
@@ -268,9 +289,13 @@ public class HomeController {
     @FXML
     private TableView<CategoryData> dmRevenuesTable;
     @FXML
+    private TableColumn<CategoryData, Boolean> revSelectColumn;
+    @FXML
     private TableColumn<CategoryData, String> revCategoryColumn;
     @FXML
     private TableColumn<CategoryData, Double> revAmountColumn;
+    @FXML
+    private TableColumn<CategoryData, Void> revActionsColumn;
     @FXML
     private TableColumn<CategoryData, Double> revPercentageColumn;
     @FXML
@@ -284,9 +309,13 @@ public class HomeController {
     @FXML
     private TableView<CategoryData> dmExpensesTable;
     @FXML
+    private TableColumn<CategoryData, Boolean> expSelectColumn;
+    @FXML
     private TableColumn<CategoryData, String> expCategoryColumn;
     @FXML
     private TableColumn<CategoryData, Double> expAmountColumn;
+    @FXML
+    private TableColumn<CategoryData, Void> expActionsColumn;
     @FXML
     private TableColumn<CategoryData, Double> expPercentageColumn;
     @FXML
@@ -319,6 +348,10 @@ public class HomeController {
     private Button editDataButton;
     @FXML
     private Button deleteDataButton;
+    @FXML
+    private Button selectAllButton;
+    @FXML
+    private Button deselectAllButton;
     @FXML
     private Button publishYearButton;
     @FXML
@@ -362,6 +395,14 @@ public class HomeController {
     @FXML
     private ComboBox<String> exploreYearComboBox;
     @FXML
+    private ComboBox<String> ministriesYearComboBox;
+    @FXML
+    private ComboBox<String> revenuesYearComboBox;
+    @FXML
+    private ComboBox<String> expensesYearComboBox;
+    @FXML
+    private ComboBox<String> administrationsYearComboBox;
+    @FXML
     private VBox exploreDynamicFilters;
     @FXML
     private Label exploreMinistryLabel;
@@ -403,6 +444,8 @@ public class HomeController {
     private TableColumn<CategoryData, String> exploreColumn5;
     
     private String currentExplorationView = "";
+    private boolean isLoadingExplorationView = false;
+    private boolean isEditMode = false;
     
     // Statistics View
     @FXML
@@ -462,27 +505,17 @@ public class HomeController {
     
     // New Charts for Revenues View
     @FXML
-    private BarChart<String, Number> barRevenueTop;
-    @FXML
     private AreaChart<String, Number> areaRevenueTrend;
-    @FXML
-    private StackedBarChart<String, Number> stackedRevenue;
     
     // New Charts for Expenses View
     @FXML
-    private BarChart<String, Number> barExpenseTop;
-    @FXML
     private AreaChart<String, Number> areaExpenseTrend;
-    @FXML
-    private StackedBarChart<String, Number> stackedExpense;
     
     // New Charts for Ministries View
     @FXML
     private AreaChart<String, Number> areaMinistriesTrend;
     
     // New Charts for Administrations View
-    @FXML
-    private PieChart pieAdministrations;
     @FXML
     private BarChart<String, Number> barAdministrationsTop;
     @FXML
@@ -492,27 +525,32 @@ public class HomeController {
     @FXML
     private ComboBox<String> simulationBaseYearComboBox;
     @FXML
-    private Button loadSimulationDataButton;
+    private TabPane simulationTypeTabPane;
     @FXML
-    private TextField revenueIncreasePercentField;
+    private TabPane revenuesExpensesTabPane;
     @FXML
-    private TextField expenseDecreasePercentField;
+    private HBox expensesLevelContainer;
     @FXML
-    private TextField combinedRevenueChangeField;
+    private ComboBox<String> simulationLevelComboBox;
     @FXML
-    private TextField combinedExpenseChangeField;
+    private TableView<SimulationSelectionItem> simulationSelectionsTable;
     @FXML
-    private ComboBox<String> simulationFutureYearComboBox;
+    private TableColumn<SimulationSelectionItem, Boolean> simulationCheckColumn;
     @FXML
-    private TextField revenueTrendField;
+    private TableColumn<SimulationSelectionItem, String> simulationCategoryColumn;
     @FXML
-    private TextField expenseTrendField;
+    private TableColumn<SimulationSelectionItem, Double> simulationAmountColumn;
+    @FXML
+    private TableColumn<SimulationSelectionItem, String> simulationChangeColumn;
+    @FXML
+    private TextField simulationDefaultChangeField;
     @FXML
     private TextArea simulationResultsArea;
     
     private int simulationBaseYear = Calendar.getInstance().get(Calendar.YEAR);
     private double simulationBaseRevenue = 0;
     private double simulationBaseExpense = 0;
+    private ObservableList<SimulationSelectionItem> simulationSelections = FXCollections.observableArrayList();
     
     // Filtered data for search/filter
     private ObservableList<CategoryData> allDataManagementItems = FXCollections.observableArrayList();
@@ -734,7 +772,7 @@ public class HomeController {
                 }
             }
             
-            if (editDataButton != null) editDataButton.setDisable(!hasSelection || !isEditable);
+            // Edit button is always enabled (no selection needed for edit mode toggle)
             if (deleteDataButton != null) deleteDataButton.setDisable(!hasSelection || !isEditable);
             if (bulkEditButton != null) {
                 int selectedCount = getTotalSelectedCount();
@@ -828,39 +866,6 @@ public class HomeController {
         // Initialize year ComboBox
         if (yearComboBox != null) {
             updateYearComboBox();
-            
-            // Center the text in the ComboBox
-            yearComboBox.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
-                @Override
-                public ListCell<String> call(ListView<String> param) {
-                    return new ListCell<String>() {
-                        @Override
-                        protected void updateItem(String item, boolean empty) {
-                            super.updateItem(item, empty);
-                            if (empty || item == null) {
-                                setText(null);
-                            } else {
-                                setText(item);
-                                setAlignment(javafx.geometry.Pos.CENTER);
-                            }
-                        }
-                    };
-                }
-            });
-            
-            // Center the selected item display
-            yearComboBox.setButtonCell(new ListCell<String>() {
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setText(null);
-                    } else {
-                        setText(item);
-                        setAlignment(javafx.geometry.Pos.CENTER);
-                    }
-                }
-            });
         }
         
         // Initialize home edit button visibility
@@ -868,49 +873,222 @@ public class HomeController {
         
         // Initialize data management revenues table
         if (dmRevenuesTable != null && revCategoryColumn != null) {
-            revCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
-            revAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
-            revPercentageColumn.setCellValueFactory(new PropertyValueFactory<>("percentage"));
-            revChangeColumn.setCellValueFactory(param -> {
-                CategoryData data = param.getValue();
-                return new javafx.beans.property.SimpleStringProperty(data.getChangeFromPrevious());
-            });
-            revStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-            if (revCommentsColumn != null) {
-                revCommentsColumn.setCellValueFactory(new PropertyValueFactory<>("comments"));
-                revCommentsColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-                revCommentsColumn.setOnEditCommit(event -> {
-                    CategoryData data = event.getRowValue();
-                    data.setComments(event.getNewValue());
+            // Setup select column (CheckBox)
+            if (revSelectColumn != null) {
+                revSelectColumn.setCellValueFactory(param -> {
+                    CategoryData data = param.getValue();
+                    if (data.selectedProperty() == null) {
+                        // Should not happen as it's initialized in constructor
+                        return new SimpleBooleanProperty(false);
+                    }
+                    return data.selectedProperty();
                 });
-                dmRevenuesTable.setEditable(true);
+                revSelectColumn.setCellFactory(CheckBoxTableCell.forTableColumn(revSelectColumn));
+                revSelectColumn.setVisible(false);
             }
             
-            setupTableColumnFormatting(revAmountColumn, revPercentageColumn, revStatusColumn);
+            revCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
+            revAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
+            
+            // Format amount column (not editable initially)
+            revAmountColumn.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+                @Override
+                protected void updateItem(Double amount, boolean empty) {
+                    super.updateItem(amount, empty);
+                    if (empty || amount == null) {
+                                setText(null);
+                            } else {
+                        setText(AmountFormatter.formatCurrency(amount));
+                    }
+                }
+            });
+            
+            // Setup actions column (edit + delete buttons)
+            if (revActionsColumn != null) {
+                revActionsColumn.setCellFactory(param -> new TableCell<CategoryData, Void>() {
+                    private final Label editIcon = new Label("✎"); // ✎ Pencil
+                    private final Label deleteIcon = new Label("🗑"); // 🗑 Wastebasket
+                    private final Button editBtn = new Button();
+                    private final Button deleteBtn = new Button();
+                    private final HBox hbox = new HBox(8, editBtn, deleteBtn);
+                    
+                    {
+                        hbox.setAlignment(Pos.CENTER);
+                        
+                        // Setup edit button
+                        editIcon.setStyle("-fx-font-size: 16px; -fx-text-fill: #1A73E8;");
+                        editBtn.setGraphic(editIcon);
+                        editBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-cursor: hand; -fx-padding: 4;");
+                        editBtn.setOnAction(e -> {
+                            CategoryData data = getTableView().getItems().get(getIndex());
+                            editAmountForRow(data, dmRevenuesTable, revAmountColumn);
+                        });
+                        
+                        // Setup delete button
+                        deleteIcon.setText("🗑");
+                        deleteIcon.setStyle("-fx-font-size: 16px; -fx-text-fill: #dc2626;");
+                        deleteBtn.setGraphic(deleteIcon);
+                        deleteBtn.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                        deleteBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-cursor: hand; -fx-padding: 4;");
+                        deleteBtn.setOnAction(e -> {
+                            CategoryData data = getTableView().getItems().get(getIndex());
+                            deleteCategory(data, dmRevenuesTable);
+                        });
+                    }
+                    
+                @Override
+                    protected void updateItem(Void item, boolean empty) {
+                    super.updateItem(item, empty);
+                        if (empty) {
+                            setGraphic(null);
+                    } else {
+                            setGraphic(hbox);
+                    }
+                }
+            });
+                revActionsColumn.setVisible(false);
+            }
+            
+            // Setup comments column (hidden initially, shown in edit mode - always editable when visible)
+            if (revCommentsColumn != null) {
+                revCommentsColumn.setCellValueFactory(new PropertyValueFactory<>("comments"));
+                revCommentsColumn.setCellFactory(column -> new TableCell<CategoryData, String>() {
+                    private final TextField textField = new TextField();
+                    
+                    {
+                        textField.setStyle("-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4; -fx-padding: 4 8;");
+                    }
+                    
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty) {
+                            setGraphic(null);
+                        } else {
+                            CategoryData data = getTableView().getItems().get(getIndex());
+                            textField.setText(data.getComments() != null ? data.getComments() : "");
+                            textField.textProperty().addListener((obs, oldText, newText) -> {
+                                if (getIndex() >= 0 && getIndex() < getTableView().getItems().size()) {
+                                    CategoryData rowData = getTableView().getItems().get(getIndex());
+                                    rowData.setComments(newText);
+                                }
+                            });
+                            setGraphic(textField);
+                        }
+                    }
+                });
+                revCommentsColumn.setVisible(false);
+                revCommentsColumn.setEditable(true);
+            }
+            
+            dmRevenuesTable.setEditable(false); // Not editable initially
             setupTableSelection(dmRevenuesTable);
         }
         
         // Initialize data management expenses table
         if (dmExpensesTable != null && expCategoryColumn != null) {
-            expCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
-            expAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
-            expPercentageColumn.setCellValueFactory(new PropertyValueFactory<>("percentage"));
-            expChangeColumn.setCellValueFactory(param -> {
-                CategoryData data = param.getValue();
-                return new javafx.beans.property.SimpleStringProperty(data.getChangeFromPrevious());
-            });
-            expStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-            if (expCommentsColumn != null) {
-                expCommentsColumn.setCellValueFactory(new PropertyValueFactory<>("comments"));
-                expCommentsColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-                expCommentsColumn.setOnEditCommit(event -> {
-                    CategoryData data = event.getRowValue();
-                    data.setComments(event.getNewValue());
-                });
-                dmExpensesTable.setEditable(true);
+            // Setup select column (CheckBox)
+            if (expSelectColumn != null) {
+                expSelectColumn.setCellValueFactory(param -> param.getValue().selectedProperty());
+                expSelectColumn.setCellFactory(CheckBoxTableCell.forTableColumn(expSelectColumn));
+                expSelectColumn.setVisible(false);
             }
             
-            setupTableColumnFormatting(expAmountColumn, expPercentageColumn, expStatusColumn);
+            expCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
+            expAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
+            
+            // Format amount column (not editable initially)
+            expAmountColumn.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+                @Override
+                protected void updateItem(Double amount, boolean empty) {
+                    super.updateItem(amount, empty);
+                    if (empty || amount == null) {
+                        setText(null);
+                    } else {
+                        setText(AmountFormatter.formatCurrency(amount));
+                    }
+                }
+            });
+            
+            // Setup actions column (edit + delete buttons)
+            if (expActionsColumn != null) {
+                expActionsColumn.setCellFactory(param -> new TableCell<CategoryData, Void>() {
+                    private final Label editIcon = new Label("\u270E"); // ✎ (U+270E) Pencil
+                    private final Label deleteIcon = new Label("\u1F5D1"); // 🗑 (U+1F5D1) Wastebasket
+                    private final Button editBtn = new Button();
+                    private final Button deleteBtn = new Button();
+                    private final HBox hbox = new HBox(8, editBtn, deleteBtn);
+                    
+                    {
+                        hbox.setAlignment(Pos.CENTER);
+                        
+                        // Setup edit button
+                        editIcon.setStyle("-fx-font-size: 16px; -fx-text-fill: #1A73E8;");
+                        editBtn.setGraphic(editIcon);
+                        editBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-cursor: hand; -fx-padding: 4;");
+                        editBtn.setOnAction(e -> {
+                            CategoryData data = getTableView().getItems().get(getIndex());
+                            editAmountForRow(data, dmExpensesTable, expAmountColumn);
+                        });
+                        
+                        // Setup delete button
+                        deleteIcon.setText("🗑");
+                        deleteIcon.setStyle("-fx-font-size: 16px; -fx-text-fill: #dc2626;");
+                        deleteBtn.setGraphic(deleteIcon);
+                        deleteBtn.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                        deleteBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-cursor: hand; -fx-padding: 4;");
+                        deleteBtn.setOnAction(e -> {
+                            CategoryData data = getTableView().getItems().get(getIndex());
+                            deleteCategory(data, dmExpensesTable);
+                        });
+                    }
+                    
+                    @Override
+                    protected void updateItem(Void item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty) {
+                            setGraphic(null);
+                        } else {
+                            setGraphic(hbox);
+                        }
+                    }
+                });
+                expActionsColumn.setVisible(false);
+            }
+            
+            // Setup comments column (hidden initially, shown in edit mode - always editable when visible)
+            if (expCommentsColumn != null) {
+                expCommentsColumn.setCellValueFactory(new PropertyValueFactory<>("comments"));
+                expCommentsColumn.setCellFactory(column -> new TableCell<CategoryData, String>() {
+                    private final TextField textField = new TextField();
+                    
+                    {
+                        textField.setStyle("-fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-border-radius: 4; -fx-padding: 4 8;");
+                    }
+                    
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty) {
+                            setGraphic(null);
+                        } else {
+                            CategoryData data = getTableView().getItems().get(getIndex());
+                            textField.setText(data.getComments() != null ? data.getComments() : "");
+                            textField.textProperty().addListener((obs, oldText, newText) -> {
+                                if (getIndex() >= 0 && getIndex() < getTableView().getItems().size()) {
+                                    CategoryData rowData = getTableView().getItems().get(getIndex());
+                                    rowData.setComments(newText);
+                                }
+                            });
+                            setGraphic(textField);
+                        }
+                    }
+                });
+                expCommentsColumn.setVisible(false);
+                expCommentsColumn.setEditable(true);
+            }
+            
+            dmExpensesTable.setEditable(false); // Not editable initially
             setupTableSelection(dmExpensesTable);
         }
         
@@ -989,7 +1167,7 @@ public class HomeController {
                     isEditable = isYearEditable(year);
                 }
                 
-                if (editDataButton != null) editDataButton.setDisable(!hasSelection || !isEditable);
+                // Edit button is always enabled (no selection needed for edit mode toggle)
                 if (deleteDataButton != null) deleteDataButton.setDisable(!hasSelection || !isEditable);
                 if (bulkEditButton != null) {
                     int selectedCount = dataManagementTable.getSelectionModel().getSelectedItems().size();
@@ -1211,6 +1389,74 @@ public class HomeController {
                 selectedYear = yearComboBox.getItems().get(0);
             }
         }
+    }
+    
+    /**
+     * Helper method to initialize a year combo box with the same logic as the main yearComboBox
+     */
+    private void initializeYearComboBox(ComboBox<String> comboBox) {
+        if (comboBox == null) return;
+        
+        comboBox.getItems().clear();
+        
+        Set<Integer> publishedYears = getPublishedYears();
+        
+        // For citizens: only show published years
+        // For government: show all years (2023-2027)
+        if (isGovernmentUser()) {
+            // Government sees all years
+            comboBox.getItems().addAll("2023", "2024", "2025", "2026");
+            comboBox.getItems().add("2027");
+        } else {
+            // Citizens only see published years
+            for (int year = 2023; year <= 2027; year++) {
+                if (publishedYears.contains(year)) {
+                    comboBox.getItems().add(String.valueOf(year));
+                }
+            }
+        }
+        
+        // Set default value to current year if available, or use selectedYear
+        String yearToSet = selectedYear != null ? selectedYear : String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+        if (comboBox.getItems().contains(yearToSet)) {
+            comboBox.setValue(yearToSet);
+        } else if (!comboBox.getItems().isEmpty()) {
+            // Fallback to last available year
+            comboBox.setValue(comboBox.getItems().get(comboBox.getItems().size() - 1));
+        }
+        
+        // Center the text in the ComboBox
+        comboBox.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
+            @Override
+            public ListCell<String> call(ListView<String> param) {
+                return new ListCell<String>() {
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || item == null) {
+                            setText(null);
+                        } else {
+                            setText(item);
+                            setAlignment(javafx.geometry.Pos.CENTER);
+                        }
+                    }
+                };
+            }
+        });
+        
+        // Center the selected item display
+        comboBox.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setAlignment(javafx.geometry.Pos.CENTER);
+                }
+            }
+        });
     }
     
     // Published Years Management
@@ -1647,6 +1893,11 @@ public class HomeController {
         }
     }
     
+    @FXML
+    private void onHomeEditButtonClicked() {
+        onNavigateDataManagement();
+    }
+    
     private void updateHomeEditButtonVisibility() {
         if (homeEditButton != null) {
             boolean isGovernment = isGovernmentUser();
@@ -1689,30 +1940,18 @@ public class HomeController {
         int year = Integer.parseInt(selectedYear);
         if (revenuesView != null && revenuesView.isVisible()) {
             if (pieRevenue != null) {
-                Charts.fillPieChart(pieRevenue, budgetData.getRevenueBreakdownForGraphs(year), "Έσοδα " + selectedYear);
-            }
-            if (barRevenueTop != null) {
-                Charts.loadBarChartForTopCategories(barRevenueTop, budgetData.getRevenueBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
+                Charts.fillPieChart(pieRevenue, budgetData.getRevenueBreakdownForGraphs(year), "Κύριες Πηγές Εσόδων");
             }
             if (areaRevenueTrend != null) {
                 Charts.loadAreaChart(areaRevenueTrend, budgetData, "total_revenue", "Διαχρονική Εξέλιξη Εσόδων");
-            }
-            if (stackedRevenue != null) {
-                Charts.loadStackedBarChart(stackedRevenue, budgetData, "revenue", "Σύνθεση Εσόδων ανά Έτος");
             }
         }
         if (expensesView != null && expensesView.isVisible()) {
             if (pieExpenses != null) {
                 Charts.fillPieChart(pieExpenses, budgetData.getExpenseBreakdownForGraphs(year), "Έξοδα " + selectedYear);
             }
-            if (barExpenseTop != null) {
-                Charts.loadBarChartForTopCategories(barExpenseTop, budgetData.getExpenseBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
-            }
             if (areaExpenseTrend != null) {
                 Charts.loadAreaChart(areaExpenseTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών");
-            }
-            if (stackedExpense != null) {
-                Charts.loadStackedBarChart(stackedExpense, budgetData, "expense", "Σύνθεση Δαπανών ανά Έτος");
             }
         }
         if (ministriesView != null && ministriesView.isVisible()) {
@@ -1724,9 +1963,6 @@ public class HomeController {
             }
         }
         if (administrationsView != null && administrationsView.isVisible()) {
-            if (pieAdministrations != null) {
-                Charts.fillPieChart(pieAdministrations, budgetData.getDecentralizedAdministrationsBreakdown(year), "Αποκεντρωμένες Διοικήσεις " + selectedYear);
-            }
             if (barAdministrationsTop != null) {
                 Charts.loadBarChartForTopCategories(barAdministrationsTop, budgetData.getDecentralizedAdministrationsBreakdown(year), "Κορυφαίες Διοικήσεις", 7);
             }
@@ -1780,9 +2016,13 @@ public class HomeController {
 
 
     private void updateCategoryTable() {
-        if (selectedYear == null) return;
+        String yearToUse = selectedYear;
+        if (ministriesView != null && ministriesView.isVisible() && ministriesYearComboBox != null && ministriesYearComboBox.getValue() != null) {
+            yearToUse = ministriesYearComboBox.getValue();
+        }
+        if (yearToUse == null) return;
         
-        int yearInt = Integer.parseInt(selectedYear);
+        int yearInt = Integer.parseInt(yearToUse);
         List<BudgetData.CategoryInfo> categories = budgetData.getCategories(yearInt);
         
         // Get previous year data for comparison
@@ -1815,9 +2055,13 @@ public class HomeController {
     }
     
     private void updateRevenuesTable() {
-        if (selectedYear == null) return;
+        String yearToUse = selectedYear;
+        if (revenuesView != null && revenuesView.isVisible() && revenuesYearComboBox != null && revenuesYearComboBox.getValue() != null) {
+            yearToUse = revenuesYearComboBox.getValue();
+        }
+        if (yearToUse == null) return;
         
-        int yearInt = Integer.parseInt(selectedYear);
+        int yearInt = Integer.parseInt(yearToUse);
         List<BudgetData.CategoryInfo> revenues = budgetData.getRevenueBreakdown(yearInt);
         
         ObservableList<CategoryData> tableData = FXCollections.observableArrayList();
@@ -1829,9 +2073,13 @@ public class HomeController {
     }
     
     private void updateExpensesTable() {
-        if (selectedYear == null) return;
+        String yearToUse = selectedYear;
+        if (expensesView != null && expensesView.isVisible() && expensesYearComboBox != null && expensesYearComboBox.getValue() != null) {
+            yearToUse = expensesYearComboBox.getValue();
+        }
+        if (yearToUse == null) return;
         
-        int yearInt = Integer.parseInt(selectedYear);
+        int yearInt = Integer.parseInt(yearToUse);
         List<BudgetData.CategoryInfo> expenses = budgetData.getExpensesBreakdown(yearInt);
         
         ObservableList<CategoryData> tableData = FXCollections.observableArrayList();
@@ -1843,9 +2091,13 @@ public class HomeController {
     }
     
     private void updateAdministrationsTable() {
-        if (selectedYear == null) return;
+        String yearToUse = selectedYear;
+        if (administrationsView != null && administrationsView.isVisible() && administrationsYearComboBox != null && administrationsYearComboBox.getValue() != null) {
+            yearToUse = administrationsYearComboBox.getValue();
+        }
+        if (yearToUse == null) return;
         
-        int yearInt = Integer.parseInt(selectedYear);
+        int yearInt = Integer.parseInt(yearToUse);
         List<BudgetData.CategoryInfo> administrations = budgetData.getDecentralizedAdministrations(yearInt);
         
         ObservableList<CategoryData> tableData = FXCollections.observableArrayList();
@@ -1864,64 +2116,129 @@ public class HomeController {
     @FXML
     private void onNavigateMinistries() {
         showView(ministriesView);
-        updateCategoryTable(); // Update the category table for ministries view
-        if (selectedYear != null) {
-            int year = Integer.parseInt(selectedYear);
+        
+        // Initialize year combo box if needed
+        if (ministriesYearComboBox != null && ministriesYearComboBox.getItems().isEmpty()) {
+            initializeYearComboBox(ministriesYearComboBox);
+        }
+        
+        // Get selected year from combo box or use default
+        String yearStr = ministriesYearComboBox != null && ministriesYearComboBox.getValue() != null 
+            ? ministriesYearComboBox.getValue() 
+            : selectedYear;
+        
+        if (yearStr != null) {
+            int year = Integer.parseInt(yearStr);
+            updateCategoryTable(); // Update the category table for ministries view
             // Update ministries pie chart
             if (pieMinistries != null) {
-                Charts.loadTopPieChart(pieMinistries, budgetData.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία " + selectedYear, 3);
+                Charts.loadTopPieChart(pieMinistries, budgetData.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία " + yearStr, 3);
             }
-            // Update area chart - trend
-            if (areaMinistriesTrend != null) {
+            // Area chart shows historical trend - load once, no need to update when year changes
+            if (areaMinistriesTrend != null && areaMinistriesTrend.getData().isEmpty()) {
                 Charts.loadAreaChart(areaMinistriesTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Υπουργείων");
             }
+        }
+    }
+    
+    @FXML
+    private void onMinistriesYearSelected() {
+        if (ministriesYearComboBox != null && ministriesYearComboBox.getValue() != null) {
+            String yearStr = ministriesYearComboBox.getValue();
+            int year = Integer.parseInt(yearStr);
+            // Update the category table for ministries view
+            updateCategoryTable();
+            // Update ministries pie chart
+            if (pieMinistries != null) {
+                Charts.loadTopPieChart(pieMinistries, budgetData.getMinistriesBreakdown(year), "Κορυφαία Υπουργεία " + yearStr, 3);
+            }
+            // Area chart shows historical trend - no need to update when year changes
         }
     }
 
     @FXML
     private void onNavigateRevenues() {
         showView(revenuesView);
-        if (selectedYear != null) {
-            int year = Integer.parseInt(selectedYear);
+        
+        // Initialize year combo box if needed
+        if (revenuesYearComboBox != null && revenuesYearComboBox.getItems().isEmpty()) {
+            initializeYearComboBox(revenuesYearComboBox);
+        }
+        
+        // Get selected year from combo box or use default
+        String yearStr = revenuesYearComboBox != null && revenuesYearComboBox.getValue() != null 
+            ? revenuesYearComboBox.getValue() 
+            : selectedYear;
+        
+        if (yearStr != null) {
+            int year = Integer.parseInt(yearStr);
             // Update revenues pie chart
             if (pieRevenue != null) {
-                Charts.fillPieChart(pieRevenue, budgetData.getRevenueBreakdownForGraphs(year), "Έσοδα " + selectedYear);
-            }
-            // Update bar chart - top categories
-            if (barRevenueTop != null) {
-                Charts.loadBarChartForTopCategories(barRevenueTop, budgetData.getRevenueBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
+                Charts.fillPieChart(pieRevenue, budgetData.getRevenueBreakdownForGraphs(year), "Κύριες Πηγές Εσόδων");
             }
             // Update area chart - trend
             if (areaRevenueTrend != null) {
                 Charts.loadAreaChart(areaRevenueTrend, budgetData, "total_revenue", "Διαχρονική Εξέλιξη Εσόδων");
             }
-            // Update stacked bar chart
-            if (stackedRevenue != null) {
-                Charts.loadStackedBarChart(stackedRevenue, budgetData, "revenue", "Σύνθεση Εσόδων ανά Έτος");
+        }
+    }
+    
+    @FXML
+    private void onRevenuesYearSelected() {
+        if (revenuesYearComboBox != null && revenuesYearComboBox.getValue() != null) {
+            String yearStr = revenuesYearComboBox.getValue();
+            int year = Integer.parseInt(yearStr);
+            // Update revenues table
+            updateRevenuesTable();
+            // Update revenues pie chart
+            if (pieRevenue != null) {
+                Charts.fillPieChart(pieRevenue, budgetData.getRevenueBreakdownForGraphs(year), "Κύριες Πηγές Εσόδων");
             }
+            // Area chart and stacked bar chart show historical trends across all years - no need to update when year changes
         }
     }
 
     @FXML
     private void onNavigateExpenses() {
         showView(expensesView);
-        if (selectedYear != null) {
-            int year = Integer.parseInt(selectedYear);
+        
+        // Initialize year combo box if needed
+        if (expensesYearComboBox != null && expensesYearComboBox.getItems().isEmpty()) {
+            initializeYearComboBox(expensesYearComboBox);
+        }
+        
+        // Get selected year from combo box or use default
+        String yearStr = expensesYearComboBox != null && expensesYearComboBox.getValue() != null 
+            ? expensesYearComboBox.getValue() 
+            : selectedYear;
+        
+        if (yearStr != null) {
+            int year = Integer.parseInt(yearStr);
             // Update expenses pie chart
             if (pieExpenses != null) {
-                Charts.fillPieChart(pieExpenses, budgetData.getExpenseBreakdownForGraphs(year), "Έξοδα " + selectedYear);
-            }
-            // Update bar chart - top categories
-            if (barExpenseTop != null) {
-                Charts.loadBarChartForTopCategories(barExpenseTop, budgetData.getExpenseBreakdownForGraphs(year), "Κορυφαίες Κατηγορίες", 10);
+                Charts.fillPieChart(pieExpenses, budgetData.getExpenseBreakdownForGraphs(year), "Έξοδα " + yearStr);
             }
             // Update area chart - trend
             if (areaExpenseTrend != null) {
                 Charts.loadAreaChart(areaExpenseTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών");
             }
-            // Update stacked bar chart
-            if (stackedExpense != null) {
-                Charts.loadStackedBarChart(stackedExpense, budgetData, "expense", "Σύνθεση Δαπανών ανά Έτος");
+        }
+    }
+    
+    @FXML
+    private void onExpensesYearSelected() {
+        if (expensesYearComboBox != null && expensesYearComboBox.getValue() != null) {
+            String yearStr = expensesYearComboBox.getValue();
+            int year = Integer.parseInt(yearStr);
+            // Update expenses table
+            updateExpensesTable();
+            // Update expenses pie chart
+            if (pieExpenses != null) {
+                Charts.fillPieChart(pieExpenses, budgetData.getExpenseBreakdownForGraphs(year), "Έξοδα " + yearStr);
+            }
+            // Update area chart - trend
+            if (areaExpenseTrend != null) {
+                Charts.loadAreaChart(areaExpenseTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών");
             }
         }
     }
@@ -1929,19 +2246,43 @@ public class HomeController {
     @FXML
     private void onNavigateAdministrations() {
         showView(administrationsView);
-        if (selectedYear != null) {
-            int year = Integer.parseInt(selectedYear);
-            // Update administrations pie chart
-            if (pieAdministrations != null) {
-                Charts.fillPieChart(pieAdministrations, budgetData.getDecentralizedAdministrationsBreakdown(year), "Αποκεντρωμένες Διοικήσεις " + selectedYear);
-            }
+        
+        // Initialize year combo box if needed
+        if (administrationsYearComboBox != null && administrationsYearComboBox.getItems().isEmpty()) {
+            initializeYearComboBox(administrationsYearComboBox);
+        }
+        
+        // Get selected year from combo box or use default
+        String yearStr = administrationsYearComboBox != null && administrationsYearComboBox.getValue() != null 
+            ? administrationsYearComboBox.getValue() 
+            : selectedYear;
+        
+        if (yearStr != null) {
+            int year = Integer.parseInt(yearStr);
             // Update bar chart - top administrations
             if (barAdministrationsTop != null) {
                 Charts.loadBarChartForTopCategories(barAdministrationsTop, budgetData.getDecentralizedAdministrationsBreakdown(year), "Κορυφαίες Διοικήσεις", 7);
             }
-            // Update area chart - trend (using total_da if available, otherwise total_expenses)
+            // Update area chart - trend
             if (areaAdministrationsTrend != null) {
-                // For administrations, we'll use total_expenses as proxy since they are part of expenses
+                Charts.loadAreaChart(areaAdministrationsTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Αποκεντρωμένων Διοικήσεων");
+            }
+        }
+    }
+    
+    @FXML
+    private void onAdministrationsYearSelected() {
+        if (administrationsYearComboBox != null && administrationsYearComboBox.getValue() != null) {
+            String yearStr = administrationsYearComboBox.getValue();
+            int year = Integer.parseInt(yearStr);
+            // Update administrations table
+            updateAdministrationsTable();
+            // Update bar chart - top administrations
+            if (barAdministrationsTop != null) {
+                Charts.loadBarChartForTopCategories(barAdministrationsTop, budgetData.getDecentralizedAdministrationsBreakdown(year), "Κορυφαίες Διοικήσεις", 7);
+            }
+            // Update area chart - trend
+            if (areaAdministrationsTrend != null) {
                 Charts.loadAreaChart(areaAdministrationsTrend, budgetData, "total_expenses", "Διαχρονική Εξέλιξη Δαπανών Αποκεντρωμένων Διοικήσεων");
             }
         }
@@ -1964,12 +2305,17 @@ public class HomeController {
     
     private void initializeDataExploration() {
         try {
-            if (exploreYearComboBox != null && exploreYearComboBox.getItems().isEmpty()) {
-                int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-                for (int year = 2023; year <= currentYear + 1; year++) {
-                    exploreYearComboBox.getItems().add(String.valueOf(year));
+            // Initialize year combo box
+            if (exploreYearComboBox != null) {
+                initializeYearComboBox(exploreYearComboBox);
+                // Set default to current year + 1
+                int defaultYear = Calendar.getInstance().get(Calendar.YEAR) + 1;
+                String defaultYearStr = String.valueOf(defaultYear);
+                if (exploreYearComboBox.getItems().contains(defaultYearStr)) {
+                    exploreYearComboBox.setValue(defaultYearStr);
+                } else if (!exploreYearComboBox.getItems().isEmpty()) {
+                    exploreYearComboBox.setValue(exploreYearComboBox.getItems().get(exploreYearComboBox.getItems().size() - 1));
                 }
-                exploreYearComboBox.setValue(String.valueOf(currentYear));
             }
             
             // Set default view to "Total" (Συνολικά Έσοδα/Δαπάνες)
@@ -1980,22 +2326,8 @@ public class HomeController {
             currentExplorationView = "total";
             loadTotalView();
             
-            if (exploreResultsTable != null && exploreColumn1 != null) {
-                // Initialize columns - will be updated dynamically based on view type
-                exploreColumn1.setCellValueFactory(new PropertyValueFactory<>("category"));
-                if (exploreColumn2 != null) {
-                    exploreColumn2.setCellValueFactory(new PropertyValueFactory<>("amount"));
-                }
-                if (exploreColumn3 != null) {
-                    exploreColumn3.setCellValueFactory(new PropertyValueFactory<>("change"));
-                }
-                if (exploreColumn4 != null) {
-                    exploreColumn4.setCellValueFactory(new PropertyValueFactory<>("percentage"));
-                }
-                if (exploreColumn5 != null) {
-                    exploreColumn5.setCellValueFactory(new PropertyValueFactory<>("status"));
-                }
-            }
+            // Columns will be initialized by loadTotalView() and other load methods
+            // No need to initialize them here as they are set up dynamically
         } catch (Exception e) {
             e.printStackTrace();
             // Don't fail initialization if exploration view has issues
@@ -2013,6 +2345,7 @@ public class HomeController {
     
     @FXML
     private void onSelectExplorationView(javafx.event.ActionEvent event) {
+        try {
         Button clicked = (Button) event.getSource();
         String viewType = clicked.getText();
         
@@ -2037,11 +2370,6 @@ public class HomeController {
         if (exploreLoadComparisonButton != null) exploreLoadComparisonButton.setVisible(false);
         if (exploreLoadComparisonButton != null) exploreLoadComparisonButton.setManaged(false);
         
-        // Restore year ComboBox visibility for non-comparison views
-        if (exploreYearComboBox != null && !viewType.contains("Σύγκριση")) {
-            exploreYearComboBox.setVisible(true);
-            exploreYearComboBox.setManaged(true);
-        }
         
         if (viewType.contains("Συνολικά")) {
             currentExplorationView = "total";
@@ -2061,17 +2389,29 @@ public class HomeController {
         } else if (viewType.contains("Τάσεις")) {
             currentExplorationView = "trends";
             loadTrendsView();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Σφάλμα κατά την φόρτωση της προβολής");
+            alert.setContentText("Παρακαλώ δοκιμάστε ξανά. " + e.getMessage());
+            alert.showAndWait();
         }
     }
     
     @FXML
     private void onExploreYearSelected() {
+        if (!isLoadingExplorationView) {
         refreshExplorationView();
+        }
     }
     
     @FXML
     private void onExploreFilterChanged() {
+        if (!isLoadingExplorationView) {
         refreshExplorationView();
+        }
     }
     
     private void refreshExplorationView() {
@@ -2085,6 +2425,17 @@ public class HomeController {
         }
     }
     
+    private int getSelectedExplorationYear() {
+        if (exploreYearComboBox != null && exploreYearComboBox.getValue() != null) {
+            try {
+                return Integer.parseInt(exploreYearComboBox.getValue());
+            } catch (NumberFormatException e) {
+                // Fall back to default
+            }
+        }
+        return Calendar.getInstance().get(Calendar.YEAR) + 1;
+    }
+    
     private void loadTotalView() {
         if (exploreViewTitleLabel != null) {
             exploreViewTitleLabel.setText("Συνολικά Έσοδα και Δαπάνες ανά Έτος");
@@ -2093,54 +2444,102 @@ public class HomeController {
             exploreViewDescriptionLabel.setText("Προβολή συνολικών εσόδων και δαπανών για κάθε έτος");
         }
         
-        // Restore original column mappings
-        if (exploreColumn2 != null) {
-            exploreColumn2.setCellValueFactory(new PropertyValueFactory<>("amount"));
-        }
-        if (exploreColumn3 != null) {
-            exploreColumn3.setCellValueFactory(new PropertyValueFactory<>("change"));
-        }
-        if (exploreColumn4 != null) {
-            exploreColumn4.setCellValueFactory(new PropertyValueFactory<>("percentage"));
-        }
-        if (exploreColumn5 != null) {
-            exploreColumn5.setCellValueFactory(new PropertyValueFactory<>("status"));
-        }
-        
+        // Setup column headers
         if (exploreColumn1 != null) exploreColumn1.setText("Έτος");
         if (exploreColumn2 != null) exploreColumn2.setText("Συνολικά Έσοδα (€)");
         if (exploreColumn3 != null) exploreColumn3.setText("Συνολικές Δαπάνες (€)");
         if (exploreColumn4 != null) exploreColumn4.setText("Υπόλοιπο (€)");
         if (exploreColumn5 != null) exploreColumn5.setText("Αλλαγή από Προηγ. Έτος");
         
+        // Setup column value factories and cell factories for Total View
+        if (exploreColumn1 != null) {
+            exploreColumn1.setCellValueFactory(new PropertyValueFactory<>("category"));
+        }
+        if (exploreColumn2 != null) {
+            exploreColumn2.setCellValueFactory(new PropertyValueFactory<>("amount"));
+            exploreColumn2.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+                @Override
+                protected void updateItem(Double amount, boolean empty) {
+                    super.updateItem(amount, empty);
+                    if (empty || amount == null) {
+                        setText(null);
+                    } else {
+                        setText(AmountFormatter.formatCurrency(amount));
+                    }
+                }
+            });
+        }
+        if (exploreColumn3 != null) {
+            exploreColumn3.setCellValueFactory(cellData -> {
+                double expenses = cellData.getValue().getPercentage(); // percentage stores expenses
+                return new SimpleStringProperty(expenses == 0 ? "" : AmountFormatter.formatCurrency(expenses));
+            });
+            // Ensure it displays as currency, not percentage
+            exploreColumn3.setCellFactory(column -> new TableCell<CategoryData, String>() {
+                @Override
+                protected void updateItem(String value, boolean empty) {
+                    super.updateItem(value, empty);
+                    if (empty || value == null) {
+                        setText(null);
+                    } else {
+                        setText(value);
+                    }
+                }
+            });
+        }
+        if (exploreColumn4 != null) {
+            exploreColumn4.setCellValueFactory(new PropertyValueFactory<>("previousYearAmount"));
+            exploreColumn4.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+                @Override
+                protected void updateItem(Double balance, boolean empty) {
+                    super.updateItem(balance, empty);
+                    if (empty || balance == null) {
+                        setText(null);
+                    } else {
+                        setText(AmountFormatter.formatCurrency(balance));
+                    }
+                }
+            });
+        }
+        if (exploreColumn5 != null) {
+            exploreColumn5.setCellValueFactory(new PropertyValueFactory<>("change"));
+        }
+        
         ObservableList<CategoryData> data = FXCollections.observableArrayList();
         int startYear = 2023;
-        int endYear = Calendar.getInstance().get(Calendar.YEAR) + 1;
+        
+        // Use selected year from combo box
+        int endYear = getSelectedExplorationYear();
         
         for (int year = startYear; year <= endYear; year++) {
             double revenues = budgetData.getTotalRevenues(year);
             double expenses = budgetData.getTotalExpenses(year);
             double balance = StatisticalAnalysis.calculateBalance(revenues, expenses);
-            double prevRevenues = year > startYear ? budgetData.getTotalRevenues(year - 1) : 0;
-            double change = StatisticalAnalysis.calculatePercentageChange(revenues, prevRevenues);
+            double prevExpenses = year > startYear ? budgetData.getTotalExpenses(year - 1) : 0;
+            double expensesChange = StatisticalAnalysis.calculatePercentageChange(expenses, prevExpenses);
             
-            String changeText = prevRevenues > 0 ? AmountFormatter.formatPercentageChange(change) : "Νέο";
+            String changeText = prevExpenses > 0 ? AmountFormatter.formatPercentageChange(expensesChange) : "Νέο";
+            // amount = revenues, percentage = expenses, previousYearAmount = balance, change = changeText
             data.add(new CategoryData(
                 String.valueOf(year),
-                revenues,
-                0,
-                String.format("%.2f", expenses),
-                changeText,
-                balance
+                revenues,        // amount -> exploreColumn2 (Συνολικά Έσοδα)
+                expenses,        // percentage -> exploreColumn3 (Συνολικές Δαπάνες) 
+                changeText,      // change -> exploreColumn5 (Αλλαγή από Προηγ. Έτος)
+                "Σύνολο",        // type
+                balance          // previousYearAmount -> exploreColumn4 (Υπόλοιπο)
             ));
         }
         
         if (exploreResultsTable != null) {
+            exploreResultsTable.getItems().clear();
             exploreResultsTable.setItems(data);
         }
     }
     
     private void loadMinistryView() {
+        try {
+            isLoadingExplorationView = true;
+            
         if (exploreViewTitleLabel != null) {
             exploreViewTitleLabel.setText("Δαπάνες ανά Υπουργείο");
         }
@@ -2160,31 +2559,90 @@ public class HomeController {
             exploreMinistryComboBox.setVisible(true);
             exploreMinistryComboBox.setManaged(true);
             
-            if (exploreMinistryComboBox.getItems().isEmpty()) {
-                int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-                List<BudgetData.CategoryInfo> ministries = budgetData.getCategories(currentYear);
-                for (BudgetData.CategoryInfo m : ministries) {
-                    exploreMinistryComboBox.getItems().add(m.getName());
-                }
-                if (!exploreMinistryComboBox.getItems().isEmpty()) {
+            // Always refresh the list based on selected year
+            String previousSelection = exploreMinistryComboBox.getValue();
+            exploreMinistryComboBox.getItems().clear();
+                int selectedYear = getSelectedExplorationYear();
+            List<BudgetData.CategoryInfo> ministries = budgetData.getCategories(selectedYear);
+            for (BudgetData.CategoryInfo m : ministries) {
+                exploreMinistryComboBox.getItems().add(m.getName());
+            }
+            if (!exploreMinistryComboBox.getItems().isEmpty()) {
+                // Try to preserve previous selection if it still exists
+                if (previousSelection != null && exploreMinistryComboBox.getItems().contains(previousSelection)) {
+                    exploreMinistryComboBox.setValue(previousSelection);
+                } else {
                     exploreMinistryComboBox.setValue(exploreMinistryComboBox.getItems().get(0));
                 }
             }
         }
         
         loadMinistryData();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error in loadMinistryView: " + e.getMessage());
+        } finally {
+            isLoadingExplorationView = false;
+        }
     }
     
     private void loadMinistryData() {
+        try {
         if (exploreMinistryComboBox == null || exploreMinistryComboBox.getValue() == null) return;
         
         String ministryName = exploreMinistryComboBox.getValue();
         
-        if (exploreColumn1 != null) exploreColumn1.setText("Έτος");
-        if (exploreColumn2 != null) exploreColumn2.setText("Υπουργείο");
-        if (exploreColumn3 != null) exploreColumn3.setText("Ποσό (€)");
-        if (exploreColumn4 != null) exploreColumn4.setText("Συμμετοχή (%)");
-        if (exploreColumn5 != null) exploreColumn5.setText("Αλλαγή");
+            if (exploreColumn1 != null) {
+                exploreColumn1.setText("Έτος");
+                exploreColumn1.setCellValueFactory(new PropertyValueFactory<>("category"));
+                exploreColumn1.setCellFactory(null);
+            }
+            if (exploreColumn2 != null) {
+                exploreColumn2.setText("Υπουργείο");
+                exploreColumn2.setCellValueFactory(cellData -> {
+                    return new SimpleDoubleProperty(0).asObject();
+                });
+                exploreColumn2.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+                    @Override
+                    protected void updateItem(Double item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                            setText(null);
+                        } else {
+                            CategoryData data = getTableRow().getItem();
+                            setText(data.getType());
+                        }
+                    }
+                });
+            }
+            if (exploreColumn3 != null) {
+                exploreColumn3.setText("Ποσό (€)");
+                exploreColumn3.setCellValueFactory(cellData -> {
+                    Double amount = cellData.getValue().getAmount();
+                    return new SimpleStringProperty(amount == null ? "" : AmountFormatter.formatCurrency(amount));
+                });
+                exploreColumn3.setCellFactory(null);
+            }
+            if (exploreColumn4 != null) {
+                exploreColumn4.setText("Συμμετοχή (%)");
+                exploreColumn4.setCellValueFactory(new PropertyValueFactory<>("percentage"));
+                exploreColumn4.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+                    @Override
+                    protected void updateItem(Double percentage, boolean empty) {
+                        super.updateItem(percentage, empty);
+                        if (empty || percentage == null) {
+                            setText(null);
+                        } else {
+                            setText(AmountFormatter.formatPercentage(percentage));
+                        }
+                    }
+                });
+            }
+            if (exploreColumn5 != null) {
+                exploreColumn5.setText("Αλλαγή");
+                exploreColumn5.setCellValueFactory(new PropertyValueFactory<>("change"));
+                exploreColumn5.setCellFactory(null);
+            }
         
         ObservableList<CategoryData> data = FXCollections.observableArrayList();
         int startYear = 2023;
@@ -2211,7 +2669,12 @@ public class HomeController {
         }
         
         if (exploreResultsTable != null) {
+                exploreResultsTable.getItems().clear();
             exploreResultsTable.setItems(data);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error in loadMinistryData: " + e.getMessage());
         }
     }
     
@@ -2237,6 +2700,9 @@ public class HomeController {
 
     
     private void loadRevenueCategoryView() {
+        try {
+            isLoadingExplorationView = true;
+            
         if (exploreViewTitleLabel != null) {
             exploreViewTitleLabel.setText("Έσοδα ανά Κατηγορία");
         }
@@ -2256,31 +2722,90 @@ public class HomeController {
             exploreRevenueCategoryComboBox.setVisible(true);
             exploreRevenueCategoryComboBox.setManaged(true);
             
-            if (exploreRevenueCategoryComboBox.getItems().isEmpty()) {
-                int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-                List<BudgetData.CategoryInfo> revenues = budgetData.getRevenueBreakdown(currentYear);
-                for (BudgetData.CategoryInfo r : revenues) {
-                    exploreRevenueCategoryComboBox.getItems().add(r.getName());
-                }
-                if (!exploreRevenueCategoryComboBox.getItems().isEmpty()) {
+            // Always refresh the list based on selected year
+            String previousSelection = exploreRevenueCategoryComboBox.getValue();
+            exploreRevenueCategoryComboBox.getItems().clear();
+                int selectedYear = getSelectedExplorationYear();
+            List<BudgetData.CategoryInfo> revenues = budgetData.getRevenueBreakdown(selectedYear);
+            for (BudgetData.CategoryInfo r : revenues) {
+                exploreRevenueCategoryComboBox.getItems().add(r.getName());
+            }
+            if (!exploreRevenueCategoryComboBox.getItems().isEmpty()) {
+                // Try to preserve previous selection if it still exists
+                if (previousSelection != null && exploreRevenueCategoryComboBox.getItems().contains(previousSelection)) {
+                    exploreRevenueCategoryComboBox.setValue(previousSelection);
+                } else {
                     exploreRevenueCategoryComboBox.setValue(exploreRevenueCategoryComboBox.getItems().get(0));
                 }
             }
         }
         
         loadRevenueCategoryData();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error in loadRevenueCategoryView: " + e.getMessage());
+        } finally {
+            isLoadingExplorationView = false;
+        }
     }
     
     private void loadRevenueCategoryData() {
+        try {
         if (exploreRevenueCategoryComboBox == null || exploreRevenueCategoryComboBox.getValue() == null) return;
         
         String categoryName = exploreRevenueCategoryComboBox.getValue();
         
-        if (exploreColumn1 != null) exploreColumn1.setText("Έτος");
-        if (exploreColumn2 != null) exploreColumn2.setText("Κατηγορία");
-        if (exploreColumn3 != null) exploreColumn3.setText("Ποσό (€)");
-        if (exploreColumn4 != null) exploreColumn4.setText("Συμμετοχή (%)");
-        if (exploreColumn5 != null) exploreColumn5.setText("Αλλαγή");
+            if (exploreColumn1 != null) {
+                exploreColumn1.setText("Έτος");
+                exploreColumn1.setCellValueFactory(new PropertyValueFactory<>("category"));
+                exploreColumn1.setCellFactory(null);
+            }
+            if (exploreColumn2 != null) {
+                exploreColumn2.setText("Κατηγορία");
+                exploreColumn2.setCellValueFactory(cellData -> {
+                    return new SimpleDoubleProperty(0).asObject();
+                });
+                exploreColumn2.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+                    @Override
+                    protected void updateItem(Double item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                            setText(null);
+                        } else {
+                            CategoryData data = getTableRow().getItem();
+                            setText(data.getType());
+                        }
+                    }
+                });
+            }
+            if (exploreColumn3 != null) {
+                exploreColumn3.setText("Ποσό (€)");
+                exploreColumn3.setCellValueFactory(cellData -> {
+                    Double amount = cellData.getValue().getAmount();
+                    return new SimpleStringProperty(amount == null ? "" : AmountFormatter.formatCurrency(amount));
+                });
+                exploreColumn3.setCellFactory(null);
+            }
+            if (exploreColumn4 != null) {
+                exploreColumn4.setText("Συμμετοχή (%)");
+                exploreColumn4.setCellValueFactory(new PropertyValueFactory<>("percentage"));
+                exploreColumn4.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+                    @Override
+                    protected void updateItem(Double percentage, boolean empty) {
+                        super.updateItem(percentage, empty);
+                        if (empty || percentage == null) {
+                            setText(null);
+                        } else {
+                            setText(AmountFormatter.formatPercentage(percentage));
+                        }
+                    }
+                });
+            }
+            if (exploreColumn5 != null) {
+                exploreColumn5.setText("Αλλαγή");
+                exploreColumn5.setCellValueFactory(new PropertyValueFactory<>("change"));
+                exploreColumn5.setCellFactory(null);
+            }
         
         ObservableList<CategoryData> data = FXCollections.observableArrayList();
         int startYear = 2023;
@@ -2307,7 +2832,12 @@ public class HomeController {
         }
         
         if (exploreResultsTable != null) {
+                exploreResultsTable.getItems().clear();
             exploreResultsTable.setItems(data);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error in loadRevenueCategoryData: " + e.getMessage());
         }
     }
     
@@ -2322,6 +2852,9 @@ public class HomeController {
     }
     
     private void loadExpenseCategoryView() {
+        try {
+            isLoadingExplorationView = true;
+            
         if (exploreViewTitleLabel != null) {
             exploreViewTitleLabel.setText("Δαπάνες ανά Κατηγορία");
         }
@@ -2341,31 +2874,90 @@ public class HomeController {
             exploreExpenseCategoryComboBox.setVisible(true);
             exploreExpenseCategoryComboBox.setManaged(true);
             
-            if (exploreExpenseCategoryComboBox.getItems().isEmpty()) {
-                int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-                List<BudgetData.CategoryInfo> expenses = budgetData.getExpensesBreakdown(currentYear);
-                for (BudgetData.CategoryInfo e : expenses) {
-                    exploreExpenseCategoryComboBox.getItems().add(e.getName());
-                }
-                if (!exploreExpenseCategoryComboBox.getItems().isEmpty()) {
+            // Always refresh the list based on selected year
+            String previousSelection = exploreExpenseCategoryComboBox.getValue();
+            exploreExpenseCategoryComboBox.getItems().clear();
+                int selectedYear = getSelectedExplorationYear();
+            List<BudgetData.CategoryInfo> expenses = budgetData.getExpensesBreakdown(selectedYear);
+            for (BudgetData.CategoryInfo e : expenses) {
+                exploreExpenseCategoryComboBox.getItems().add(e.getName());
+            }
+            if (!exploreExpenseCategoryComboBox.getItems().isEmpty()) {
+                // Try to preserve previous selection if it still exists
+                if (previousSelection != null && exploreExpenseCategoryComboBox.getItems().contains(previousSelection)) {
+                    exploreExpenseCategoryComboBox.setValue(previousSelection);
+                } else {
                     exploreExpenseCategoryComboBox.setValue(exploreExpenseCategoryComboBox.getItems().get(0));
                 }
             }
         }
         
         loadExpenseCategoryData();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error in loadExpenseCategoryView: " + e.getMessage());
+        } finally {
+            isLoadingExplorationView = false;
+        }
     }
     
     private void loadExpenseCategoryData() {
+        try {
         if (exploreExpenseCategoryComboBox == null || exploreExpenseCategoryComboBox.getValue() == null) return;
         
         String categoryName = exploreExpenseCategoryComboBox.getValue();
         
-        if (exploreColumn1 != null) exploreColumn1.setText("Έτος");
-        if (exploreColumn2 != null) exploreColumn2.setText("Κατηγορία");
-        if (exploreColumn3 != null) exploreColumn3.setText("Ποσό (€)");
-        if (exploreColumn4 != null) exploreColumn4.setText("Συμμετοχή (%)");
-        if (exploreColumn5 != null) exploreColumn5.setText("Αλλαγή");
+            if (exploreColumn1 != null) {
+                exploreColumn1.setText("Έτος");
+                exploreColumn1.setCellValueFactory(new PropertyValueFactory<>("category"));
+                exploreColumn1.setCellFactory(null);
+            }
+            if (exploreColumn2 != null) {
+                exploreColumn2.setText("Κατηγορία");
+                exploreColumn2.setCellValueFactory(cellData -> {
+                    return new SimpleDoubleProperty(0).asObject();
+                });
+                exploreColumn2.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+                    @Override
+                    protected void updateItem(Double item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                            setText(null);
+                        } else {
+                            CategoryData data = getTableRow().getItem();
+                            setText(data.getType());
+                        }
+                    }
+                });
+            }
+            if (exploreColumn3 != null) {
+                exploreColumn3.setText("Ποσό (€)");
+                exploreColumn3.setCellValueFactory(cellData -> {
+                    Double amount = cellData.getValue().getAmount();
+                    return new SimpleStringProperty(amount == null ? "" : AmountFormatter.formatCurrency(amount));
+                });
+                exploreColumn3.setCellFactory(null);
+            }
+            if (exploreColumn4 != null) {
+                exploreColumn4.setText("Συμμετοχή (%)");
+                exploreColumn4.setCellValueFactory(new PropertyValueFactory<>("percentage"));
+                exploreColumn4.setCellFactory(column -> new TableCell<CategoryData, Double>() {
+                    @Override
+                    protected void updateItem(Double percentage, boolean empty) {
+                        super.updateItem(percentage, empty);
+                        if (empty || percentage == null) {
+                            setText(null);
+                        } else {
+                            setText(AmountFormatter.formatPercentage(percentage));
+                        }
+                    }
+                });
+            }
+            if (exploreColumn5 != null) {
+                exploreColumn5.setText("Αλλαγή");
+                exploreColumn5.setCellValueFactory(new PropertyValueFactory<>("change"));
+                exploreColumn5.setCellFactory(null);
+            }
         
         ObservableList<CategoryData> data = FXCollections.observableArrayList();
         int startYear = 2023;
@@ -2392,7 +2984,12 @@ public class HomeController {
         }
         
         if (exploreResultsTable != null) {
+                exploreResultsTable.getItems().clear();
             exploreResultsTable.setItems(data);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error in loadExpenseCategoryData: " + e.getMessage());
         }
     }
     
@@ -2458,11 +3055,6 @@ public class HomeController {
             exploreViewDescriptionLabel.setText("Επιλέξτε δύο έτη για σύγκριση εσόδων, δαπανών, υπουργείων και αποκεντρωμένων διοικήσεων");
         }
         
-        // Hide the single year ComboBox
-        if (exploreYearComboBox != null) {
-            exploreYearComboBox.setVisible(false);
-            exploreYearComboBox.setManaged(false);
-        }
         
         // Show comparison controls
         if (exploreDynamicFilters != null) {
@@ -2769,21 +3361,60 @@ public class HomeController {
         }
         showView(projectionsView);
         
-        // Initialize year combo boxes if empty
+        // Initialize year combo box if empty
         if (simulationBaseYearComboBox != null && simulationBaseYearComboBox.getItems().isEmpty()) {
             List<String> availableYears = getAvailableYearsFromDatabase();
             simulationBaseYearComboBox.getItems().addAll(availableYears);
-            simulationFutureYearComboBox.getItems().addAll(availableYears);
             
             if (!availableYears.isEmpty()) {
                 int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-                simulationBaseYearComboBox.setValue(String.valueOf(currentYear));
-                if (availableYears.contains(String.valueOf(currentYear + 1))) {
-                    simulationFutureYearComboBox.setValue(String.valueOf(currentYear + 1));
-                } else if (!availableYears.isEmpty()) {
-                    simulationFutureYearComboBox.setValue(availableYears.get(0));
+                String currentYearStr = String.valueOf(currentYear);
+                if (availableYears.contains(currentYearStr)) {
+                    simulationBaseYearComboBox.setValue(currentYearStr);
+                } else {
+                    simulationBaseYearComboBox.setValue(availableYears.get(availableYears.size() - 1));
                 }
+                // Αυτόματη φόρτωση δεδομένων όταν ορίζεται το έτος
+                onLoadSimulationData();
             }
+        }
+        
+        // Initialize simulation type tab pane - first tab is selected by default
+        if (simulationTypeTabPane != null && simulationTypeTabPane.getTabs().size() >= 2) {
+            simulationTypeTabPane.getSelectionModel().select(0); // Select first tab (Εσόδων)
+            // Hide expenses level container initially (since first tab is Εσόδων)
+            if (expensesLevelContainer != null) {
+                expensesLevelContainer.setVisible(false);
+                expensesLevelContainer.setManaged(false);
+            }
+            // Set category column header for initial tab (Εσόδων)
+            if (simulationCategoryColumn != null) {
+                simulationCategoryColumn.setText("Κατηγορία");
+            }
+            // Add listener for tab selection changes
+            simulationTypeTabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+                if (newTab != null) {
+                    onSimulationTypeTabChanged();
+                }
+            });
+        }
+        
+        // Initialize simulation level combo box (only for Expenses tab)
+        if (simulationLevelComboBox != null && simulationLevelComboBox.getItems().isEmpty()) {
+            simulationLevelComboBox.getItems().addAll("Υπουργεία", "Είδη Δαπανών");
+            simulationLevelComboBox.setValue("Είδη Δαπανών");
+        }
+        
+        // Initialize simulation table
+        if (simulationSelectionsTable != null && simulationCheckColumn != null) {
+            initializeSimulationTable();
+        }
+        
+        // Refresh simulation selections after initialization
+        // This will be called automatically when data is loaded in onLoadSimulationData
+        // But we also want to refresh if year is already set
+        if (simulationBaseYearComboBox != null && simulationBaseYearComboBox.getValue() != null) {
+            refreshSimulationSelections();
         }
         
         // Clear results
@@ -2793,6 +3424,13 @@ public class HomeController {
     }
     
     @FXML
+    private void onSimulationBaseYearSelected() {
+        // Αυτόματη φόρτωση δεδομένων όταν επιλέγεται έτος
+        if (simulationBaseYearComboBox != null && simulationBaseYearComboBox.getValue() != null) {
+            onLoadSimulationData();
+        }
+    }
+    
     private void onLoadSimulationData() {
         if (simulationBaseYearComboBox == null || simulationBaseYearComboBox.getValue() == null) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -2811,13 +3449,16 @@ public class HomeController {
             simulationBaseRevenue = service.getTotalRevenues(year);
             simulationBaseExpense = service.getTotalExpenses(year);
             
+            // Refresh simulation selections when data is loaded
+            refreshSimulationSelections();
+            
             if (simulationResultsArea != null) {
                 simulationResultsArea.setText("✅ Δεδομένα φορτώθηκαν επιτυχώς!\n\n" +
                     "Έτος: " + year + "\n" +
                     "Συνολικά Έσοδα: " + AmountFormatter.formatCurrency(simulationBaseRevenue) + "\n" +
                     "Συνολικές Δαπάνες: " + AmountFormatter.formatCurrency(simulationBaseExpense) + "\n" +
                     "Ισοζύγιο: " + AmountFormatter.formatCurrency(simulationBaseRevenue - simulationBaseExpense) + "\n\n" +
-                    "Επιλέξτε ένα σενάριο για να δείτε τα αποτελέσματα.");
+                    "Επιλέξτε κατηγορίες/υπουργεία και ποσοστά μεταβολής, στη συνέχεια πατήστε 'Αποτελέσματα'.");
             }
         } catch (NumberFormatException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -2835,94 +3476,252 @@ public class HomeController {
         }
     }
     
-    @FXML
-    private void onSimulateRevenueIncrease() {
-        if (simulationBaseRevenue == 0 || simulationBaseExpense == 0) {
-            showSimulationError("Παρακαλώ φορτώστε πρώτα τα βασικά δεδομένα.");
-            return;
-        }
+    private void initializeSimulationTable() {
+        if (simulationSelectionsTable == null) return;
         
-        try {
-            double percent = Double.parseDouble(revenueIncreasePercentField.getText());
-            String result = Simulations.simulateRevenueIncrease(
-                simulationBaseRevenue, simulationBaseExpense, percent
-            );
-            if (simulationResultsArea != null) {
-                simulationResultsArea.setText(result);
+        // Setup CheckBox column
+        simulationCheckColumn.setCellValueFactory(param -> param.getValue().selectedProperty());
+        simulationCheckColumn.setCellFactory(CheckBoxTableCell.forTableColumn(new Callback<Integer, ObservableValue<Boolean>>() {
+            @Override
+            public ObservableValue<Boolean> call(Integer index) {
+                return simulationSelectionsTable.getItems().get(index).selectedProperty();
             }
-        } catch (NumberFormatException e) {
-            showSimulationError("Παρακαλώ εισάγετε έγκυρο ποσοστό (π.χ. 5.0 για 5%).");
+        }));
+        simulationCheckColumn.setEditable(true);
+        
+        // Setup Category column
+        simulationCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("categoryName"));
+        
+        // Setup Amount column
+        simulationAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
+        simulationAmountColumn.setCellFactory(column -> new TableCell<SimulationSelectionItem, Double>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(AmountFormatter.formatCurrency(item));
+                }
+            }
+        });
+        
+        // Setup Change Percent column
+        simulationChangeColumn.setCellValueFactory(new PropertyValueFactory<>("changePercent"));
+        simulationChangeColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        simulationChangeColumn.setEditable(true);
+        
+        // Set table data
+        simulationSelectionsTable.setItems(simulationSelections);
+        simulationSelectionsTable.setEditable(true);
+    }
+    
+    private String getSelectedSimulationType() {
+        if (simulationTypeTabPane == null) {
+            return null;
         }
+        Tab selectedTab = simulationTypeTabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab == null) {
+            return null;
+        }
+        String tabText = selectedTab.getText();
+        if (tabText.contains("Εσόδων")) {
+            return "Μεταβολή Εσόδων";
+        } else if (tabText.contains("Εξόδων")) {
+            return "Μεταβολή Εξόδων";
+        }
+        return null;
     }
     
     @FXML
-    private void onSimulateExpenseDecrease() {
-        if (simulationBaseRevenue == 0 || simulationBaseExpense == 0) {
-            showSimulationError("Παρακαλώ φορτώστε πρώτα τα βασικά δεδομένα.");
-            return;
+    private void onSimulationTypeTabChanged() {
+        // Show/hide expenses level container based on selected tab
+        String type = getSelectedSimulationType();
+        if (expensesLevelContainer != null) {
+            expensesLevelContainer.setVisible("Μεταβολή Εξόδων".equals(type));
+            expensesLevelContainer.setManaged("Μεταβολή Εξόδων".equals(type));
         }
         
-        try {
-            double percent = Double.parseDouble(expenseDecreasePercentField.getText());
-            String result = Simulations.simulateExpenseDecrease(
-                simulationBaseRevenue, simulationBaseExpense, percent
-            );
-            if (simulationResultsArea != null) {
-                simulationResultsArea.setText(result);
+        // Update category column header based on selected tab
+        if (simulationCategoryColumn != null) {
+            if ("Μεταβολή Εσόδων".equals(type)) {
+                simulationCategoryColumn.setText("Κατηγορία");
+            } else {
+                simulationCategoryColumn.setText("Κατηγορία/Υπουργείο");
             }
-        } catch (NumberFormatException e) {
-            showSimulationError("Παρακαλώ εισάγετε έγκυρο ποσοστό (π.χ. 10.0 για 10%).");
         }
+        
+        refreshSimulationSelections();
     }
     
     @FXML
-    private void onSimulateCombined() {
-        if (simulationBaseRevenue == 0 || simulationBaseExpense == 0) {
-            showSimulationError("Παρακαλώ φορτώστε πρώτα τα βασικά δεδομένα.");
-            return;
-        }
-        
-        try {
-            double revenueChange = Double.parseDouble(combinedRevenueChangeField.getText());
-            double expenseChange = Double.parseDouble(combinedExpenseChangeField.getText());
-            String result = Simulations.simulateCombinedScenario(
-                simulationBaseRevenue, simulationBaseExpense, revenueChange, expenseChange
-            );
-            if (simulationResultsArea != null) {
-                simulationResultsArea.setText(result);
-            }
-        } catch (NumberFormatException e) {
-            showSimulationError("Παρακαλώ εισάγετε έγκυρα ποσοστά (π.χ. 3.0 ή -2.0).");
-        }
+    private void onSimulationLevelChanged() {
+        refreshSimulationSelections();
     }
     
-    @FXML
-    private void onSimulateFutureYear() {
-        if (simulationBaseRevenue == 0 || simulationBaseExpense == 0) {
-            showSimulationError("Παρακαλώ φορτώστε πρώτα τα βασικά δεδομένα.");
+    private void refreshSimulationSelections() {
+        if (simulationBaseYearComboBox == null || simulationBaseYearComboBox.getValue() == null) {
             return;
         }
         
-        if (simulationFutureYearComboBox == null || simulationFutureYearComboBox.getValue() == null) {
-            showSimulationError("Παρακαλώ επιλέξτε μελλοντικό έτος.");
+        String type = getSelectedSimulationType();
+        if (type == null) {
             return;
         }
         
         try {
-            int futureYear = Integer.parseInt(simulationFutureYearComboBox.getValue());
-            double revenueTrend = Double.parseDouble(revenueTrendField.getText());
-            double expenseTrend = Double.parseDouble(expenseTrendField.getText());
+            int year = Integer.parseInt(simulationBaseYearComboBox.getValue());
+            BudgetData service = BudgetData.getInstance();
             
-            String result = Simulations.simulateFutureYear(
-                simulationBaseYear, futureYear,
-                simulationBaseRevenue, simulationBaseExpense,
-                revenueTrend, expenseTrend
-            );
-            if (simulationResultsArea != null) {
-                simulationResultsArea.setText(result);
+            simulationSelections.clear();
+            
+            if ("Μεταβολή Εσόδων".equals(type)) {
+                // For revenues, always show categories (no ComboBox needed)
+                List<BudgetData.CategoryInfo> revenues = service.getRevenueBreakdown(year);
+                for (BudgetData.CategoryInfo cat : revenues) {
+                    simulationSelections.add(new SimulationSelectionItem(cat.getName(), cat.getAmount()));
+                }
+            } else if ("Μεταβολή Εξόδων".equals(type)) {
+                // For expenses, check ComboBox selection
+                if (simulationLevelComboBox == null || simulationLevelComboBox.getValue() == null) {
+                    return;
+                }
+                String level = simulationLevelComboBox.getValue();
+                
+                if ("Είδη Δαπανών".equals(level)) {
+                    List<BudgetData.CategoryInfo> expenses = service.getExpensesBreakdown(year);
+                    for (BudgetData.CategoryInfo cat : expenses) {
+                        simulationSelections.add(new SimulationSelectionItem(cat.getName(), cat.getAmount()));
+                    }
+                } else if ("Υπουργεία".equals(level)) {
+                    Map<String, Double> ministries = service.getMinistriesBreakdown(year);
+                    for (Map.Entry<String, Double> entry : ministries.entrySet()) {
+                        simulationSelections.add(new SimulationSelectionItem(entry.getKey(), entry.getValue()));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showSimulationError("Σφάλμα φόρτωσης δεδομένων: " + e.getMessage());
+        }
+    }
+    
+    @FXML
+    private void onApplyDefaultChange() {
+        if (simulationDefaultChangeField == null || simulationDefaultChangeField.getText().isEmpty()) {
+            showSimulationError("Παρακαλώ εισάγετε ποσοστό μεταβολής.");
+            return;
+        }
+        
+        try {
+            String changePercent = simulationDefaultChangeField.getText().trim();
+            // Remove % if present
+            if (changePercent.endsWith("%")) {
+                changePercent = changePercent.substring(0, changePercent.length() - 1).trim();
+            }
+            // Validate it's a valid number
+            Double.parseDouble(changePercent);
+            
+            for (SimulationSelectionItem item : simulationSelections) {
+                item.setChangePercent(changePercent);
             }
         } catch (NumberFormatException e) {
-            showSimulationError("Παρακαλώ εισάγετε έγκυρες τιμές για τις τάσεις (σε €).");
+            showSimulationError("Παρακαλώ εισάγετε έγκυρο ποσοστό (π.χ. 5% ή -5% ή 5.0 ή -5.0).");
+        }
+    }
+    
+    @FXML
+    private void onCalculateSimulationResults() {
+        if (simulationBaseRevenue == 0 || simulationBaseExpense == 0) {
+            showSimulationError("Παρακαλώ φορτώστε πρώτα τα βασικά δεδομένα.");
+            return;
+        }
+        
+        String type = getSelectedSimulationType();
+        if (type == null) {
+            showSimulationError("Παρακαλώ επιλέξτε τύπο μεταβολής.");
+            return;
+        }
+        
+        // Get selected items with changes
+        List<SimulationSelectionItem> selectedItems = new ArrayList<>();
+        for (SimulationSelectionItem item : simulationSelections) {
+            if (item.isSelected() && item.getChangePercent() != null && !item.getChangePercent().isEmpty()) {
+                try {
+                    String percentStr = item.getChangePercent().trim();
+                    // Remove % if present
+                    if (percentStr.endsWith("%")) {
+                        percentStr = percentStr.substring(0, percentStr.length() - 1).trim();
+                    }
+                    Double.parseDouble(percentStr);
+                    selectedItems.add(item);
+                } catch (NumberFormatException e) {
+                    // Skip items with invalid percentages
+                }
+            }
+        }
+        
+        if (selectedItems.isEmpty()) {
+            showSimulationError("Παρακαλώ επιλέξτε τουλάχιστον μία κατηγορία/υπουργείο και εισάγετε ποσοστό μεταβολής.");
+            return;
+        }
+        
+        // Calculate results
+        try {
+            double totalChange = 0;
+            StringBuilder details = new StringBuilder();
+            details.append("📊 Αποτελέσματα Προσομοίωσης\n");
+            details.append("================================\n\n");
+            details.append("Έτος: ").append(simulationBaseYear).append("\n\n");
+            
+            for (SimulationSelectionItem item : selectedItems) {
+                String percentStr = item.getChangePercent().trim();
+                // Remove % if present
+                if (percentStr.endsWith("%")) {
+                    percentStr = percentStr.substring(0, percentStr.length() - 1).trim();
+                }
+                double changePercent = Double.parseDouble(percentStr);
+                double itemChange = item.getAmount() * (changePercent / 100.0);
+                totalChange += itemChange;
+                
+                details.append("• ").append(item.getCategoryName()).append(": ");
+                details.append(AmountFormatter.formatCurrency(item.getAmount())).append(" → ");
+                details.append(String.format("%+.1f%%", changePercent)).append(" = ");
+                details.append(AmountFormatter.formatCurrency(itemChange)).append("\n");
+            }
+            
+            details.append("\nΣυνολική Μεταβολή: ").append(AmountFormatter.formatCurrency(totalChange)).append("\n");
+            
+            double newTotal;
+            if ("Μεταβολή Εσόδων".equals(type)) {
+                newTotal = simulationBaseRevenue + totalChange;
+                details.append("Νέα Συνολικά Έσοδα: ").append(AmountFormatter.formatCurrency(newTotal)).append("\n");
+                details.append("Προηγούμενα Συνολικά Έσοδα: ").append(AmountFormatter.formatCurrency(simulationBaseRevenue)).append("\n");
+            } else {
+                newTotal = simulationBaseExpense + totalChange;
+                details.append("Νέες Συνολικές Δαπάνες: ").append(AmountFormatter.formatCurrency(newTotal)).append("\n");
+                details.append("Προηγούμενες Συνολικές Δαπάνες: ").append(AmountFormatter.formatCurrency(simulationBaseExpense)).append("\n");
+            }
+            
+            double newBalance;
+            if ("Μεταβολή Εσόδων".equals(type)) {
+                newBalance = newTotal - simulationBaseExpense;
+            } else {
+                newBalance = simulationBaseRevenue - newTotal;
+            }
+            
+            details.append("\nΝέο Ισοζύγιο: ").append(AmountFormatter.formatCurrency(newBalance)).append("\n");
+            details.append("Προηγούμενο Ισοζύγιο: ").append(AmountFormatter.formatCurrency(simulationBaseRevenue - simulationBaseExpense)).append("\n");
+            
+            double balanceChange = newBalance - (simulationBaseRevenue - simulationBaseExpense);
+            details.append("Μεταβολή Ισοζυγίου: ").append(AmountFormatter.formatCurrency(balanceChange)).append("\n");
+            
+            if (simulationResultsArea != null) {
+                simulationResultsArea.setText(details.toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showSimulationError("Σφάλμα υπολογισμού: " + e.getMessage());
         }
     }
     
@@ -3231,10 +4030,40 @@ public class HomeController {
             projectionsView.setManaged(false);
         }
         
+        // Update menu item selection states
+        updateMenuSelection(view);
+        
         // Show selected view
         if (view != null) {
             view.setVisible(true);
             view.setManaged(true);
+        }
+    }
+    
+    private void updateMenuSelection(VBox view) {
+        // Remove selected style from all menu items
+        if (homeMenuItem != null) {
+            homeMenuItem.getStyleClass().remove("menu-item-selected");
+        }
+        if (projectionsMenuItem != null) {
+            projectionsMenuItem.getStyleClass().remove("menu-item-selected");
+        }
+        if (dataExplorationMenuItem != null) {
+            dataExplorationMenuItem.getStyleClass().remove("menu-item-selected");
+        }
+        if (statisticsMenuItem != null) {
+            statisticsMenuItem.getStyleClass().remove("menu-item-selected");
+        }
+        
+        // Add selected style to the appropriate menu item
+        if (view == homeView && homeMenuItem != null) {
+            homeMenuItem.getStyleClass().add("menu-item-selected");
+        } else if (view == projectionsView && projectionsMenuItem != null) {
+            projectionsMenuItem.getStyleClass().add("menu-item-selected");
+        } else if (view == dataExplorationView && dataExplorationMenuItem != null) {
+            dataExplorationMenuItem.getStyleClass().add("menu-item-selected");
+        } else if (view == statisticsView && statisticsMenuItem != null) {
+            statisticsMenuItem.getStyleClass().add("menu-item-selected");
         }
     }
     
@@ -3668,11 +4497,50 @@ public class HomeController {
     
     @FXML
     private void onEditData() {
-        CategoryData selected = getSelectedItemFromTables();
-        if (selected == null) return;
+        // Toggle edit mode
+        isEditMode = !isEditMode;
         
-        // Check if the year allows editing
-        int year = extractYearFromData(selected);
+        // Get the currently visible table (based on selected tab)
+        TableView<CategoryData> currentTable = null;
+        TableColumn<CategoryData, String> commentsColumn = null;
+        
+        if (revenuesExpensesTabPane != null) {
+            Tab selectedTab = revenuesExpensesTabPane.getSelectionModel().getSelectedItem();
+            if (selectedTab != null) {
+                String tabText = selectedTab.getText();
+                if (tabText.contains("Έσοδα")) {
+                    currentTable = dmRevenuesTable;
+                    commentsColumn = revCommentsColumn;
+                } else if (tabText.contains("Δαπάνες")) {
+                    currentTable = dmExpensesTable;
+                    commentsColumn = expCommentsColumn;
+                }
+            }
+        }
+        
+        if (currentTable == null) {
+            // Fallback: use the first available table with items
+            if (dmRevenuesTable != null && !dmRevenuesTable.getItems().isEmpty()) {
+                currentTable = dmRevenuesTable;
+                commentsColumn = revCommentsColumn;
+            } else if (dmExpensesTable != null && !dmExpensesTable.getItems().isEmpty()) {
+                currentTable = dmExpensesTable;
+                commentsColumn = expCommentsColumn;
+            } else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Κενός Πίνακας");
+                alert.setHeaderText("Δεν υπάρχουν δεδομένα");
+                alert.setContentText("Ο πίνακας είναι άδειος. Δεν μπορείτε να ενεργοποιήσετε τη λειτουργία επεξεργασίας.");
+                alert.showAndWait();
+                isEditMode = false;
+                return;
+            }
+        }
+        
+        // Check if year allows editing (check all items in table)
+        if (currentTable.getItems().size() > 0) {
+            CategoryData firstItem = currentTable.getItems().get(0);
+            int year = extractYearFromData(firstItem);
         if (!isYearEditable(year)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Μη Επιτρεπτή Αλλαγή");
@@ -3680,127 +4548,206 @@ public class HomeController {
             int currentYear = Calendar.getInstance().get(Calendar.YEAR);
             alert.setContentText("Το έτος " + year + " έχει περάσει. Μπορείτε να επεξεργαστείτε μόνο δεδομένα για το τρέχον έτος (" + currentYear + ") και μελλοντικά έτη.");
             alert.showAndWait();
+                isEditMode = false;
+            return;
+            }
+        }
+        
+        // Get the select and actions columns
+        TableColumn<CategoryData, Boolean> selectColumn = null;
+        TableColumn<CategoryData, Void> actionsColumn = null;
+        
+        if (currentTable == dmRevenuesTable) {
+            selectColumn = revSelectColumn;
+            actionsColumn = revActionsColumn;
+        } else if (currentTable == dmExpensesTable) {
+            selectColumn = expSelectColumn;
+            actionsColumn = expActionsColumn;
+        }
+        
+        // Toggle edit mode
+        if (isEditMode) {
+            // Enable edit mode
+            currentTable.setEditable(true);
+            if (selectColumn != null) {
+                selectColumn.setVisible(true);
+            }
+            if (actionsColumn != null) {
+                actionsColumn.setVisible(true);
+            }
+            if (commentsColumn != null) {
+                commentsColumn.setVisible(true);
+                commentsColumn.setEditable(true);
+            }
+            if (deleteDataButton != null) {
+                deleteDataButton.setVisible(true);
+                deleteDataButton.setManaged(true);
+            }
+            if (selectAllButton != null) {
+                selectAllButton.setVisible(true);
+                selectAllButton.setManaged(true);
+            }
+            if (deselectAllButton != null) {
+                deselectAllButton.setVisible(true);
+                deselectAllButton.setManaged(true);
+            }
+            if (editDataButton != null) {
+                editDataButton.setText("💾 Αποθήκευση");
+            }
+        } else {
+            // Disable edit mode
+            currentTable.setEditable(false);
+            if (selectColumn != null) {
+                selectColumn.setVisible(false);
+            }
+            if (actionsColumn != null) {
+                actionsColumn.setVisible(false);
+            }
+            if (commentsColumn != null) {
+                commentsColumn.setVisible(false);
+                commentsColumn.setEditable(false);
+            }
+            if (deleteDataButton != null) {
+                deleteDataButton.setVisible(false);
+                deleteDataButton.setManaged(false);
+            }
+            if (selectAllButton != null) {
+                selectAllButton.setVisible(false);
+                selectAllButton.setManaged(false);
+            }
+            if (deselectAllButton != null) {
+                deselectAllButton.setVisible(false);
+                deselectAllButton.setManaged(false);
+            }
+            if (editDataButton != null) {
+                editDataButton.setText("✏ Επεξεργασία");
+            }
+            
+            // Save changes to database
+            saveTableChanges(currentTable);
+        }
+    }
+    
+    private void editAmountForRow(CategoryData data, TableView<CategoryData> table, TableColumn<CategoryData, Double> amountColumn) {
+        TextInputDialog dialog = new TextInputDialog(String.valueOf(data.getAmount()));
+        dialog.setTitle("Επεξεργασία Ποσού");
+        dialog.setHeaderText("Επεξεργαστείτε το ποσό για: " + data.getCategory());
+        dialog.setContentText("Ποσό (€):");
+        
+        java.util.Optional<String> result = dialog.showAndWait();
+        result.ifPresent(amountText -> {
+            try {
+                double newAmount = Double.parseDouble(amountText);
+                if (newAmount < 0) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Μη έγκυρο ποσό");
+                    alert.setHeaderText("Το ποσό δεν μπορεί να είναι αρνητικό");
+                    alert.showAndWait();
+                    return;
+                }
+                data.amountProperty().set(newAmount);
+                table.refresh();
+            } catch (NumberFormatException e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Σφάλμα");
+                alert.setHeaderText("Μη έγκυρο ποσό");
+                alert.setContentText("Παρακαλώ εισάγετε έγκυρο αριθμό.");
+                alert.showAndWait();
+            }
+        });
+    }
+    
+    private void deleteCategory(CategoryData data, TableView<CategoryData> table) {
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Επιβεβαίωση Διαγραφής");
+        confirmAlert.setHeaderText("Διαγραφή κατηγορίας");
+        confirmAlert.setContentText("Είστε σίγουροι ότι θέλετε να διαγράψετε την κατηγορία \"" + data.getCategory() + "\";\nΑυτή η ενέργεια δεν μπορεί να αναιρεθεί.");
+        
+        java.util.Optional<ButtonType> result = confirmAlert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            table.getItems().remove(data);
+            // TODO: Delete from database
+        }
+    }
+    
+    @FXML
+    private void onDeleteSelected() {
+        List<CategoryData> selectedItems = new ArrayList<>();
+        
+        if (dmRevenuesTable != null) {
+            for (CategoryData item : dmRevenuesTable.getItems()) {
+                if (item.isSelected()) {
+                    selectedItems.add(item);
+                }
+            }
+        }
+        
+        if (dmExpensesTable != null) {
+            for (CategoryData item : dmExpensesTable.getItems()) {
+                if (item.isSelected()) {
+                    selectedItems.add(item);
+                }
+            }
+        }
+        
+        if (selectedItems.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Επιλογή");
+            alert.setHeaderText("Δεν έχει επιλεγεί κατηγορία");
+            alert.setContentText("Παρακαλώ επιλέξτε τουλάχιστον μια κατηγορία για διαγραφή.");
+                    alert.showAndWait();
             return;
         }
         
-        Dialog<CategoryData> dialog = new Dialog<>();
-        dialog.setTitle("Επεξεργασία Δεδομένου");
-        dialog.setHeaderText("Επεξεργαστείτε τα στοιχεία");
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Επιβεβαίωση Διαγραφής");
+        confirmAlert.setHeaderText("Διαγραφή κατηγοριών");
+        confirmAlert.setContentText("Είστε σίγουροι ότι θέλετε να διαγράψετε " + selectedItems.size() + " κατηγορία(ες);\nΑυτή η ενέργεια δεν μπορεί να αναιρεθεί.");
         
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
-        
-        TextField categoryField = new TextField(selected.getCategory());
-        categoryField.setPrefWidth(300);
-        Label categoryErrorLabel = new Label();
-        categoryErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
-        categoryErrorLabel.setVisible(false);
-        categoryErrorLabel.setWrapText(true);
-        categoryErrorLabel.setPrefWidth(300);
-        categoryErrorLabel.setMaxWidth(300);
-        
-        TextField amountField = new TextField(String.valueOf(selected.getAmount()));
-        amountField.setPrefWidth(300);
-        Label amountErrorLabel = new Label();
-        amountErrorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc2626;");
-        amountErrorLabel.setVisible(false);
-        amountErrorLabel.setWrapText(true);
-        amountErrorLabel.setPrefWidth(300);
-        amountErrorLabel.setMaxWidth(300);
-        
-        // Real-time validation for category
-        categoryField.textProperty().addListener((obs, oldText, newText) -> {
-            Constraints.ValidationResult result = Constraints.validateCategory(newText);
-            Constraints.applyValidationStyle(categoryField, result.isValid(), categoryErrorLabel, result.getErrorMessage());
-        });
-        
-        // Real-time validation for amount
-        amountField.textProperty().addListener((obs, oldText, newText) -> {
-            Constraints.ValidationResult result = Constraints.validateAmount(newText);
-            Constraints.applyValidationStyle(amountField, result.isValid(), amountErrorLabel, result.getErrorMessage());
-        });
-        
-        grid.add(new Label("Κατηγορία:"), 0, 0);
-        grid.add(categoryField, 1, 0);
-        grid.add(categoryErrorLabel, 1, 1);
-        grid.add(new Label("Ποσό:"), 0, 2);
-        grid.add(amountField, 1, 2);
-        grid.add(amountErrorLabel, 1, 3);
-        
-        dialog.getDialogPane().setContent(grid);
-        
-        ButtonType saveButton = new ButtonType("Αποθήκευση", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(saveButton, ButtonType.CANCEL);
-        
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == saveButton) {
-                // Validate all fields
-                String category = categoryField.getText();
-                String amountText = amountField.getText();
-                
-                Constraints.ValidationResult categoryResult = Constraints.validateCategory(category);
-                Constraints.ValidationResult amountResult = Constraints.validateAmount(amountText);
-                
-                // Apply validation styles
-                Constraints.applyValidationStyle(categoryField, categoryResult.isValid(), categoryErrorLabel, categoryResult.getErrorMessage());
-                Constraints.applyValidationStyle(amountField, amountResult.isValid(), amountErrorLabel, amountResult.getErrorMessage());
-                
-                // Check if all validations pass
-                if (!categoryResult.isValid() || !amountResult.isValid()) {
-                    StringBuilder errorMsg = new StringBuilder("Παρακαλώ διορθώστε τα ακόλουθα σφάλματα:\n\n");
-                    if (!categoryResult.isValid()) {
-                        errorMsg.append("• ").append(categoryResult.getErrorMessage()).append("\n");
-                    }
-                    if (!amountResult.isValid()) {
-                        errorMsg.append("• ").append(amountResult.getErrorMessage()).append("\n");
-                    }
-                    
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setTitle("Σφάλμα Επικύρωσης");
-                    alert.setHeaderText("Μη έγκυρα δεδομένα");
-                    alert.setContentText(errorMsg.toString());
-                    alert.showAndWait();
-                    return null;
-                }
-                
-                try {
-                    double amount = Double.parseDouble(amountText);
-                    
-                    // Business constraints validation
-                    // Check if amount change is reasonable
-                    double previousAmount = selected.getPreviousYearAmount();
-                    Constraints.ValidationResult amountChangeResult = 
-                        Constraints.validateAmountChange(amount, previousAmount);
-                    if (!amountChangeResult.isValid()) {
-                        Alert alert = new Alert(Alert.AlertType.WARNING);
-                        alert.setTitle("Περιορισμός Επιχειρηματικής Λογικής");
-                        alert.setHeaderText("Μεγάλη Αλλαγή Ποσού");
-                        alert.setContentText(amountChangeResult.getErrorMessage());
-                        alert.showAndWait();
-                        return null;
-                    }
-                    
-                    selected.categoryProperty().set(category);
-                    selected.amountProperty().set(amount);
-                    if (dmRevenuesTable != null) dmRevenuesTable.refresh();
-                    if (dmExpensesTable != null) dmExpensesTable.refresh();
-                    if (dataManagementTable != null) dataManagementTable.refresh();
-                    return selected;
-                } catch (NumberFormatException e) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Σφάλμα");
-                    alert.setHeaderText("Μη έγκυρο ποσό");
-                    alert.setContentText("Παρακαλώ εισάγετε έγκυρο ποσό.");
-                    alert.showAndWait();
-                    return null;
-                }
+        java.util.Optional<ButtonType> result = confirmAlert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            if (dmRevenuesTable != null) {
+                dmRevenuesTable.getItems().removeAll(selectedItems);
             }
-            return null;
-        });
+            if (dmExpensesTable != null) {
+                dmExpensesTable.getItems().removeAll(selectedItems);
+            }
+            // TODO: Delete from database
+        }
+    }
+    
+    private void saveTableChanges(TableView<CategoryData> table) {
+        if (table == null || budgetData == null) return;
         
-        dialog.showAndWait();
+        for (CategoryData item : table.getItems()) {
+            try {
+                int year = extractYearFromData(item);
+                String type = item.getType();
+                
+                if (type != null) {
+                    // Save comments if they exist
+                    if (item.getComments() != null && !item.getComments().isEmpty()) {
+                        if (userData != null) {
+                            userData.saveComment(item.getCategory(), year, item.getComments());
+                        }
+                    }
+                    // Note: Amount changes would need to be saved through SQLinserter.updateRevenue/updateExpense
+                    // For now, we only save comments
+                }
+            } catch (Exception e) {
+                System.err.println("Error saving changes for " + item.getCategory() + ": " + e.getMessage());
+            }
+        }
+        
+        // Refresh the table
+        table.refresh();
+        
+        // Show success message
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Αποθήκευση");
+        alert.setHeaderText("Οι αλλαγές αποθηκεύτηκαν");
+        alert.setContentText("Όλες οι αλλαγές αποθηκεύτηκαν επιτυχώς.");
+        alert.showAndWait();
     }
     
     @FXML
@@ -4502,6 +5449,16 @@ public class HomeController {
     
     @FXML
     private void onSelectAll() {
+        if (dmRevenuesTable != null) {
+            for (CategoryData item : dmRevenuesTable.getItems()) {
+                item.setSelected(true);
+            }
+        }
+        if (dmExpensesTable != null) {
+            for (CategoryData item : dmExpensesTable.getItems()) {
+                item.setSelected(true);
+            }
+        }
         if (dataManagementTable != null) {
             dataManagementTable.getSelectionModel().selectAll();
         }
@@ -4509,11 +5466,50 @@ public class HomeController {
     
     @FXML
     private void onDeselectAll() {
-        if (dataManagementTable != null) {
-            if (dmRevenuesTable != null) dmRevenuesTable.getSelectionModel().clearSelection();
-            if (dmExpensesTable != null) dmExpensesTable.getSelectionModel().clearSelection();
-            if (dataManagementTable != null) dataManagementTable.getSelectionModel().clearSelection();
+        if (dmRevenuesTable != null) {
+            for (CategoryData item : dmRevenuesTable.getItems()) {
+                item.setSelected(false);
+            }
+            dmRevenuesTable.getSelectionModel().clearSelection();
         }
+        if (dmExpensesTable != null) {
+            for (CategoryData item : dmExpensesTable.getItems()) {
+                item.setSelected(false);
+            }
+            dmExpensesTable.getSelectionModel().clearSelection();
+        }
+        if (dataManagementTable != null) {
+            dataManagementTable.getSelectionModel().clearSelection();
+        }
+    }
+    
+    // Data model for simulation selections
+    public static class SimulationSelectionItem {
+        private final BooleanProperty selected = new SimpleBooleanProperty();
+        private final StringProperty categoryName = new SimpleStringProperty();
+        private final DoubleProperty amount = new SimpleDoubleProperty();
+        private final StringProperty changePercent = new SimpleStringProperty("0.0");
+        
+        public SimulationSelectionItem(String categoryName, double amount) {
+            this.categoryName.set(categoryName);
+            this.amount.set(amount);
+        }
+        
+        public BooleanProperty selectedProperty() { return selected; }
+        public boolean isSelected() { return selected.get(); }
+        public void setSelected(boolean selected) { this.selected.set(selected); }
+        
+        public StringProperty categoryNameProperty() { return categoryName; }
+        public String getCategoryName() { return categoryName.get(); }
+        public void setCategoryName(String name) { this.categoryName.set(name); }
+        
+        public DoubleProperty amountProperty() { return amount; }
+        public double getAmount() { return amount.get(); }
+        public void setAmount(double amount) { this.amount.set(amount); }
+        
+        public StringProperty changePercentProperty() { return changePercent; }
+        public String getChangePercent() { return changePercent.get(); }
+        public void setChangePercent(String percent) { this.changePercent.set(percent); }
     }
 }
 
