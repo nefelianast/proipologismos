@@ -38,3 +38,7 @@ proipologismos*.csv
 *~
 *.swp
 
+# API Keys and sensitive config
+api-key.properties
+*.key
+.env

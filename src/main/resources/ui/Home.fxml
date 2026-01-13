@@ -58,8 +58,15 @@
                                         <items>
                                             <MenuItem text="🏠 Αρχική" onAction="#onNavigateHome" fx:id="homeMenuItem" styleClass="menu-item"/>
                                             <MenuItem text="📈 Προεπισκοπήσεις Αλλαγών" onAction="#onNavigateProjections" fx:id="projectionsMenuItem" styleClass="menu-item"/>
-                                            <MenuItem text="⚖️ Σύγκριση ετών" onAction="#onNavigateComparison" fx:id="dataExplorationMenuItem" styleClass="menu-item"/>
+                                            <Menu text="⚖️ Συγκρίσεις">
+                                                <items>
+                                                    <MenuItem text="Σύγκριση ετών" onAction="#onNavigateComparison" fx:id="dataExplorationMenuItem" styleClass="menu-item"/>
+                                                    <MenuItem text="Σύγκριση κρατών" onAction="#onNavigateInternationalComparison" fx:id="internationalComparisonMenuItem" styleClass="menu-item"/>
+                                                </items>
+                                            </Menu>
                                             <MenuItem text="📊 Στατιστικές Αναλύσεις" onAction="#onNavigateStatistics" fx:id="statisticsMenuItem" styleClass="menu-item"/>
+                                            <SeparatorMenuItem styleClass="separator-menu-item"/>
+                                            <MenuItem text="🤖 AI Βοηθός" onAction="#onOpenAIAssistant" fx:id="aiAssistantMenuItem" styleClass="menu-item"/>
                                             <SeparatorMenuItem styleClass="separator-menu-item"/>
                                             <MenuItem text="Σύνδεση ως Κυβέρνηση" onAction="#onAuthButtonClicked" fx:id="authMenuItem" styleClass="menu-item"/>
                                         </items>
@@ -821,6 +828,75 @@
                                         </VBox>
                                     </children>
                                 </HBox>
+                            </children>
+                        </VBox>
+
+                        <!-- INTERNATIONAL COMPARISON VIEW -->
+                        <VBox fx:id="internationalComparisonView" spacing="16" visible="false" managed="false">
+                            <children>
+                                <Button text="← Επιστροφή" onAction="#onNavigateHome" styleClass="back-button" style="-fx-position: fixed;"/>
+                                
+                                <VBox spacing="24" alignment="TOP_CENTER">
+                                    <padding>
+                                        <Insets top="20" right="80" bottom="20" left="80"/>
+                                    </padding>
+                                    <children>
+                                        <!-- Title -->
+                                        <Label text="Σύγκριση Κρατών" styleClass="section-title" style="-fx-font-size: 24px;"/>
+                                        <Label text="Σύγκριση διεθνών δεικτών μεταξύ δύο κρατών" styleClass="section-subtitle"/>
+                                        
+                                        <!-- Controls -->
+                                        <VBox spacing="16" styleClass="section-card" alignment="CENTER">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <HBox spacing="16" alignment="CENTER">
+                                                    <children>
+                                                        <Label text="Έτος:" styleClass="section-subtitle"/>
+                                                        <ComboBox fx:id="internationalYearComboBox" prefWidth="150" styleClass="comparison-combo" promptText="Επιλογή έτους"/>
+                                                        <Region HBox.hgrow="ALWAYS"/>
+                                                        <Label text="Κράτος 1:" styleClass="section-subtitle"/>
+                                                        <ComboBox fx:id="internationalCountry1ComboBox" prefWidth="200" styleClass="comparison-combo" promptText="Επιλογή κράτους 1"/>
+                                                        <Region HBox.hgrow="ALWAYS"/>
+                                                        <Label text="Κράτος 2:" styleClass="section-subtitle"/>
+                                                        <ComboBox fx:id="internationalCountry2ComboBox" prefWidth="200" styleClass="comparison-combo" promptText="Επιλογή κράτους 2"/>
+                                                    </children>
+                                                </HBox>
+                                                <Button text="OK" onAction="#onLoadInternationalComparison" styleClass="comparison-ok-button" fx:id="loadInternationalComparisonButton"/>
+                                            </children>
+                                        </VBox>
+                                        
+                                        <!-- Results -->
+                                        <VBox spacing="12" styleClass="section-card" visible="false" managed="false" fx:id="internationalResultsContainer">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label fx:id="internationalComparisonTitle" text="" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                <TableView fx:id="internationalComparisonTable" prefHeight="400" VBox.vgrow="ALWAYS">
+                                                    <columns>
+                                                        <TableColumn fx:id="intIndicatorColumn" text="Κατηγορία" prefWidth="250" sortable="true"/>
+                                                        <TableColumn fx:id="intCountry1Column" text="Κράτος 1" prefWidth="250" sortable="true"/>
+                                                        <TableColumn fx:id="intCountry2Column" text="Κράτος 2" prefWidth="250" sortable="true"/>
+                                                        <TableColumn fx:id="intDifferenceColumn" text="Διαφορά" prefWidth="200" sortable="true"/>
+                                                    </columns>
+                                                </TableView>
+                                            </children>
+                                        </VBox>
+                                        
+                                        <!-- Comparison Chart Area (for future use) -->
+                                        <VBox spacing="12" styleClass="section-card" visible="false" managed="false" fx:id="internationalChartContainer">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Γραφική Αναπαράσταση" styleClass="section-title" style="-fx-font-size: 18px;"/>
+                                                <!-- Chart will be added here programmatically -->
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
                             </children>
                         </VBox>
 

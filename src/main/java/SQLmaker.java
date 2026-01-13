@@ -1,44 +1,31 @@
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import ui.DatabaseConnection;
 
-/**
- * Class responsible for creating database tables for budget data.
- * Creates tables for revenues, expenses, ministries, decentralized administrations,
- * and budget summaries for years 2023, 2024, 2025, and 2026.
- * After creating tables, automatically populates them with data using SQLinserter.
- */
+// κλάση για τη δημιουργία των πινάκων της βάσης δεδομένων
 public class SQLmaker {
     
-    /**
-     * Creates all necessary database tables for budget data storage.
-     * Creates tables for multiple years (2023-2026) including:
-     * - Revenue tables
-     * - Expense tables
-     * - Ministry tables
-     * - Decentralized administration tables
-     * - Budget summary tables
-     * After table creation, automatically inserts data into all tables.
-     */
      public void make() {
         try {
             Connection conn = DatabaseConnection.getConnection();
 
-            // Check if tables already exist to avoid re-initialization 
+            // έλεγχος αν οι πίνακες υπάρχουν 
             DatabaseMetaData meta = conn.getMetaData();
             ResultSet tables = meta.getTables(null, null, "revenue_2025", null);
-            if (tables.next()) {
-                tables.close();
-                System.out.println("Database already initialized. Skipping table creation.");
-                // Still create admin user if it doesn't exist
+            boolean dbExists = tables.next();
+            tables.close();
+            
+            if (dbExists) {
+                System.out.println("Database already initialized. Creating/verifying international tables...");
+                // Πάντα δημιουργούμε τους διεθνείς πίνακες (μπορεί να προστέθηκαν μετά)
+                createInternationalTables(conn);
+                // δημιουργία default admin user αν δεν υπάρχει
                 createDefaultAdminUser();
                 return;
             }
-            tables.close();
 
             System.out.println("Initializing database tables...");
             String sql1 = "CREATE TABLE IF NOT EXISTS revenue_2025 ("
@@ -369,7 +356,7 @@ public class SQLmaker {
             + "FOREIGN KEY (total_da) REFERENCES decentralized_administrations_2025(total_da)"
             + ");";
     
-    // Users table for authentication
+    // users table for authentication
     String sqlUsers =
         "CREATE TABLE IF NOT EXISTS users ("
         + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -400,7 +387,7 @@ public class SQLmaker {
             stmt.execute(sql20);
             stmt.execute(sqlUsers);
             
-            // Create tables for data persistence (comments, scenarios, preferences)
+            // tables for data persistence (comments, scenarios, preferences)
             String sql21 = "CREATE TABLE IF NOT EXISTS user_comments ("
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "category_name TEXT NOT NULL,"
@@ -415,7 +402,7 @@ public class SQLmaker {
                 + "scenario_name TEXT NOT NULL UNIQUE,"
                 + "description TEXT,"
                 + "year INTEGER NOT NULL,"
-                + "scenario_data TEXT NOT NULL," // JSON format
+                + "scenario_data TEXT NOT NULL," 
                 + "created_at DATETIME DEFAULT CURRENT_TIMESTAMP,"
                 + "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP"
                 + ");";
@@ -431,91 +418,124 @@ public class SQLmaker {
             stmt.execute(sql21);
             stmt.execute(sql22);
             stmt.execute(sql23);
+            
+            // Create international tables
+            createInternationalTables(conn);
 
             System.out.println("Table created successfully!");
+            
+            SQLinserter test = new SQLinserter();
+            try {
+                test.insertRevenue2025();
+                test.insertExpenses2025();
+                test.insertMinistries2025();
+                test.insertDecentralizedAdministrations2025();
+                test.insertBudgetSummary2025();
+                
+                test.insertRevenue2024();
+                test.insertExpenses2024();
+                test.insertMinistries2024();
+                test.insertDecentralizedAdministrations2024();
+                test.insertBudgetSummary2024();
+                
+                test.insertRevenue2023();
+                test.insertExpenses2023();
+                test.insertMinistries2023();
+                test.insertDecentralizedAdministrations2023();
+                test.insertBudgetSummary2023();
+                
+                test.insertRevenue2026();
+                test.insertExpenses2026();
+                test.insertMinistries2026();
+                test.insertDecentralizedAdministrations2026();
+                test.insertBudgetSummary2026();
+                
+                // Fetch international indicators data from APIs
+                System.out.println("\n=== Fetching International Indicators from APIs ===");
+                try {
+                    FetchInternationalDataFromAPIs.main(null);
+                } catch (Exception e) {
+                    System.err.println("Warning: Could not fetch international data: " + e.getMessage());
+                    // Continue - this is optional data
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         } catch (SQLException e) {
+            System.err.println("Error in make(): " + e.getMessage());
             e.printStackTrace();
         }
         
-        // Always check and create default admin user (even if tables already existed)
+        // πάντα ελέγχουμε και δημιουργούμε default admin user 
         createDefaultAdminUser();
-        
-        
-        SQLinserter test = new SQLinserter();
-        try {
-            test.insertRevenue2025();
-             
-            test.insertExpenses2025();
-           
-           test.insertMinistries2025();
-           
-           test.insertDecentralizedAdministrations2025();
-           
-          test.insertBudgetSummary2025();
-          
-         test.insertRevenue2024();
-          
-         test.insertExpenses2024();
-         
-        test.insertMinistries2024();
-        
-        test.insertDecentralizedAdministrations2024();
-         
-        test.insertBudgetSummary2024();
-        
-       test.insertRevenue2023();
-       
-      test.insertExpenses2023();
-      
-     test.insertMinistries2023();
-     
-    test.insertDecentralizedAdministrations2023();
-   
-   test.insertBudgetSummary2023();
-   test.insertRevenue2026();
-   test.insertExpenses2026();
-   test.insertMinistries2026();
-   test.insertDecentralizedAdministrations2026();
-   
-   test.insertBudgetSummary2026();
-   /* 
-   String sc="social_contributions";
-   test.updateRevenue(2025, 3, sc, "10");*/
- 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
     
     /**
-     * Creates a default admin user for testing if it doesn't already exist.
-     * This method is called separately so it runs even if tables already exist.
+     * Creates international tables (indicators, published_years, budgets).
+     * This is called both when creating a new database and when verifying existing database.
      */
+    private void createInternationalTables(Connection conn) {
+        try (Statement stmt = conn.createStatement()) {
+            // International budget indicators table
+            String sql24 = "CREATE TABLE IF NOT EXISTS international_indicators ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "country_code TEXT NOT NULL,"
+                + "country_name TEXT NOT NULL,"
+                + "year INTEGER NOT NULL,"
+                + "indicator TEXT NOT NULL,"
+                + "value REAL NOT NULL"
+                + ");";
+            
+            // Published years table
+            String sql25 = "CREATE TABLE IF NOT EXISTS published_years ("
+                + "year INTEGER PRIMARY KEY"
+                + ");";
+            
+            // International budgets table (for actual budget amounts)
+            String sql26 = "CREATE TABLE IF NOT EXISTS international_budgets ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "country_code TEXT NOT NULL,"
+                + "country_name TEXT NOT NULL,"
+                + "year INTEGER NOT NULL,"
+                + "total_gdp REAL,"
+                + "total_revenue REAL,"
+                + "total_expenses REAL,"
+                + "budget_balance REAL,"
+                + "UNIQUE(country_code, year)"
+                + ");";
+            
+            stmt.execute(sql24);
+            stmt.execute(sql25);
+            stmt.execute(sql26);
+            
+            System.out.println("✓ International tables verified/created: international_indicators, published_years, international_budgets");
+        } catch (SQLException e) {
+            System.err.println("Warning: Could not create international tables: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    //creates a default admin user for testing if it doesn't already exist
+   
     private static void createDefaultAdminUser() {
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement()) {
             
-            // First, ensure users table exists (in case it was created separately)
             try {
                 stmt.execute("CREATE TABLE IF NOT EXISTS users ("
                     + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + "username TEXT UNIQUE NOT NULL,"
                     + "password TEXT NOT NULL"
                     + ");");
-            } catch (SQLException e) {
-                // Table might already exist, that's fine
-            }
+            } catch (SQLException e) {}
             
-            // Check if admin user exists
             String checkUser = "SELECT COUNT(*) FROM users WHERE username = 'admin'";
             ResultSet rs = stmt.executeQuery(checkUser);
             
             if (rs.next() && rs.getInt(1) == 0) {
-                // Default admin account: username='admin', password='admin123'
                 String insertAdmin = "INSERT INTO users (username, password) VALUES ('admin', 'admin123')";
                 stmt.execute(insertAdmin);
                 System.out.println("✓ Default admin user created (username: admin, password: admin123)");

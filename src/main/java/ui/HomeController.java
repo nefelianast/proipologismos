@@ -19,19 +19,14 @@ import javafx.util.Callback;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.FileChooser;
-import javafx.scene.Node;
-import javafx.beans.value.ChangeListener;
-import java.util.Optional;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Optional;
 import java.util.HashMap;
 import java.util.Calendar;
 import java.util.Set;
@@ -41,7 +36,6 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
-import ui.Comparisons;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -249,6 +243,8 @@ public class HomeController {
     @FXML
     private MenuItem authMenuItem;
     @FXML
+    private MenuItem internationalComparisonMenuItem;
+    @FXML
     private ComboBox<String> yearComboBox;
     @FXML
     private ComboBox<String> dataManagementYearComboBox;
@@ -390,6 +386,8 @@ public class HomeController {
     @FXML
     private VBox projectionsView;
     @FXML
+    private VBox internationalComparisonView;
+    @FXML
     private Button exploreTotalButton;
     @FXML
     private Button exploreMinistryButton;
@@ -451,6 +449,33 @@ public class HomeController {
     private TableColumn<CategoryData, Double> exploreColumn4;
     @FXML
     private TableColumn<CategoryData, String> exploreColumn5;
+    
+    // International Comparison Fields
+    @FXML
+    private ComboBox<String> internationalYearComboBox;
+    @FXML
+    private ComboBox<String> internationalCountry1ComboBox;
+    @FXML
+    private ComboBox<String> internationalCountry2ComboBox;
+    @FXML
+    private Button loadInternationalComparisonButton;
+    @FXML
+    private VBox internationalResultsContainer;
+    @FXML
+    private VBox internationalChartContainer;
+    @FXML
+    private Label internationalComparisonTitle;
+    @FXML
+    private TableView<CountryComparisonData> internationalComparisonTable;
+    @FXML
+    private TableColumn<CountryComparisonData, String> intIndicatorColumn;
+    @FXML
+    private TableColumn<CountryComparisonData, String> intCountry1Column;
+    @FXML
+    private TableColumn<CountryComparisonData, String> intCountry2Column;
+    @FXML
+    private TableColumn<CountryComparisonData, String> intDifferenceColumn;
+    @FXML
     
     private String currentExplorationView = "";
     private boolean isLoadingExplorationView = false;
@@ -659,88 +684,6 @@ public class HomeController {
             }
         }
         return -1;
-    }
-    
-    /**
-     * Setup table column formatting (amount, percentage, status)
-     */
-    private void setupTableColumnFormatting(TableColumn<CategoryData, Double> amountColumn, 
-                                           TableColumn<CategoryData, Double> percentageColumn,
-                                           TableColumn<CategoryData, String> statusColumn) {
-        // Format amount column
-        amountColumn.setCellFactory(column -> new TableCell<CategoryData, Double>() {
-            @Override
-            protected void updateItem(Double amount, boolean empty) {
-                super.updateItem(amount, empty);
-                if (empty || amount == null) {
-                    setText(null);
-                } else {
-                    setText(AmountFormatter.formatCurrency(amount));
-                }
-            }
-        });
-        
-        // Format percentage column
-        percentageColumn.setCellFactory(column -> new TableCell<CategoryData, Double>() {
-            @Override
-            protected void updateItem(Double percentage, boolean empty) {
-                super.updateItem(percentage, empty);
-                if (empty || percentage == null) {
-                    setText(null);
-                } else {
-                    setText(AmountFormatter.formatPercentage(percentage));
-                }
-            }
-        });
-        
-        // Format status column with visual badges and icons
-        statusColumn.setCellFactory(column -> new TableCell<CategoryData, String>() {
-            private final HBox container = new HBox(6);
-            private final Label iconLabel = new Label();
-            private final Label textLabel = new Label();
-            
-            {
-                container.setAlignment(Pos.CENTER_LEFT);
-                textLabel.getStyleClass().add("status-badge");
-                container.getChildren().addAll(iconLabel, textLabel);
-            }
-            
-            @Override
-            protected void updateItem(String status, boolean empty) {
-                super.updateItem(status, empty);
-                if (empty || status == null) {
-                    setGraphic(null);
-                    setText(null);
-                } else {
-                    textLabel.setText(status);
-                    iconLabel.setText("");
-                    textLabel.getStyleClass().removeAll("status-badge-increase", "status-badge-decrease", "status-badge-new", "status-badge-stable");
-                    
-                    switch (status) {
-                        case "Αύξηση":
-                            iconLabel.setText("↑");
-                            iconLabel.setStyle("-fx-text-fill: #065f46; -fx-font-weight: bold;");
-                            textLabel.getStyleClass().add("status-badge-increase");
-                            break;
-                        case "Μείωση":
-                            iconLabel.setText("↓");
-                            iconLabel.setStyle("-fx-text-fill: #991b1b; -fx-font-weight: bold;");
-                            textLabel.getStyleClass().add("status-badge-decrease");
-                            break;
-                        case "Νέο":
-                            iconLabel.setText("✨");
-                            iconLabel.setStyle("-fx-text-fill: #1e40af; -fx-font-weight: bold;");
-                            textLabel.getStyleClass().add("status-badge-new");
-                            break;
-                        default:
-                            iconLabel.setText("—");
-                            iconLabel.setStyle("-fx-text-fill: #4b5563;");
-                            textLabel.getStyleClass().add("status-badge-stable");
-                    }
-                    setGraphic(container);
-                }
-            }
-        });
     }
     
     /**
@@ -1907,6 +1850,41 @@ public class HomeController {
         onNavigateDataManagement();
     }
     
+    @FXML
+    private void onOpenAIAssistant() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/AIAssistantView.fxml"));
+            Parent root = loader.load();
+            
+            Stage aiStage = new Stage();
+            aiStage.setTitle("AI Βοηθός Προϋπολογισμού");
+            aiStage.setScene(new Scene(root, 900, 700));
+            aiStage.setResizable(true);
+            
+            // Set owner window
+            Window ownerWindow = null;
+            if (homeView != null && homeView.getScene() != null) {
+                ownerWindow = homeView.getScene().getWindow();
+            } else if (yearComboBox != null && yearComboBox.getScene() != null) {
+                ownerWindow = yearComboBox.getScene().getWindow();
+            }
+            aiStage.initOwner(ownerWindow);
+            aiStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
+            
+            // Apply stylesheet
+            aiStage.getScene().getStylesheets().add(getClass().getResource("/ui/styles.css").toExternalForm());
+            
+            aiStage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Δεν ήταν δυνατή η φόρτωση του AI Βοηθού");
+            alert.setContentText("Παρακαλώ δοκιμάστε ξανά. Σφάλμα: " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+    
     private void updateHomeEditButtonVisibility() {
         if (homeEditButton != null) {
             boolean isGovernment = isGovernmentUser();
@@ -3058,92 +3036,6 @@ public class HomeController {
             exploreResultsTable.setItems(data);
         }
     }
-    private void loadComparisonResults(int year1, int year2) {
-
-    Comparisons comparisons = new Comparisons();
-
-    ObservableList<CategoryData> data =
-            comparisons.getComparisonTableData(year1, year2);
-
-    exploreResultsTable.setItems(data);
-}
-
-    private void showComparisonYearDialog() {
-
-    Dialog<ButtonType> dialog = new Dialog<>();
-    dialog.setTitle("Σύγκριση Ετών");
-    dialog.setHeaderText("Εισάγετε δύο έτη");
-
-    ButtonType compareBtn =
-            new ButtonType("Σύγκριση", ButtonBar.ButtonData.OK_DONE);
-    dialog.getDialogPane().getButtonTypes()
-            .addAll(compareBtn, ButtonType.CANCEL);
-
-    TextField year1 = new TextField();
-    year1.setPromptText("2023");
-
-    TextField year2 = new TextField();
-    year2.setPromptText("2024");
-    Label errorLabel = new Label();
-    errorLabel.setStyle("-fx-text-fill: red;");
-
-    GridPane grid = new GridPane();
-    grid.setHgap(10);
-    grid.setVgap(10);
-
-    grid.add(new Label("Έτος 1:"), 0, 0);
-    grid.add(year1, 1, 0);
-    grid.add(new Label("Έτος 2:"), 0, 1);
-    grid.add(year2, 1, 1);
-    grid.add(errorLabel, 1, 2);
-
-
-    dialog.getDialogPane().setContent(grid);
-
-    Node okButton = dialog.getDialogPane().lookupButton(compareBtn);
-    okButton.setDisable(true);
-
-   ChangeListener<String> validator = (obs, oldV, newV) -> {
-
-    String y1 = year1.getText();
-    String y2 = year2.getText();
-
-    errorLabel.setText("");
-
-    boolean validFormat =
-            y1.matches("\\d{4}") && y2.matches("\\d{4}");
-
-    if (!validFormat) {
-        okButton.setDisable(true);
-        return;
-    }
-
-    if (y1.equals(y2)) {
-        errorLabel.setText("Τα έτη πρέπει να είναι διαφορετικά");
-        okButton.setDisable(true);
-        return;
-    }
-
-    okButton.setDisable(false);
-};
-
-
-    year1.textProperty().addListener(validator);
-    year2.textProperty().addListener(validator);
-
-    dialog.setResultConverter(btn -> {
-        if (btn == compareBtn) {
-            int y1 = Integer.parseInt(year1.getText());
-            int y2 = Integer.parseInt(year2.getText());
-            loadComparisonData(y1, y2);
-        }
-        return null;
-    });
-
-    dialog.showAndWait();
-}
-
-
 
     private void loadComparisonView() {
         if (exploreViewTitleLabel != null) {
@@ -3373,6 +3265,474 @@ public class HomeController {
         
         // Load comparison view directly
         loadComparisonView();
+    }
+    
+    @FXML
+    private void onNavigateInternationalComparison() {
+        if (internationalComparisonView == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Δεν ήταν δυνατή η φόρτωση της προβολής σύγκρισης");
+            alert.setContentText("Παρακαλώ δοκιμάστε ξανά.");
+            alert.showAndWait();
+            return;
+        }
+        
+        showView(internationalComparisonView);
+        initializeInternationalComparison();
+    }
+    
+    private void initializeInternationalComparison() {
+        try {
+            BudgetData budgetData = BudgetData.getInstance();
+            
+            // Initialize year combo box - use years from international_indicators table
+            if (internationalYearComboBox != null) {
+                internationalYearComboBox.getItems().clear();
+                // Get unique years from international_indicators
+                String sql = "SELECT DISTINCT year FROM international_indicators ORDER BY year DESC";
+                try (Connection conn = DatabaseConnection.getConnection();
+                     Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery(sql)) {
+                    while (rs.next()) {
+                        int year = rs.getInt("year");
+                        internationalYearComboBox.getItems().add(String.valueOf(year));
+                        System.out.println("DEBUG: Added year " + year + " to combo box");
+                    }
+                    System.out.println("DEBUG: Found " + internationalYearComboBox.getItems().size() + " years in international_indicators");
+                    System.out.println("DEBUG: Years list: " + internationalYearComboBox.getItems());
+                } catch (Exception e) {
+                    System.err.println("Error loading years: " + e.getMessage());
+                    e.printStackTrace();
+                    // Fallback to standard years
+                    initializeYearComboBox(internationalYearComboBox);
+                }
+                if (internationalYearComboBox.getItems().size() > 0) {
+                    internationalYearComboBox.setValue(internationalYearComboBox.getItems().get(0));
+                }
+            }
+            
+            // Initialize country combo boxes (Country 1 and Country 2)
+            // Πάντα προσθέτουμε την Ελλάδα πρώτη
+            String greeceDisplay = "Greece (GRC)";
+            if (internationalCountry1ComboBox != null) {
+                internationalCountry1ComboBox.getItems().add(greeceDisplay);
+            }
+            if (internationalCountry2ComboBox != null) {
+                internationalCountry2ComboBox.getItems().add(greeceDisplay);
+            }
+            
+            // Προσθέτουμε τις υπόλοιπες χώρες
+            List<String> countries = budgetData.getAvailableCountries();
+            for (String countryCode : countries) {
+                // Παραλείπουμε την Ελλάδα αν είναι ήδη στη λίστα
+                if ("GRC".equals(countryCode)) {
+                    continue;
+                }
+                String countryName = budgetData.getCountryName(countryCode);
+                String countryDisplay = countryName != null ? countryName + " (" + countryCode + ")" : countryCode;
+                
+                if (internationalCountry1ComboBox != null) {
+                    internationalCountry1ComboBox.getItems().add(countryDisplay);
+                }
+                if (internationalCountry2ComboBox != null) {
+                    internationalCountry2ComboBox.getItems().add(countryDisplay);
+                }
+            }
+            
+            // Initialize table columns for country budget comparison
+            if (intIndicatorColumn != null) {
+                intIndicatorColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
+            }
+            
+            if (intCountry1Column != null) {
+                intCountry1Column.setCellValueFactory(new PropertyValueFactory<>("country1Value"));
+            }
+            
+            if (intCountry2Column != null) {
+                intCountry2Column.setCellValueFactory(new PropertyValueFactory<>("country2Value"));
+            }
+            
+            if (intDifferenceColumn != null) {
+                intDifferenceColumn.setCellValueFactory(new PropertyValueFactory<>("difference"));
+            }
+            
+            // Hide results initially
+            if (internationalResultsContainer != null) {
+                internationalResultsContainer.setVisible(false);
+                internationalResultsContainer.setManaged(false);
+            }
+            
+            // Setup listeners
+            if (internationalYearComboBox != null) {
+                internationalYearComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+                    updateCountryComboBoxAvailability();
+                    validateCountrySelections();
+                });
+            }
+            
+            if (internationalCountry1ComboBox != null && internationalCountry2ComboBox != null) {
+                internationalCountry1ComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+                    if (newVal != null && newVal.equals(internationalCountry2ComboBox.getValue())) {
+                        internationalCountry2ComboBox.setValue(null);
+                    }
+                });
+                internationalCountry2ComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+                    if (newVal != null && newVal.equals(internationalCountry1ComboBox.getValue())) {
+                        internationalCountry1ComboBox.setValue(null);
+                    }
+                });
+            }
+            
+            // Initial update
+            updateCountryComboBoxAvailability();
+            
+        } catch (Exception e) {
+            System.err.println("Error initializing international comparison: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Helper method to parse year string safely.
+     */
+    private int parseYearSafely(String yearStr) {
+        if (yearStr == null) return 0;
+        try {
+            return Integer.parseInt(yearStr);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+    
+    // Inner class for country budget comparison data
+    public static class CountryComparisonData {
+        private final StringProperty category;
+        private final StringProperty country1Value;
+        private final StringProperty country2Value;
+        private final StringProperty difference;
+        
+        public CountryComparisonData(String category, String country1Value, String country2Value, 
+                                     String difference) {
+            this.category = new SimpleStringProperty(category);
+            this.country1Value = new SimpleStringProperty(country1Value);
+            this.country2Value = new SimpleStringProperty(country2Value);
+            this.difference = new SimpleStringProperty(difference);
+        }
+        
+        public StringProperty categoryProperty() { return category; }
+        public StringProperty country1ValueProperty() { return country1Value; }
+        public StringProperty country2ValueProperty() { return country2Value; }
+        public StringProperty differenceProperty() { return difference; }
+        
+        public String getCategory() { return category.get(); }
+        public String getCountry1Value() { return country1Value.get(); }
+        public String getCountry2Value() { return country2Value.get(); }
+        public String getDifference() { return difference.get(); }
+    }
+    
+    @FXML
+    private void onLoadInternationalComparison() {
+        try {
+            if (internationalYearComboBox == null || internationalCountry1ComboBox == null || 
+                internationalCountry2ComboBox == null) {
+                return;
+            }
+            
+            String selectedYearStr = internationalYearComboBox.getValue();
+            String selectedCountry1Str = internationalCountry1ComboBox.getValue();
+            String selectedCountry2Str = internationalCountry2ComboBox.getValue();
+            
+            if (selectedYearStr == null || selectedCountry1Str == null || selectedCountry2Str == null) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Προειδοποίηση");
+                alert.setHeaderText("Ατελής επιλογή");
+                alert.setContentText("Παρακαλώ επιλέξτε έτος και και τα δύο κράτη.");
+                alert.showAndWait();
+                return;
+            }
+            
+            int year = Integer.parseInt(selectedYearStr);
+            
+            // Extract country codes
+            String country1Code = extractCountryCode(selectedCountry1Str);
+            String country2Code = extractCountryCode(selectedCountry2Str);
+            
+            if (country1Code == null || country2Code == null) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Σφάλμα");
+                alert.setHeaderText("Μη έγκυρος κωδικός χώρας");
+                alert.setContentText("Δεν ήταν δυνατή η ανάγνωση των κωδικών χωρών.");
+                alert.showAndWait();
+                return;
+            }
+            
+            if (country1Code.equals(country2Code)) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Σφάλμα");
+                alert.setHeaderText("Παρακαλώ επιλέξτε διαφορετικά κράτη");
+                alert.setContentText("Τα δύο κράτη πρέπει να είναι διαφορετικά για να γίνει σύγκριση.");
+                alert.showAndWait();
+                return;
+            }
+            
+            BudgetData budgetData = BudgetData.getInstance();
+            
+            // Get budget data for both countries
+            // Ελλάδα χρησιμοποιεί τα δεδομένα από budget_summary, άλλες χώρες από international_budgets
+            BudgetData.InternationalBudget budget1;
+            BudgetData.InternationalBudget budget2;
+            
+            if ("GRC".equals(country1Code)) {
+                budget1 = budgetData.getGreekBudget(year);
+            } else {
+                budget1 = budgetData.getInternationalBudget(country1Code, year);
+            }
+            
+            if ("GRC".equals(country2Code)) {
+                budget2 = budgetData.getGreekBudget(year);
+            } else {
+                budget2 = budgetData.getInternationalBudget(country2Code, year);
+            }
+            
+            if (budget1 == null || budget2 == null) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Προειδοποίηση");
+                alert.setHeaderText("Δεδομένα προϋπολογισμού δεν βρέθηκαν");
+                alert.setContentText("Δεν βρέθηκαν δεδομένα προϋπολογισμού για μία ή και τις δύο χώρες το έτος " + year + ".\n\n" +
+                    "Παρακαλώ τρέξτε το FetchInternationalDataFromAPIs για να κατεβάσετε τα δεδομένα.");
+                alert.showAndWait();
+                return;
+            }
+            
+            String country1Name = budget1.getCountryName();
+            String country2Name = budget2.getCountryName();
+            
+            // Update table column headers with selected country names
+            if (intCountry1Column != null) {
+                intCountry1Column.setText(country1Name != null ? country1Name : country1Code);
+            }
+            if (intCountry2Column != null) {
+                intCountry2Column.setText(country2Name != null ? country2Name : country2Code);
+            }
+            
+            // Debug: Print budget values
+            System.out.println("=== DEBUG: Budget Comparison ===");
+            System.out.println("Budget1 (" + country1Code + " - " + country1Name + "):");
+            System.out.println("  Revenue: " + budget1.getTotalRevenue());
+            System.out.println("  Expenses: " + budget1.getTotalExpenses());
+            System.out.println("  Balance: " + budget1.getBudgetBalance());
+            System.out.println("Budget2 (" + country2Code + " - " + country2Name + "):");
+            System.out.println("  Revenue: " + budget2.getTotalRevenue());
+            System.out.println("  Expenses: " + budget2.getTotalExpenses());
+            System.out.println("  Balance: " + budget2.getBudgetBalance());
+            System.out.println("================================");
+            
+            // Build comparison data for budget categories
+            List<CountryComparisonData> comparisonData = new ArrayList<>();
+            
+            // Συνολικά Έσοδα - πάντα εμφανίζεται
+            double diffRevenue = budget2.getTotalRevenue() - budget1.getTotalRevenue();
+            comparisonData.add(new CountryComparisonData(
+                "Συνολικά Έσοδα",
+                AmountFormatter.formatCurrency(budget1.getTotalRevenue()),
+                AmountFormatter.formatCurrency(budget2.getTotalRevenue()),
+                AmountFormatter.formatCurrency(diffRevenue)
+            ));
+            
+            // Συνολικές Δαπάνες - πάντα εμφανίζεται
+            double diffExpenses = budget2.getTotalExpenses() - budget1.getTotalExpenses();
+            comparisonData.add(new CountryComparisonData(
+                "Συνολικές Δαπάνες",
+                AmountFormatter.formatCurrency(budget1.getTotalExpenses()),
+                AmountFormatter.formatCurrency(budget2.getTotalExpenses()),
+                AmountFormatter.formatCurrency(diffExpenses)
+            ));
+            
+            // Ισοζύγιο - πάντα εμφανίζεται
+            double diffBalance = budget2.getBudgetBalance() - budget1.getBudgetBalance();
+            comparisonData.add(new CountryComparisonData(
+                "Ισοζύγιο",
+                AmountFormatter.formatCurrency(budget1.getBudgetBalance()),
+                AmountFormatter.formatCurrency(budget2.getBudgetBalance()),
+                AmountFormatter.formatCurrency(diffBalance)
+            ));
+            
+            // Update table
+            if (internationalComparisonTable != null) {
+                javafx.collections.ObservableList<CountryComparisonData> data = 
+                    javafx.collections.FXCollections.observableArrayList(comparisonData);
+                internationalComparisonTable.setItems(data);
+            }
+            
+            // Update title
+            if (internationalComparisonTitle != null) {
+                String title = String.format("Σύγκριση: %s vs %s (%d)", 
+                    country1Name != null ? country1Name : country1Code,
+                    country2Name != null ? country2Name : country2Code,
+                    year);
+                
+                if (year >= 2025) {
+                    title += " [Εκτίμηση/Πρόβλεψη]";
+                }
+                internationalComparisonTitle.setText(title);
+            }
+            
+            // Show results
+            if (comparisonData.isEmpty()) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Πληροφορία");
+                alert.setHeaderText("Δεν βρέθηκαν αποτελέσματα");
+                alert.setContentText("Δεν βρέθηκαν κοινά δείκτες για τις επιλεγμένες χώρες το έτος " + year + ".");
+                alert.showAndWait();
+            } else {
+                if (internationalResultsContainer != null) {
+                    internationalResultsContainer.setVisible(true);
+                    internationalResultsContainer.setManaged(true);
+                }
+            }
+            
+        } catch (NumberFormatException e) {
+            System.err.println("Error parsing year: " + e.getMessage());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Μη έγκυρο έτος");
+            alert.setContentText("Παρακαλώ επιλέξτε έγκυρο έτος.");
+            alert.showAndWait();
+        } catch (Exception e) {
+            System.err.println("Error loading international comparison: " + e.getMessage());
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText("Σφάλμα φόρτωσης δεδομένων");
+            alert.setContentText("Δεν ήταν δυνατή η φόρτωση των διεθνών δεικτών: " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+    
+    private String extractCountryCode(String countrySelection) {
+        if (countrySelection == null) return null;
+        if (countrySelection.contains("(") && countrySelection.contains(")")) {
+            return countrySelection.substring(
+                countrySelection.indexOf("(") + 1,
+                countrySelection.indexOf(")")
+            ).trim();
+        }
+        return countrySelection.trim();
+    }
+    
+    /**
+     * Updates the country combo boxes to disable countries that don't have budget data for the selected year.
+     */
+    private void updateCountryComboBoxAvailability() {
+        if (internationalYearComboBox == null) return;
+        
+        BudgetData budgetData = BudgetData.getInstance();
+        String selectedYearStr = internationalYearComboBox.getValue();
+        int year = parseYearSafely(selectedYearStr);
+        
+        // Get list of available countries for this year
+        List<String> availableCountries = year > 0 ? budgetData.getAvailableCountriesForYear(year) : new ArrayList<>();
+        
+        // Update both country combo boxes
+        updateCountryComboBoxAvailability(internationalCountry1ComboBox, availableCountries, year);
+        updateCountryComboBoxAvailability(internationalCountry2ComboBox, availableCountries, year);
+    }
+    
+    /**
+     * Updates a specific country combo box to disable unavailable countries.
+     */
+    private void updateCountryComboBoxAvailability(ComboBox<String> comboBox, List<String> availableCountries, int year) {
+        if (comboBox == null) return;
+        
+        BudgetData budgetData = BudgetData.getInstance();
+        
+        // Set cell factory to disable unavailable items
+        comboBox.setCellFactory(listView -> new javafx.scene.control.ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setDisable(false);
+                } else {
+                    setText(item);
+                    // Extract country code from item (format: "Country Name (CODE)")
+                    String countryCode = extractCountryCode(item);
+                    
+                    // Ελλάδα είναι πάντα διαθέσιμη αν υπάρχουν ελληνικά δεδομένα
+                    boolean isAvailable;
+                    if ("GRC".equals(countryCode)) {
+                        isAvailable = year > 0 && budgetData.hasBudgetDataForYear("GRC", year);
+                    } else {
+                        // Check if this country has budget data for the selected year
+                        isAvailable = year > 0 && availableCountries.contains(countryCode);
+                    }
+                    
+                    setDisable(!isAvailable);
+                    
+                    // Style disabled items
+                    if (!isAvailable && year > 0) {
+                        setStyle("-fx-text-fill: #9ca3af; -fx-opacity: 0.6;");
+                    } else {
+                        setStyle(null);
+                    }
+                }
+            }
+        });
+        
+        // Also update button cell
+        comboBox.setButtonCell(new javafx.scene.control.ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                }
+            }
+        });
+    }
+    
+    /**
+     * Validates and clears country selections if they're not available for the selected year.
+     */
+    private void validateCountrySelections() {
+        if (internationalYearComboBox == null) return;
+        
+        String selectedYearStr = internationalYearComboBox.getValue();
+        int year = parseYearSafely(selectedYearStr);
+        
+        if (year <= 0) {
+            // No year selected - clear country selections
+            if (internationalCountry1ComboBox != null) {
+                internationalCountry1ComboBox.setValue(null);
+            }
+            if (internationalCountry2ComboBox != null) {
+                internationalCountry2ComboBox.setValue(null);
+            }
+            return;
+        }
+        
+        BudgetData budgetData = BudgetData.getInstance();
+        List<String> availableCountries = budgetData.getAvailableCountriesForYear(year);
+        
+        // Validate country 1
+        if (internationalCountry1ComboBox != null && internationalCountry1ComboBox.getValue() != null) {
+            String countryCode = extractCountryCode(internationalCountry1ComboBox.getValue());
+            if (!availableCountries.contains(countryCode)) {
+                internationalCountry1ComboBox.setValue(null);
+            }
+        }
+        
+        // Validate country 2
+        if (internationalCountry2ComboBox != null && internationalCountry2ComboBox.getValue() != null) {
+            String countryCode = extractCountryCode(internationalCountry2ComboBox.getValue());
+            if (!availableCountries.contains(countryCode)) {
+                internationalCountry2ComboBox.setValue(null);
+            }
+        }
     }
 
     private void loadComparisonData(int year1, int year2) {
@@ -4171,6 +4531,10 @@ public class HomeController {
             projectionsView.setVisible(false);
             projectionsView.setManaged(false);
         }
+        if (internationalComparisonView != null) {
+            internationalComparisonView.setVisible(false);
+            internationalComparisonView.setManaged(false);
+        }
         
         // Update menu item selection states
         updateMenuSelection(view);
@@ -4808,7 +5172,6 @@ public class HomeController {
         java.util.Optional<ButtonType> result = confirmAlert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             table.getItems().remove(data);
-            // TODO: Delete from database
         }
     }
     
@@ -4854,7 +5217,6 @@ public class HomeController {
             if (dmExpensesTable != null) {
                 dmExpensesTable.getItems().removeAll(selectedItems);
             }
-            // TODO: Delete from database
         }
     }
     
