@@ -82,7 +82,6 @@ public class Charts {
                 });
             }
             
-            // Επιπλέον: χρήση PauseTransition για delayed styling και εξασφάλιση ότι όλα τα labels είναι ορατά
             PauseTransition pause = new PauseTransition(Duration.millis(300));
             pause.setOnFinished(e -> {
                 chart.applyCss();
@@ -541,5 +540,403 @@ public class Charts {
         }
         
         barChart.getData().addAll(revSeries, expSeries);
+    }
+    
+    // ========== YEAR COMPARISON CHARTS ========== //
+    
+    /**
+     * Φορτώνει ένα bar chart που συγκρίνει έσοδα και δαπάνες μεταξύ δύο ετών.
+     */
+    public static void loadYearComparisonRevenueExpensesChart(BarChart<String, Number> barChart,
+                                                               long revenue1, long expenses1,
+                                                               long revenue2, long expenses2,
+                                                               int year1, int year2) {
+        if (barChart == null) return;
+        
+        barChart.getData().clear();
+        barChart.setTitle("Έσοδα vs Δαπάνες");
+        
+        // Σειρά για έσοδα
+        XYChart.Series<String, Number> revenueSeries = new XYChart.Series<>();
+        revenueSeries.setName("Έσοδα");
+        revenueSeries.getData().add(new XYChart.Data<>(String.valueOf(year1), revenue1));
+        revenueSeries.getData().add(new XYChart.Data<>(String.valueOf(year2), revenue2));
+        
+        // Σειρά για δαπάνες
+        XYChart.Series<String, Number> expensesSeries = new XYChart.Series<>();
+        expensesSeries.setName("Δαπάνες");
+        expensesSeries.getData().add(new XYChart.Data<>(String.valueOf(year1), expenses1));
+        expensesSeries.getData().add(new XYChart.Data<>(String.valueOf(year2), expenses2));
+        
+        barChart.getData().addAll(revenueSeries, expensesSeries);
+        
+        // Ρύθμιση Y-axis
+        if (barChart.getYAxis() instanceof NumberAxis) {
+            NumberAxis yAxis = (NumberAxis) barChart.getYAxis();
+            double maxValue = Math.max(
+                Math.max(revenue1, expenses1),
+                Math.max(revenue2, expenses2)
+            );
+            
+            double tickUnit = calculateAppropriateTickUnitForYearComparison(maxValue);
+            double upperBound = Math.ceil(maxValue * 1.2 / tickUnit) * tickUnit;
+            
+            yAxis.setAutoRanging(false);
+            yAxis.setLowerBound(0);
+            yAxis.setUpperBound(upperBound);
+            yAxis.setTickUnit(tickUnit);
+            yAxis.setMinorTickCount(0);
+        }
+        
+        // Εφαρμογή χρωμάτων
+        Platform.runLater(() -> {
+            barChart.applyCss();
+            barChart.layout();
+            
+            PauseTransition pause = new PauseTransition(Duration.millis(100));
+            pause.setOnFinished(e -> {
+                barChart.lookupAll(".default-color0.chart-bar").forEach(node -> {
+                    node.setStyle("-fx-bar-fill: #22c55e;");
+                });
+                barChart.lookupAll(".default-color1.chart-bar").forEach(node -> {
+                    node.setStyle("-fx-bar-fill: #ef4444;");
+                });
+            });
+            pause.play();
+        });
+    }
+    
+    /**
+     * Φορτώνει ένα bar chart που συγκρίνει το ισοζύγιο μεταξύ δύο ετών.
+     */
+    public static void loadYearComparisonBalanceChart(BarChart<String, Number> barChart,
+                                                       long balance1, long balance2,
+                                                       int year1, int year2) {
+        if (barChart == null) return;
+        
+        barChart.getData().clear();
+        barChart.setTitle("Ισοζύγιο Προϋπολογισμού");
+        
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Ισοζύγιο");
+        series.getData().add(new XYChart.Data<>(String.valueOf(year1), balance1));
+        series.getData().add(new XYChart.Data<>(String.valueOf(year2), balance2));
+        
+        barChart.getData().add(series);
+        
+        // Ρύθμιση Y-axis - επιτρέπουμε αρνητικές τιμές για έλλειμμα
+        if (barChart.getYAxis() instanceof NumberAxis) {
+            NumberAxis yAxis = (NumberAxis) barChart.getYAxis();
+            double minValue = Math.min(balance1, balance2);
+            double maxValue = Math.max(balance1, balance2);
+            
+            double tickUnit = calculateAppropriateTickUnitForYearComparison(Math.max(Math.abs(minValue), Math.abs(maxValue)));
+            double lowerBound = Math.floor(minValue * 1.2 / tickUnit) * tickUnit;
+            double upperBound = Math.ceil(maxValue * 1.2 / tickUnit) * tickUnit;
+            
+            yAxis.setAutoRanging(false);
+            yAxis.setLowerBound(lowerBound);
+            yAxis.setUpperBound(upperBound);
+            yAxis.setTickUnit(tickUnit);
+            yAxis.setMinorTickCount(0);
+        }
+        
+        // Εφαρμογή χρωμάτων - πράσινο για θετικό, κόκκινο για αρνητικό
+        Platform.runLater(() -> {
+            barChart.applyCss();
+            barChart.layout();
+            
+            PauseTransition pause = new PauseTransition(Duration.millis(100));
+            pause.setOnFinished(e -> {
+                for (XYChart.Data<String, Number> data : series.getData()) {
+                    if (data.getNode() != null && data.getYValue() != null) {
+                        double value = data.getYValue().doubleValue();
+                        if (value >= 0) {
+                            data.getNode().setStyle("-fx-bar-fill: #22c55e;");
+                        } else {
+                            data.getNode().setStyle("-fx-bar-fill: #ef4444;");
+                        }
+                    }
+                }
+            });
+            pause.play();
+        });
+    }
+    
+    /**
+     * Φορτώνει ένα pie chart με την κατανομή εσόδων για ένα συγκεκριμένο έτος.
+     */
+    public static void loadYearComparisonRevenuePieChart(PieChart pieChart,
+                                                          ui.Comparisons.ComparisonResults results,
+                                                          int year, boolean useYear1) {
+        if (pieChart == null || results == null) return;
+        
+        Map<String, Double> data = new HashMap<>();
+        for (ui.Comparisons.ComparisonData rev : results.getRevenues().values()) {
+            if (rev.getCategoryName().equals("Total revenue")) continue; // Skip total
+            long value = useYear1 ? rev.getYear1Value() : rev.getYear2Value();
+            if (value > 0) {
+                String greekName = translateCategoryName(rev.getCategoryName());
+                data.put(greekName, (double) value);
+            }
+        }
+        
+        fillPieChart(pieChart, data, "Κατανομή Εσόδων - " + year);
+    }
+    
+    /**
+     * Φορτώνει ένα pie chart με την κατανομή δαπανών για ένα συγκεκριμένο έτος.
+     */
+    public static void loadYearComparisonExpensesPieChart(PieChart pieChart,
+                                                           ui.Comparisons.ComparisonResults results,
+                                                           int year, boolean useYear1) {
+        if (pieChart == null || results == null) return;
+        
+        Map<String, Double> data = new HashMap<>();
+        for (ui.Comparisons.ComparisonData exp : results.getExpenses().values()) {
+            if (exp.getCategoryName().equals("Total expenses")) continue; // Skip total
+            long value = useYear1 ? exp.getYear1Value() : exp.getYear2Value();
+            if (value > 0) {
+                String greekName = translateCategoryName(exp.getCategoryName());
+                data.put(greekName, (double) value);
+            }
+        }
+        
+        fillPieChart(pieChart, data, "Κατανομή Δαπανών - " + year);
+    }
+    
+    /**
+     * Μεταφράζει ονόματα κατηγοριών από αγγλικά σε ελληνικά.
+     */
+    private static String translateCategoryName(String englishName) {
+        Map<String, String> translations = new HashMap<>();
+        translations.put("Taxes", "Φόροι");
+        translations.put("Social contributions", "Κοινωνικές Εισφορές");
+        translations.put("Transfers", "Μεταβιβάσεις");
+        translations.put("Sales of goods & services", "Πωλήσεις Αγαθών & Υπηρεσιών");
+        translations.put("Other current revenue", "Λοιπά Τρέχοντα Έσοδα");
+        translations.put("Employee benefits", "Αμοιβές Προσωπικού");
+        translations.put("Social benefits", "Κοινωνικές Παροχές");
+        translations.put("Purchases of goods & services", "Αγορές Αγαθών & Υπηρεσιών");
+        translations.put("Subsidies", "Επιδοτήσεις");
+        translations.put("Interest", "Τόκοι");
+        translations.put("Other expenditures", "Λοιπές Δαπάνες");
+        
+        return translations.getOrDefault(englishName, englishName);
+    }
+    
+    /**
+     * Βοηθητική μέθοδος για τον υπολογισμό κατάλληλου tick unit για συγκρίσεις ετών.
+     */
+    private static double calculateAppropriateTickUnitForYearComparison(double maxValue) {
+        if (maxValue >= 1_000_000_000_000.0) {
+            return 100_000_000_000.0; // 100 δισεκατομμύρια
+        } else if (maxValue >= 100_000_000_000.0) {
+            return 10_000_000_000.0; // 10 δισεκατομμύρια
+        } else if (maxValue >= 10_000_000_000.0) {
+            return 1_000_000_000.0; // 1 δισεκατομμύριο
+        } else if (maxValue >= 1_000_000_000.0) {
+            return 100_000_000.0; // 100 εκατομμύρια
+        } else if (maxValue >= 100_000_000.0) {
+            return 10_000_000.0; // 10 εκατομμύρια
+        } else if (maxValue >= 10_000_000.0) {
+            return 1_000_000.0; // 1 εκατομμύριο
+        } else {
+            return Math.max(maxValue / 8, 100_000.0);
+        }
+    }
+    
+    // ========== OVERVIEW CHARTS (ALL YEARS) ========== //
+    
+    /**
+     * Φορτώνει ένα line chart που δείχνει την εξέλιξη εσόδων και δαπανών σε όλα τα διαθέσιμα έτη.
+     */
+    public static void loadOverviewTrendsChart(LineChart<String, Number> lineChart, BudgetData budgetData, List<String> availableYears) {
+        if (lineChart == null || budgetData == null || availableYears == null || availableYears.isEmpty()) {
+            return;
+        }
+        
+        lineChart.getData().clear();
+        lineChart.setTitle("Εξέλιξη Εσόδων και Δαπανών");
+        
+        // Sort years
+        List<String> sortedYears = new ArrayList<>(availableYears);
+        sortedYears.sort((a, b) -> Integer.compare(Integer.parseInt(a), Integer.parseInt(b)));
+        
+        XYChart.Series<String, Number> revenueSeries = new XYChart.Series<>();
+        revenueSeries.setName("Έσοδα");
+        
+        XYChart.Series<String, Number> expensesSeries = new XYChart.Series<>();
+        expensesSeries.setName("Δαπάνες");
+        
+        double maxValue = 0;
+        for (String yearStr : sortedYears) {
+            try {
+                int year = Integer.parseInt(yearStr);
+                double revenue = budgetData.getTotalRevenues(year);
+                double expenses = budgetData.getTotalExpenses(year);
+                
+                revenueSeries.getData().add(new XYChart.Data<>(yearStr, revenue));
+                expensesSeries.getData().add(new XYChart.Data<>(yearStr, expenses));
+                
+                maxValue = Math.max(maxValue, Math.max(revenue, expenses));
+            } catch (NumberFormatException e) {
+                // Skip invalid years
+            }
+        }
+        
+        lineChart.getData().addAll(revenueSeries, expensesSeries);
+        
+        // Configure Y-axis
+        if (lineChart.getYAxis() instanceof NumberAxis) {
+            NumberAxis yAxis = (NumberAxis) lineChart.getYAxis();
+            double tickUnit = calculateAppropriateTickUnitForYearComparison(maxValue);
+            double upperBound = Math.ceil(maxValue * 1.1 / tickUnit) * tickUnit;
+            
+            yAxis.setAutoRanging(false);
+            yAxis.setLowerBound(0);
+            yAxis.setUpperBound(upperBound);
+            yAxis.setTickUnit(tickUnit);
+            yAxis.setMinorTickCount(0);
+        }
+        
+        // Configure X-axis to prevent label overlapping
+        if (lineChart.getXAxis() instanceof CategoryAxis) {
+            CategoryAxis xAxis = (CategoryAxis) lineChart.getXAxis();
+            xAxis.setAnimated(false);
+            xAxis.setTickLabelRotation(0);
+            // Set gap between categories to ensure labels don't overlap
+            xAxis.setGapStartAndEnd(true);
+        }
+        
+        // Apply colors and fix label spacing
+        Platform.runLater(() -> {
+            lineChart.applyCss();
+            lineChart.layout();
+            
+            PauseTransition pause = new PauseTransition(Duration.millis(200));
+            pause.setOnFinished(e -> {
+                // Apply colors
+                lineChart.lookupAll(".default-color0.chart-line-symbol").forEach(node -> {
+                    node.setStyle("-fx-background-color: #22c55e, white;");
+                });
+                lineChart.lookupAll(".default-color0.chart-series-line").forEach(node -> {
+                    node.setStyle("-fx-stroke: #22c55e;");
+                });
+                lineChart.lookupAll(".default-color1.chart-line-symbol").forEach(node -> {
+                    node.setStyle("-fx-background-color: #ef4444, white;");
+                });
+                lineChart.lookupAll(".default-color1.chart-series-line").forEach(node -> {
+                    node.setStyle("-fx-stroke: #ef4444;");
+                });
+                
+                // Fix category axis labels spacing - ensure they don't overlap
+                lineChart.lookupAll(".axis-label").forEach(node -> {
+                    node.setStyle("-fx-font-size: 12px;");
+                });
+                
+                // Style category tick labels to prevent overlapping
+                lineChart.lookupAll(".axis-tick-mark").forEach(node -> {
+                    node.setStyle("-fx-stroke: #666;");
+                });
+                
+                // Ensure proper spacing for category labels
+                lineChart.lookupAll(".chart-category-axis .axis-label").forEach(node -> {
+                    node.setStyle("-fx-font-size: 12px; -fx-padding: 0 5 0 5;");
+                });
+            });
+            pause.play();
+        });
+    }
+    
+    /**
+     * Φορτώνει ένα bar chart που δείχνει το ισοζύγιο προϋπολογισμού για όλα τα διαθέσιμα έτη.
+     */
+    public static void loadOverviewBalanceChart(BarChart<String, Number> barChart, BudgetData budgetData, List<String> availableYears) {
+        if (barChart == null || budgetData == null || availableYears == null || availableYears.isEmpty()) {
+            return;
+        }
+        
+        barChart.getData().clear();
+        barChart.setTitle("Ισοζύγιο Προϋπολογισμού ανά Έτος");
+        
+        // Sort years
+        List<String> sortedYears = new ArrayList<>(availableYears);
+        sortedYears.sort((a, b) -> Integer.compare(Integer.parseInt(a), Integer.parseInt(b)));
+        
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Ισοζύγιο");
+        
+        double minValue = 0;
+        double maxValue = 0;
+        
+        for (String yearStr : sortedYears) {
+            try {
+                int year = Integer.parseInt(yearStr);
+                double balance = budgetData.getBalance(year);
+                
+                series.getData().add(new XYChart.Data<>(yearStr, balance));
+                
+                minValue = Math.min(minValue, balance);
+                maxValue = Math.max(maxValue, balance);
+            } catch (NumberFormatException e) {
+                // Skip invalid years
+            }
+        }
+        
+        barChart.getData().add(series);
+        
+        // Configure Y-axis - allow negative values for deficit
+        if (barChart.getYAxis() instanceof NumberAxis) {
+            NumberAxis yAxis = (NumberAxis) barChart.getYAxis();
+            double tickUnit = calculateAppropriateTickUnitForYearComparison(Math.max(Math.abs(minValue), Math.abs(maxValue)));
+            double lowerBound = Math.floor(minValue * 1.2 / tickUnit) * tickUnit;
+            double upperBound = Math.ceil(maxValue * 1.2 / tickUnit) * tickUnit;
+            
+            yAxis.setAutoRanging(false);
+            yAxis.setLowerBound(lowerBound);
+            yAxis.setUpperBound(upperBound);
+            yAxis.setTickUnit(tickUnit);
+            yAxis.setMinorTickCount(0);
+        }
+        
+        // Apply colors - green for positive, red for negative
+        Platform.runLater(() -> {
+            barChart.applyCss();
+            barChart.layout();
+            
+            PauseTransition pause = new PauseTransition(Duration.millis(100));
+            pause.setOnFinished(e -> {
+                for (XYChart.Data<String, Number> data : series.getData()) {
+                    if (data.getNode() != null && data.getYValue() != null) {
+                        double value = data.getYValue().doubleValue();
+                        if (value >= 0) {
+                            data.getNode().setStyle("-fx-bar-fill: #22c55e;");
+                        } else {
+                            data.getNode().setStyle("-fx-bar-fill: #ef4444;");
+                        }
+                    }
+                }
+            });
+            pause.play();
+        });
+    }
+    
+    /**
+     * Φορτώνει ένα pie chart που δείχνει την ανάλυση εσόδων για το πιο πρόσφατο έτος.
+     */
+    public static void loadOverviewRevenuePieChart(PieChart pieChart, BudgetData budgetData, int year) {
+        if (pieChart == null || budgetData == null) return;
+        Map<String, Double> revenueData = budgetData.getRevenueBreakdownForGraphs(year);
+        fillPieChart(pieChart, revenueData, "Κατανομή Εσόδων (" + year + ")");
+    }
+    
+    /**
+     * Φορτώνει ένα pie chart που δείχνει την ανάλυση δαπανών για το πιο πρόσφατο έτος.
+     */
+    public static void loadOverviewExpensesPieChart(PieChart pieChart, BudgetData budgetData, int year) {
+        if (pieChart == null || budgetData == null) return;
+        Map<String, Double> expenseData = budgetData.getExpenseBreakdownForGraphs(year);
+        fillPieChart(pieChart, expenseData, "Κατανομή Δαπανών (" + year + ")");
     }
 }

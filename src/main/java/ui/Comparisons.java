@@ -1,7 +1,6 @@
 package ui;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -9,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import ui.DatabaseConnection;
 import ui.HomeController.CategoryData;
 
 public class Comparisons {
@@ -150,8 +150,7 @@ public class Comparisons {
     
     // method for gui to return data instead of printing
     public ComparisonResults compareYears(int year1, int year2) throws SQLException {
-        String DB = "jdbc:sqlite:src/main/resources/database/BudgetData.db";
-        Connection connection = DriverManager.getConnection(DB);
+        Connection connection = DatabaseConnection.getConnection();
         Statement stmt = connection.createStatement();
     
         String sql = "SELECT * FROM revenue_"+year1;
@@ -526,121 +525,6 @@ public class Comparisons {
         );
     }
     
-    public void comparisons_of_two_years(int year1, int year2) {
-        try {
-            ComparisonResults results = compareYears(year1, year2);
-            
-            System.out.println("================================ SUMMARY ====================================================");
-            System.out.printf(
-                    "%-35s | %12s | %12s | %12s | %8s%n",
-                    "ΧΡΟΝΙΑ",
-                    year1,
-                    year2,
-                    "Διαφορά",
-                    "%"
-            );
-            System.out.println("=============================================================================================");
-
-            printComparison("Budget result", results.getBudgetResult1(), results.getBudgetResult2(), year1, year2);
-            printComparison("Total revenue", results.getTotalRevenueSummary1(), results.getTotalRevenueSummary2(), year1, year2);
-            printComparison("Total expenses", results.getTotalExpensesSummary1(), results.getTotalExpensesSummary2(), year1, year2);
-            printComparison("Total ministries", results.getTotalMinistriesSummary1(), results.getTotalMinistriesSummary2(), year1, year2);
-            printComparison("Total decentralized administrations", results.getTotalDASummary1(), results.getTotalDASummary2(), year1, year2);
-
-            System.out.println();
-            System.out.println("================================ REVENUE =====================================================");
-            System.out.printf(
-                    "%-35s | %12s | %12s | %12s | %8s%n",
-                    "ΧΡΟΝΙΑ",
-                    year1,
-                    year2,
-                    "Διαφορά",
-                    "%"
-            );
-            System.out.println("=============================================================================================");
-
-            for (ComparisonData compData : results.getRevenues().values()) {
-                printComparison(compData.getCategoryName(), compData.getYear1Value(), compData.getYear2Value(), year1, year2);
-            }
-
-            System.out.println();
-            System.out.println("================================ EXPENSES ===================================================");
-            System.out.printf(
-                    "%-35s | %12s | %12s | %12s | %8s%n",
-                    "ΧΡΟΝΙΑ",
-                    year1,
-                    year2,
-                    "Διαφορά",
-                    "%"
-            );
-            System.out.println("=============================================================================================");
-
-            for (ComparisonData compData : results.getExpenses().values()) {
-                printComparison(compData.getCategoryName(), compData.getYear1Value(), compData.getYear2Value(), year1, year2);
-            }
-
-            System.out.println();
-            System.out.println("=========================== DECENTRALIZED ADMINISTRATIONS ===================================");
-            System.out.printf(
-                    "%-35s | %12s | %12s | %12s | %8s%n",
-                    "ΧΡΟΝΙΑ",
-                    year1,
-                    year2,
-                    "Διαφορά",
-                    "%"
-            );
-            System.out.println("=============================================================================================");
-
-            for (ComparisonData compData : results.getAdministrations().values()) {
-                printComparison(compData.getCategoryName(), compData.getYear1Value(), compData.getYear2Value(), year1, year2);
-            }
-
-            System.out.println();
-            System.out.println("================================ MINISTRIES ================================================");
-            System.out.printf(
-                    "%-35s | %12s | %12s | %12s | %8s%n",
-                    "ΧΡΟΝΙΑ",
-                    year1,
-                    year2,
-                    "Διαφορά",
-                    "%"
-            );
-            System.out.println("=============================================================================================");
-
-            for (ComparisonData compData : results.getMinistries().values()) {
-                printComparison(compData.getCategoryName(), compData.getYear1Value(), compData.getYear2Value(), year1, year2);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    private static void printComparison(
-        String name,
-        long value1,
-        long value2,
-        int year1,
-        int year2
-) {
-    long diff = value2 - value1;
-
-    String percent;
-    if (value1 == 0) {
-        percent = "N/A";
-    } else {
-        percent = String.format("%.2f%%", (double) diff / value1 * 100);
-    }
-
-    System.out.printf(
-        "%-35s | %12d | %12d | %12d | %8s%n",
-        name,
-        value1,
-        value2,
-        diff,
-        percent
-    );
-}
 public ObservableList<CategoryData> getComparisonTableData(int year1, int year2) {
     ObservableList<CategoryData> data = FXCollections.observableArrayList();
 

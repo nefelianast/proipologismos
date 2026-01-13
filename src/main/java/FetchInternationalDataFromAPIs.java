@@ -23,10 +23,15 @@ import ui.DatabaseConnection;
  * - tax_pct_gdp: Tax revenue as % of GDP
  * - debt_to_gdp: Government debt as % of GDP
  * - budget_balance_pct_gdp: Budget balance as % of GDP
- * - government_spending_pct_gdp: Government spending as % of GDP
  * - revenue_pct_gdp: Government revenue as % of GDP
  */
 public class FetchInternationalDataFromAPIs {
+    
+    // Exchange rate: 1 USD = X EUR
+    // Using approximate rate (can be updated or fetched from API)
+    // As of 2024, 1 USD ≈ 0.92 EUR (or 1 EUR ≈ 1.09 USD)
+    // NOTE: This rate should be updated periodically for accuracy
+    private static final double USD_TO_EUR_RATE = 0.92;
     
     // Major countries to fetch data for
     private static final String[] COUNTRY_CODES = {
@@ -78,13 +83,17 @@ public class FetchInternationalDataFromAPIs {
         WB_INDICATORS.put("tax_pct_gdp", "GC.TAX.TOTL.GD.ZS"); // Tax revenue (% of GDP)
         WB_INDICATORS.put("debt_to_gdp", "GC.DOD.TOTL.GD.ZS"); // Central government debt (% of GDP)
         WB_INDICATORS.put("budget_balance_pct_gdp", "GC.BAL.CASH.GD.ZS"); // Cash surplus/deficit (% of GDP) - closest to budget balance
-        WB_INDICATORS.put("government_spending_pct_gdp", "NE.CON.GOVT.ZS"); // General government final consumption expenditure (% of GDP)
         WB_INDICATORS.put("revenue_pct_gdp", "GC.REV.XGR.GD.ZS"); // Revenue, excluding grants (% of GDP)
         WB_INDICATORS.put("expenditure_pct_gdp", "GC.XPN.TOTL.GD.ZS"); // Expense (% of GDP) - better than government_spending for total expenses
     }
     
     public static void main(String[] args) {
         System.out.println("=== Fetching International Indicators from APIs ===\n");
+        System.out.println("IMPORTANT NOTES:");
+        System.out.println("1. World Bank API returns data in US Dollars (USD)");
+        System.out.println("2. All budget data is automatically converted to EUR for consistency");
+        System.out.println("3. Exchange rate used: 1 USD = " + USD_TO_EUR_RATE + " EUR");
+        System.out.println("4. FIXED: No longer using NE.CON.GOVT.ZS as fallback (it's not total expenses)\n");
         
         try {
             // Ensure the international_budgets table exists
@@ -103,6 +112,9 @@ public class FetchInternationalDataFromAPIs {
             System.out.println("=== Summary ===");
             System.out.println("Total records inserted: " + totalInserted);
             System.out.println("\nNote: 2025-2026 data are forecasts/projections from international organizations.");
+            System.out.println("\n✓ CURRENCY: All budget data stored in EUR (converted from USD)");
+            System.out.println("   - Exchange rate: 1 USD = " + USD_TO_EUR_RATE + " EUR");
+            System.out.println("   - All countries (including Greece) now use EUR for consistent comparison");
             
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
@@ -184,17 +196,12 @@ public class FetchInternationalDataFromAPIs {
      */
     private static void calculateAndStoreBudget(String countryCode, String countryName, int year, 
                                                 Map<String, Double> indicatorValues) {
-        // We need: total GDP, revenue_pct_gdp, and expenditure_pct_gdp (or government_spending_pct_gdp as fallback)
+        // We need: total GDP, revenue_pct_gdp, and expenditure_pct_gdp
         Double totalGDP = indicatorValues.get("gdp_total");
         Double revenuePct = indicatorValues.get("revenue_pct_gdp");
         Double expenditurePct = indicatorValues.get("expenditure_pct_gdp");
         Double taxPct = indicatorValues.get("tax_pct_gdp");
         Double balancePct = indicatorValues.get("budget_balance_pct_gdp");
-        
-        // Fallback to government_spending_pct_gdp if expenditure_pct_gdp is not available
-        if (expenditurePct == null) {
-            expenditurePct = indicatorValues.get("government_spending_pct_gdp");
-        }
         
         // Debug logging
         System.out.println("  Calculating budget for " + countryName + " (" + countryCode + ") " + year + ":");
@@ -215,12 +222,22 @@ public class FetchInternationalDataFromAPIs {
         Double totalExpenses = null;
         Double budgetBalance = null;
         
-        // Calculate expenses first (needed for fallback revenue calculation)
+        // Calculate expenses - ONLY use GC.XPN.TOTL.GD.ZS (expenditure_pct_gdp)
+        // Do NOT fallback to NE.CON.GOVT.ZS as it's not total expenses
         if (expenditurePct != null && expenditurePct > 0) {
             totalExpenses = (expenditurePct / 100.0) * totalGDP;
-            System.out.println("    ✓ Expenses calculated: " + totalExpenses);
+            System.out.println("    ✓ Expenses calculated from expenditure_pct_gdp: " + totalExpenses);
         } else {
-            System.out.println("    ✗ Expenses: No expenditure_pct_gdp data");
+            // If we don't have expenditure_pct_gdp, try to estimate from revenue and balance
+            if (revenuePct != null && revenuePct > 0 && balancePct != null) {
+                // Expenses = Revenue - Balance
+                double estimatedRevenue = (revenuePct / 100.0) * totalGDP;
+                double estimatedBalance = (balancePct / 100.0) * totalGDP;
+                totalExpenses = estimatedRevenue - estimatedBalance;
+                System.out.println("    ✓ Expenses estimated from revenue and balance: " + totalExpenses);
+            } else {
+                System.out.println("    ✗ Expenses: No expenditure_pct_gdp data and cannot estimate");
+            }
         }
         
         // Try to calculate revenue
@@ -267,15 +284,31 @@ public class FetchInternationalDataFromAPIs {
         
         // Only insert if we have at least expenses (required for comparison)
         // Revenue and balance can be null if not available
-        if (totalExpenses != null) {
+        // Also validate that expenses are reasonable (should be 20-60% of GDP typically)
+        if (totalExpenses != null && totalExpenses > 0) {
+            double expensesAsPctOfGDP = (totalExpenses / totalGDP) * 100.0;
+            if (expensesAsPctOfGDP < 10 || expensesAsPctOfGDP > 80) {
+                System.out.println("    ⚠ Warning: Expenses as % of GDP (" + expensesAsPctOfGDP + "%) seems unusual. " +
+                                 "Typical range is 20-60%. Data may be incorrect.");
+            }
             insertBudgetData(countryCode, countryName, year, totalGDP, totalRevenue, totalExpenses, budgetBalance);
         } else {
-            System.out.println("    ✗ Skipping insert: No expenses data (required)");
+            System.out.println("    ✗ Skipping insert: No valid expenses data (required)");
         }
     }
     
     /**
+     * Converts USD to EUR.
+     * World Bank API returns data in USD, but we store everything in EUR for consistency with Greece's data.
+     */
+    private static Double convertUsdToEur(Double usdValue) {
+        if (usdValue == null) return null;
+        return usdValue * USD_TO_EUR_RATE;
+    }
+    
+    /**
      * Inserts budget data into international_budgets table.
+     * All values are converted from USD (World Bank API) to EUR for consistency with Greece's data.
      */
     private static void insertBudgetData(String countryCode, String countryName, int year,
                                         Double totalGDP, Double totalRevenue, Double totalExpenses, Double budgetBalance) {
@@ -286,20 +319,26 @@ public class FetchInternationalDataFromAPIs {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
+            // Convert all USD values to EUR for consistency with Greece's data
+            Double totalGDP_EUR = convertUsdToEur(totalGDP);
+            Double totalRevenue_EUR = convertUsdToEur(totalRevenue);
+            Double totalExpenses_EUR = convertUsdToEur(totalExpenses);
+            Double budgetBalance_EUR = convertUsdToEur(budgetBalance);
+            
             pstmt.setString(1, countryCode);
             pstmt.setString(2, countryName);
             pstmt.setInt(3, year);
-            pstmt.setObject(4, totalGDP);
-            pstmt.setObject(5, totalRevenue);
-            pstmt.setObject(6, totalExpenses);
-            pstmt.setObject(7, budgetBalance);
+            pstmt.setObject(4, totalGDP_EUR);
+            pstmt.setObject(5, totalRevenue_EUR);
+            pstmt.setObject(6, totalExpenses_EUR);
+            pstmt.setObject(7, budgetBalance_EUR);
             
             pstmt.executeUpdate();
-            System.out.println("  ✓ Budget data inserted for " + countryName + " (" + year + "):");
-            System.out.println("    GDP: " + (totalGDP != null ? totalGDP : "NULL"));
-            System.out.println("    Revenue: " + (totalRevenue != null ? totalRevenue : "NULL"));
-            System.out.println("    Expenses: " + (totalExpenses != null ? totalExpenses : "NULL"));
-            System.out.println("    Balance: " + (budgetBalance != null ? budgetBalance : "NULL"));
+            System.out.println("  ✓ Budget data inserted for " + countryName + " (" + year + ") [converted to EUR]:");
+            System.out.println("    GDP: " + (totalGDP_EUR != null ? String.format("%.2f EUR (%.2f USD)", totalGDP_EUR, totalGDP) : "NULL"));
+            System.out.println("    Revenue: " + (totalRevenue_EUR != null ? String.format("%.2f EUR (%.2f USD)", totalRevenue_EUR, totalRevenue) : "NULL"));
+            System.out.println("    Expenses: " + (totalExpenses_EUR != null ? String.format("%.2f EUR (%.2f USD)", totalExpenses_EUR, totalExpenses) : "NULL"));
+            System.out.println("    Balance: " + (budgetBalance_EUR != null ? String.format("%.2f EUR (%.2f USD)", budgetBalance_EUR, budgetBalance) : "NULL"));
             
         } catch (Exception e) {
             System.err.println("Error inserting budget data: " + e.getMessage());

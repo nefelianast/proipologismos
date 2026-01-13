@@ -45,65 +45,38 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.AreaChart;
 
-/**
- * Main controller for the home screen of the Budget Analysis System.
- * Manages data display, user interactions, and navigation between different views.
- * Supports both citizen and government user types with different access levels.
- */
+// κύριος controller για το home screen
 public class HomeController {
     
-    /**
-     * Enum representing the type of user accessing the system.
-     */
+    // τύπος χρήστη
     public enum UserType {
-        /** Regular citizen user with read-only access */
         CITIZEN,
-        /** Government user with full access including editing capabilities */
         GOVERNMENT
     }
     
-    /**
-     * Current user type (defaults to CITIZEN)
-     */
+    // τρέχων τύπος χρήστη
     private static UserType currentUserType = UserType.CITIZEN;
     
-    /**
-     * Authentication service
-     */
+    // authentication service
     private Authentication authentication = new Authentication();
     
-    /**
-     * Sets the current user type.
-     * 
-     * @param userType The user type to set (CITIZEN or GOVERNMENT)
-     */
+    // θέτει τον τύπο χρήστη
     public static void setUserType(UserType userType) {
         currentUserType = userType;
     }
     
-    /**
-     * Gets the current user type.
-     * 
-     * @return The current UserType
-     */
+    // παίρνει τον τύπο χρήστη
     public static UserType getUserType() {
         return currentUserType;
     }
     
-    /**
-     * Checks if the current user is a government user.
-     * 
-     * @return true if the user is a government user, false otherwise
-     */
+    // ελέγχει αν είναι government user
     public static boolean isGovernmentUser() {
         return currentUserType == UserType.GOVERNMENT;
     }
 
 
-    /**
-     * Inner class representing category data for table display.
-     * Contains information about budget categories including amounts, percentages, and changes.
-     */
+    // κλάση για τα δεδομένα κατηγορίας
     public static class CategoryData {
         private final StringProperty category;
         private final DoubleProperty amount;
@@ -241,9 +214,23 @@ public class HomeController {
     @FXML
     private Label headerTitleLabel;
     @FXML
-    private MenuItem authMenuItem;
+    private Button authButton;
+    @FXML
+    private Button homeButton;
+    @FXML
+    private Button projectionsButton;
+    @FXML
+    private MenuButton comparisonsMenuButton;
+    @FXML
+    private MenuItem comparisonsMenuItem;
     @FXML
     private MenuItem internationalComparisonMenuItem;
+    @FXML
+    private Button internationalComparisonButton; // Keep for backward compatibility
+    @FXML
+    private Button statisticsButton;
+    @FXML
+    private Button aiAssistantButton;
     @FXML
     private ComboBox<String> yearComboBox;
     @FXML
@@ -252,7 +239,6 @@ public class HomeController {
     private String selectedYear = "2025";
     private int dataManagementSelectedYear = Calendar.getInstance().get(Calendar.YEAR);
     
-    // Views
     @FXML
     private VBox homeView;
     @FXML
@@ -265,8 +251,6 @@ public class HomeController {
     private VBox administrationsView;
     @FXML
     private VBox dataManagementView;
-    
-    // Quick navigation cards
     @FXML
     private VBox quickNavMinistries;
     @FXML
@@ -276,17 +260,8 @@ public class HomeController {
     @FXML
     private VBox quickNavAdministrations;
     @FXML
-    private MenuItem homeMenuItem;
-    @FXML
-    private MenuItem projectionsMenuItem;
-    @FXML
-    private MenuItem dataExplorationMenuItem;
-    @FXML
-    private MenuItem statisticsMenuItem;
-    @FXML
     private Button homeEditButton;
     
-    // Data Management UI - Revenues Table
     @FXML
     private TableView<CategoryData> dmRevenuesTable;
     @FXML
@@ -306,7 +281,6 @@ public class HomeController {
     @FXML
     private TableColumn<CategoryData, String> revCommentsColumn;
     
-    // Data Management UI - Expenses Table
     @FXML
     private TableView<CategoryData> dmExpensesTable;
     @FXML
@@ -326,7 +300,6 @@ public class HomeController {
     @FXML
     private TableColumn<CategoryData, String> expCommentsColumn;
     
-    // Keep old table reference for backward compatibility (will be removed later)
     @FXML
     private TableView<CategoryData> dataManagementTable;
     @FXML
@@ -374,7 +347,6 @@ public class HomeController {
     @FXML
     private Label dmYearChangeLabel;
     
-    // Data Exploration View
     @FXML
     private VBox dataExplorationView;
     @FXML
@@ -450,7 +422,16 @@ public class HomeController {
     @FXML
     private TableColumn<CategoryData, String> exploreColumn5;
     
-    // International Comparison Fields
+    @FXML
+    private VBox yearComparisonChartContainer;
+    @FXML
+    private BarChart<String, Number> yearComparisonRevenueExpensesChart;
+    
+    @FXML
+    private VBox overviewChartsContainer;
+    @FXML
+    private LineChart<String, Number> overviewTrendsChart;
+    
     @FXML
     private ComboBox<String> internationalYearComboBox;
     @FXML
@@ -461,8 +442,6 @@ public class HomeController {
     private Button loadInternationalComparisonButton;
     @FXML
     private VBox internationalResultsContainer;
-    @FXML
-    private VBox internationalChartContainer;
     @FXML
     private Label internationalComparisonTitle;
     @FXML
@@ -475,13 +454,12 @@ public class HomeController {
     private TableColumn<CountryComparisonData, String> intCountry2Column;
     @FXML
     private TableColumn<CountryComparisonData, String> intDifferenceColumn;
-    @FXML
+    
     
     private String currentExplorationView = "";
     private boolean isLoadingExplorationView = false;
     private boolean isEditMode = false;
     
-    // Statistics View
     @FXML
     private ComboBox<String> statisticsStartYearComboBox;
     @FXML
@@ -525,7 +503,6 @@ public class HomeController {
     @FXML
     private TableColumn<Map<String, Object>, Double> statsOutlierZScoreColumn;
     
-    // Charts (from graphs branch)
     @FXML
     private PieChart pieRevenue;
     @FXML
@@ -537,25 +514,20 @@ public class HomeController {
     @FXML
     private LineChart<String, Number> lineHistory;
     
-    // New Charts for Revenues View
     @FXML
     private AreaChart<String, Number> areaRevenueTrend;
     
-    // New Charts for Expenses View
     @FXML
     private AreaChart<String, Number> areaExpenseTrend;
     
-    // New Charts for Ministries View
     @FXML
     private AreaChart<String, Number> areaMinistriesTrend;
     
-    // New Charts for Administrations View
     @FXML
     private BarChart<String, Number> barAdministrationsTop;
     @FXML
     private AreaChart<String, Number> areaAdministrationsTrend;
     
-    // Projections/Simulations View
     @FXML
     private ComboBox<String> simulationBaseYearComboBox;
     @FXML
@@ -586,12 +558,10 @@ public class HomeController {
     private double simulationBaseExpense = 0;
     private ObservableList<SimulationSelectionItem> simulationSelections = FXCollections.observableArrayList();
     
-    // Filtered data for search/filter
     private ObservableList<CategoryData> allDataManagementItems = FXCollections.observableArrayList();
     private ObservableList<CategoryData> revenuesItems = FXCollections.observableArrayList();
     private ObservableList<CategoryData> expensesItems = FXCollections.observableArrayList();
     
-    // Summary labels
     @FXML
     private Label totalRevenuesLabel;
     @FXML
@@ -609,7 +579,6 @@ public class HomeController {
     @FXML
     private Label userTypeIconLabel;
     
-    // Ministries Table
     @FXML
     private TableView<CategoryData> categoryTable;
     @FXML
@@ -621,7 +590,6 @@ public class HomeController {
     @FXML
     private TableColumn<CategoryData, String> changeColumn;
     
-    // Revenues Table
     @FXML
     private TableView<CategoryData> revenuesTable;
     @FXML
@@ -631,7 +599,6 @@ public class HomeController {
     @FXML
     private TableColumn<CategoryData, Double> revenuePercentageColumn;
     
-    // Expenses Table
     @FXML
     private TableView<CategoryData> expensesTable;
     @FXML
@@ -641,7 +608,6 @@ public class HomeController {
     @FXML
     private TableColumn<CategoryData, Double> expensePercentageColumn;
     
-    // Administrations Table
     @FXML
     private TableView<CategoryData> administrationsTable;
     @FXML
@@ -656,21 +622,13 @@ public class HomeController {
     private UserData userData;
     private ExportsImports exportImportService;
     
-    /**
-     * Check if a year allows modifications (current year or future years only)
-     * @param year The year to check
-     * @return true if modifications are allowed, false otherwise
-     */
+    // ελέγχει αν μπορεί να γίνει edit σε ένα έτος
     private boolean isYearEditable(int year) {
         int currentYear = Calendar.getInstance().get(Calendar.YEAR);
         return year >= currentYear;
     }
     
-    /**
-     * Extract year from CategoryData change field (format: "2025 | Έσοδο")
-     * @param data The CategoryData object
-     * @return The year as integer, or -1 if not found
-     */
+    // παίρνει το έτος από τα δεδομένα
     private int extractYearFromData(CategoryData data) {
         if (data == null || data.getChange() == null) {
             return -1;
@@ -686,9 +644,7 @@ public class HomeController {
         return -1;
     }
     
-    /**
-     * Setup table selection listeners
-     */
+    // setup για table selection
     private void setupTableSelection(TableView<CategoryData> table) {
         if (table == null) return;
         
@@ -700,7 +656,6 @@ public class HomeController {
                 int year = extractYearFromData(newSelection);
                 isEditable = isYearEditable(year);
                 
-                // Load comments for selected category
                 if (internalCommentsArea != null && userData != null) {
                     String categoryName = newSelection.getCategory();
                     String comments = userData.getComment(categoryName, year);
@@ -708,7 +663,6 @@ public class HomeController {
                         internalCommentsArea.setText(comments);
                         newSelection.setComments(comments);
                     } else {
-                        // Load from CategoryData if exists
                         String existingComments = newSelection.getComments();
                         if (existingComments != null && !existingComments.isEmpty()) {
                             internalCommentsArea.setText(existingComments);
@@ -718,13 +672,11 @@ public class HomeController {
                     }
                 }
             } else {
-                // Clear comments area when no selection
                 if (internalCommentsArea != null) {
                     internalCommentsArea.clear();
                 }
             }
             
-            // Edit button is always enabled (no selection needed for edit mode toggle)
             if (deleteDataButton != null) deleteDataButton.setDisable(!hasSelection || !isEditable);
             if (bulkEditButton != null) {
                 int selectedCount = getTotalSelectedCount();
@@ -735,9 +687,7 @@ public class HomeController {
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
     
-    /**
-     * Get total selected count from both tables
-     */
+    // παίρνει το σύνολο των επιλεγμένων
     private int getTotalSelectedCount() {
         int count = 0;
         if (dmRevenuesTable != null) {
@@ -752,9 +702,7 @@ public class HomeController {
         return count;
     }
     
-    /**
-     * Get selected item from either revenues or expenses table
-     */
+    // παίρνει το επιλεγμένο item
     private CategoryData getSelectedItemFromTables() {
         if (dmRevenuesTable != null && dmRevenuesTable.getSelectionModel().getSelectedItem() != null) {
             return dmRevenuesTable.getSelectionModel().getSelectedItem();
@@ -768,9 +716,7 @@ public class HomeController {
         return null;
     }
     
-    /**
-     * Get all selected items from both tables
-     */
+    // παίρνει όλα τα επιλεγμένα items
     private ObservableList<CategoryData> getSelectedItemsFromTables() {
         ObservableList<CategoryData> selected = FXCollections.observableArrayList();
         if (dmRevenuesTable != null) {
@@ -787,50 +733,38 @@ public class HomeController {
 
     @FXML
     private void initialize() {
-        // Initialize data service
         budgetData = BudgetData.getInstance();
         userData = UserData.getInstance();
         exportImportService = ExportsImports.getInstance();
         
-        // Initialize published years table
         initializePublishedYearsTable();
         
-        // Set initial header title
         if (headerTitleLabel != null) {
             headerTitleLabel.setText("Κρατικός Προϋπολογισμός του 2025");
         }
         
-        // Initialize auth button based on user type
         updateAuthButton();
         
-        // Update user type label
         updateUserTypeLabel();
         
-        // Show/hide government features based on user type
         updateGovernmentFeatures();
         
-        // Ensure data exploration view is hidden initially
         if (dataExplorationView != null) {
             dataExplorationView.setVisible(false);
             dataExplorationView.setManaged(false);
         }
         
-        // Initialize year ComboBox
         if (yearComboBox != null) {
             updateYearComboBox();
         }
         
-        // Initialize home edit button visibility
         updateHomeEditButtonVisibility();
         
-        // Initialize data management revenues table
         if (dmRevenuesTable != null && revCategoryColumn != null) {
-            // Setup select column (CheckBox)
             if (revSelectColumn != null) {
                 revSelectColumn.setCellValueFactory(param -> {
                     CategoryData data = param.getValue();
                     if (data.selectedProperty() == null) {
-                        // Should not happen as it's initialized in constructor
                         return new SimpleBooleanProperty(false);
                     }
                     return data.selectedProperty();
@@ -842,7 +776,6 @@ public class HomeController {
             revCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
             revAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
             
-            // Format amount column (not editable initially)
             revAmountColumn.setCellFactory(column -> new TableCell<CategoryData, Double>() {
                 @Override
                 protected void updateItem(Double amount, boolean empty) {
@@ -855,7 +788,6 @@ public class HomeController {
                 }
             });
             
-            // Setup actions column (edit + delete buttons)
             if (revActionsColumn != null) {
                 revActionsColumn.setCellFactory(param -> new TableCell<CategoryData, Void>() {
                     private final Label editIcon = new Label("✎"); // ✎ Pencil
@@ -867,7 +799,6 @@ public class HomeController {
                     {
                         hbox.setAlignment(Pos.CENTER);
                         
-                        // Setup edit button
                         editIcon.setStyle("-fx-font-size: 16px; -fx-text-fill: #1A73E8;");
                         editBtn.setGraphic(editIcon);
                         editBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-cursor: hand; -fx-padding: 4;");
@@ -876,7 +807,6 @@ public class HomeController {
                             editAmountForRow(data, dmRevenuesTable, revAmountColumn);
                         });
                         
-                        // Setup delete button
                         deleteIcon.setText("🗑");
                         deleteIcon.setStyle("-fx-font-size: 16px; -fx-text-fill: #dc2626;");
                         deleteBtn.setGraphic(deleteIcon);
@@ -901,7 +831,6 @@ public class HomeController {
                 revActionsColumn.setVisible(false);
             }
             
-            // Setup comments column (hidden initially, shown in edit mode - always editable when visible)
             if (revCommentsColumn != null) {
                 revCommentsColumn.setCellValueFactory(new PropertyValueFactory<>("comments"));
                 revCommentsColumn.setCellFactory(column -> new TableCell<CategoryData, String>() {
@@ -937,9 +866,7 @@ public class HomeController {
             setupTableSelection(dmRevenuesTable);
         }
         
-        // Initialize data management expenses table
         if (dmExpensesTable != null && expCategoryColumn != null) {
-            // Setup select column (CheckBox)
             if (expSelectColumn != null) {
                 expSelectColumn.setCellValueFactory(param -> param.getValue().selectedProperty());
                 expSelectColumn.setCellFactory(CheckBoxTableCell.forTableColumn(expSelectColumn));
@@ -949,7 +876,6 @@ public class HomeController {
             expCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
             expAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
             
-            // Format amount column (not editable initially)
             expAmountColumn.setCellFactory(column -> new TableCell<CategoryData, Double>() {
                 @Override
                 protected void updateItem(Double amount, boolean empty) {
@@ -962,7 +888,6 @@ public class HomeController {
                 }
             });
             
-            // Setup actions column (edit + delete buttons)
             if (expActionsColumn != null) {
                 expActionsColumn.setCellFactory(param -> new TableCell<CategoryData, Void>() {
                     private final Label editIcon = new Label("\u270E"); // ✎ (U+270E) Pencil
@@ -974,7 +899,6 @@ public class HomeController {
                     {
                         hbox.setAlignment(Pos.CENTER);
                         
-                        // Setup edit button
                         editIcon.setStyle("-fx-font-size: 16px; -fx-text-fill: #1A73E8;");
                         editBtn.setGraphic(editIcon);
                         editBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-cursor: hand; -fx-padding: 4;");
@@ -983,7 +907,6 @@ public class HomeController {
                             editAmountForRow(data, dmExpensesTable, expAmountColumn);
                         });
                         
-                        // Setup delete button
                         deleteIcon.setText("🗑");
                         deleteIcon.setStyle("-fx-font-size: 16px; -fx-text-fill: #dc2626;");
                         deleteBtn.setGraphic(deleteIcon);
@@ -1008,7 +931,6 @@ public class HomeController {
                 expActionsColumn.setVisible(false);
             }
             
-            // Setup comments column (hidden initially, shown in edit mode - always editable when visible)
             if (expCommentsColumn != null) {
                 expCommentsColumn.setCellValueFactory(new PropertyValueFactory<>("comments"));
                 expCommentsColumn.setCellFactory(column -> new TableCell<CategoryData, String>() {
@@ -1044,7 +966,6 @@ public class HomeController {
             setupTableSelection(dmExpensesTable);
         }
         
-        // Initialize old data management table (for backward compatibility)
         if (dataManagementTable != null) {
             dmCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
             dmAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
@@ -1056,7 +977,6 @@ public class HomeController {
             });
             dmStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
             
-            // Format amount column
             dmAmountColumn.setCellFactory(column -> new TableCell<CategoryData, Double>() {
                 @Override
                 protected void updateItem(Double amount, boolean empty) {
@@ -1069,7 +989,6 @@ public class HomeController {
                 }
             });
             
-            // Format percentage column
             dmPercentageColumn.setCellFactory(column -> new TableCell<CategoryData, Double>() {
                 @Override
                 protected void updateItem(Double percentage, boolean empty) {
@@ -1082,7 +1001,6 @@ public class HomeController {
                 }
             });
             
-            // Format status column with colors
             dmStatusColumn.setCellFactory(column -> new TableCell<CategoryData, String>() {
                 @Override
                 protected void updateItem(String status, boolean empty) {
@@ -1109,7 +1027,6 @@ public class HomeController {
                 }
             });
             
-            // Enable/disable edit/delete buttons based on selection and year
             dataManagementTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
                 boolean hasSelection = newSelection != null;
                 boolean isEditable = false;
@@ -1119,7 +1036,6 @@ public class HomeController {
                     isEditable = isYearEditable(year);
                 }
                 
-                // Edit button is always enabled (no selection needed for edit mode toggle)
                 if (deleteDataButton != null) deleteDataButton.setDisable(!hasSelection || !isEditable);
                 if (bulkEditButton != null) {
                     int selectedCount = dataManagementTable.getSelectionModel().getSelectedItems().size();
@@ -1127,11 +1043,9 @@ public class HomeController {
                 }
             });
             
-            // Enable multi-selection
             dataManagementTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         }
         
-        // Initialize search and filter
         if (dmSearchField != null) {
             dmSearchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         }
@@ -1142,7 +1056,6 @@ public class HomeController {
             dmTypeFilter.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         }
         
-        // Initialize data management year ComboBox
         if (dataManagementYearComboBox != null) {
             int currentYear = Calendar.getInstance().get(Calendar.YEAR);
             dataManagementYearComboBox.getItems().addAll(
@@ -1158,7 +1071,6 @@ public class HomeController {
         percentageColumn.setCellValueFactory(new PropertyValueFactory<>("percentage"));
         changeColumn.setCellValueFactory(new PropertyValueFactory<>("change"));
         
-        // Format amount column
         amountColumn.setCellFactory(column -> new TableCell<CategoryData, Double>() {
             @Override
             protected void updateItem(Double amount, boolean empty) {
@@ -1171,7 +1083,6 @@ public class HomeController {
             }
         });
         
-        // Format percentage column
         percentageColumn.setCellFactory(column -> new TableCell<CategoryData, Double>() {
             @Override
             protected void updateItem(Double percentage, boolean empty) {
@@ -1184,7 +1095,6 @@ public class HomeController {
             }
         });
         
-        // Initialize revenues table
         revenueCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
         revenueAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
         revenuePercentageColumn.setCellValueFactory(new PropertyValueFactory<>("percentage"));
@@ -1213,7 +1123,6 @@ public class HomeController {
             }
         });
         
-        // Initialize expenses table
         expenseCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
         expenseAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
         expensePercentageColumn.setCellValueFactory(new PropertyValueFactory<>("percentage"));
@@ -1242,7 +1151,6 @@ public class HomeController {
             }
         });
         
-        // Initialize administrations table
         adminCategoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
         adminAmountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
         adminPercentageColumn.setCellValueFactory(new PropertyValueFactory<>("percentage"));
@@ -1271,22 +1179,27 @@ public class HomeController {
             }
         });
 
-        // Load initial data
         updateDataForYear();
         
-        // Set up quick navigation cards
         setupQuickNavigation();
         
-        // Show home view 
         showView(homeView);
     }
     
     private void updateAuthButton() {
-        if (authMenuItem != null) {
+        if (authButton != null) {
             if (currentUserType == UserType.CITIZEN) {
-                authMenuItem.setText("Σύνδεση ως Κυβέρνηση");
+                authButton.setText("Σύνδεση ως Κυβέρνηση");
+                authButton.getStyleClass().removeAll("logout-button");
+                if (!authButton.getStyleClass().contains("header-nav-button")) {
+                    authButton.getStyleClass().add("header-nav-button");
+                }
             } else {
-                authMenuItem.setText("Αποσύνδεση");
+                authButton.setText("Αποσύνδεση");
+                authButton.getStyleClass().removeAll("header-nav-button");
+                if (!authButton.getStyleClass().contains("logout-button")) {
+                    authButton.getStyleClass().add("logout-button");
+                }
             }
         }
     }
@@ -1315,14 +1228,10 @@ public class HomeController {
             
             Set<Integer> publishedYears = getPublishedYears();
             
-            // For citizens: only show published years
-            // For government: show all years (2023-2027) but mark unpublished ones
             if (isGovernmentUser()) {
-                // Government sees all years
                 yearComboBox.getItems().addAll("2023", "2024", "2025", "2026");
                 yearComboBox.getItems().add("2027");
             } else {
-                // Citizens only see published years
                 for (int year = 2023; year <= 2027; year++) {
                     if (publishedYears.contains(year)) {
                         yearComboBox.getItems().add(String.valueOf(year));
@@ -1330,22 +1239,18 @@ public class HomeController {
                 }
             }
             
-            // Set default value to current year (2026) if available
             String currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
             if (yearComboBox.getItems().contains(currentYear)) {
                 yearComboBox.setValue(currentYear);
                 selectedYear = currentYear;
             } else if (!yearComboBox.getItems().isEmpty()) {
-                // Fallback to first available year if current year not in list
                 yearComboBox.setValue(yearComboBox.getItems().get(0));
                 selectedYear = yearComboBox.getItems().get(0);
             }
         }
     }
     
-    /**
-     * Helper method to initialize a year combo box with the same logic as the main yearComboBox
-     */
+    // αρχικοποιεί το year combo box
     private void initializeYearComboBox(ComboBox<String> comboBox) {
         if (comboBox == null) return;
         
@@ -1354,7 +1259,6 @@ public class HomeController {
         Set<Integer> publishedYears = getPublishedYears();
         
         // For citizens: only show published years
-        // For government: show all years (2023-2027)
         if (isGovernmentUser()) {
             // Government sees all years
             comboBox.getItems().addAll("2023", "2024", "2025", "2026");
@@ -1368,12 +1272,10 @@ public class HomeController {
             }
         }
         
-        // Set default value to current year if available, or use selectedYear
         String yearToSet = selectedYear != null ? selectedYear : String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
         if (comboBox.getItems().contains(yearToSet)) {
             comboBox.setValue(yearToSet);
         } else if (!comboBox.getItems().isEmpty()) {
-            // Fallback to last available year
             comboBox.setValue(comboBox.getItems().get(comboBox.getItems().size() - 1));
         }
         
@@ -1411,7 +1313,6 @@ public class HomeController {
         });
     }
     
-    // Published Years Management
     
     private void initializePublishedYearsTable() {
         try (Connection connection = DatabaseConnection.getConnection();
@@ -1421,7 +1322,6 @@ public class HomeController {
                         "year INTEGER PRIMARY KEY)";
             stmt.execute(sql);
             
-            // Initialize with default published years (2023-2026)
             Set<Integer> existingYears = getPublishedYears();
             for (int year = 2023; year <= 2026; year++) {
                 if (!existingYears.contains(year)) {
@@ -1444,9 +1344,7 @@ public class HomeController {
                 publishedYears.add(rs.getInt("year"));
             }
         } catch (Exception e) {
-            // Table might not exist yet, initialize it
             initializePublishedYearsTable();
-            // Retry after initialization
             try (Connection connection = DatabaseConnection.getConnection();
                  Statement stmt = connection.createStatement();
                  ResultSet rs = stmt.executeQuery("SELECT year FROM published_years")) {
@@ -1465,45 +1363,36 @@ public class HomeController {
         return getPublishedYears().contains(year);
     }
     
-    /**
-     * Gets the list of years that have data in the database by checking which revenue tables exist.
-     * @return List of year strings (e.g., ["2023", "2024", "2025"])
-     */
+    // παίρνει τα διαθέσιμα έτη από τη βάση
     private List<String> getAvailableYearsFromDatabase() {
         List<String> availableYears = new ArrayList<>();
         try (Connection connection = DatabaseConnection.getConnection()) {
             DatabaseMetaData meta = connection.getMetaData();
             
-            // Check for revenue tables (revenue_YYYY) from 2020 to 2030
             for (int year = 2020; year <= 2030; year++) {
                 String tableName = "revenue_" + year;
                 try (ResultSet tables = meta.getTables(null, null, tableName, null)) {
                     if (tables.next()) {
-                        // Table exists, verify it has data
                         try (Statement stmt = connection.createStatement();
                              ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM " + tableName)) {
                             if (rs.next() && rs.getInt("count") > 0) {
                                 availableYears.add(String.valueOf(year));
                             }
                         } catch (SQLException e) {
-                            // Table exists but might be empty or have issues, skip it
                             continue;
                         }
                     }
                 } catch (SQLException e) {
-                    // Table doesn't exist, continue to next year
                     continue;
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            // If there's an error, return at least the current year and previous year as fallback
             int currentYear = Calendar.getInstance().get(Calendar.YEAR);
             availableYears.add(String.valueOf(currentYear - 1));
             availableYears.add(String.valueOf(currentYear));
         }
         
-        // Sort years in descending order (newest first)
         availableYears.sort((a, b) -> Integer.compare(Integer.parseInt(b), Integer.parseInt(a)));
         
         return availableYears;
@@ -1521,19 +1410,15 @@ public class HomeController {
     }
     
     private void updateGovernmentFeatures() {
-        // Update year ComboBox to include next year for government users
         updateYearComboBox();
-        // Update home edit button visibility
         updateHomeEditButtonVisibility();
     }
     
     @FXML
     private void onAuthButtonClicked() {
         if (currentUserType == UserType.CITIZEN) {
-            // Show government login dialog
             showGovernmentLogin();
         } else {
-            // Logout - go back to login screen as citizen
             currentUserType = UserType.CITIZEN;
             updateUserTypeLabel();
             try {
@@ -1543,8 +1428,8 @@ public class HomeController {
                 scene.getStylesheets().add(getClass().getResource("/ui/styles.css").toExternalForm());
                 
                 Stage stage = null;
-                if (authMenuItem != null && authMenuItem.getParentPopup() != null) {
-                    stage = (Stage) authMenuItem.getParentPopup().getOwnerWindow();
+                if (authButton != null && authButton.getScene() != null) {
+                    stage = (Stage) authButton.getScene().getWindow();
                 } else if (yearComboBox != null && yearComboBox.getScene() != null) {
                     stage = (Stage) yearComboBox.getScene().getWindow();
                 } else if (homeView != null && homeView.getScene() != null) {
@@ -1561,7 +1446,6 @@ public class HomeController {
     
     private void showGovernmentLogin() {
         try {
-            // Create login dialog
             Stage loginStage = new Stage();
             loginStage.setTitle("Σύνδεση - Κυβέρνηση");
             loginStage.setResizable(false);
@@ -1573,7 +1457,6 @@ public class HomeController {
             Label titleLabel = new Label("Σύνδεση Κυβέρνησης");
             titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e40af;");
 
-            // Username field with validation
             TextField usernameField = new TextField();
             usernameField.setPrefWidth(300);
             usernameField.setStyle("-fx-font-size: 14px; -fx-padding: 10;");
@@ -1596,12 +1479,10 @@ public class HomeController {
             
             usernameField.textProperty().addListener((obs, oldText, newText) -> {
                 usernamePrompt.setVisible(newText == null || newText.isEmpty());
-                // Real-time validation
                 Constraints.ValidationResult result = Constraints.validateUsername(newText);
                 Constraints.applyValidationStyle(usernameField, result.isValid(), usernameErrorLabel, result.getErrorMessage());
             });
 
-            // Password field with validation
             PasswordField passwordField = new PasswordField();
             passwordField.setPrefWidth(300);
             passwordField.setStyle("-fx-font-size: 14px; -fx-padding: 10;");
@@ -1624,7 +1505,6 @@ public class HomeController {
             
             passwordField.textProperty().addListener((obs, oldText, newText) -> {
                 passwordPrompt.setVisible(newText == null || newText.isEmpty());
-                // Real-time validation
                 Constraints.ValidationResult result = Constraints.validatePassword(newText);
                 Constraints.applyValidationStyle(passwordField, result.isValid(), passwordErrorLabel, result.getErrorMessage());
             });
@@ -1637,7 +1517,6 @@ public class HomeController {
                 String username = usernameField.getText();
                 String password = passwordField.getText();
                 
-                // Validate inputs
                 Constraints.ValidationResult usernameResult = Constraints.validateUsername(username);
                 Constraints.ValidationResult passwordResult = Constraints.validatePassword(password);
                 
@@ -1647,18 +1526,14 @@ public class HomeController {
                 
                 // Check if all validations pass
                 if (usernameResult.isValid() && passwordResult.isValid()) {
-                    // Check credentials against database
                     if (authentication.checkLogin(username, password)) {
-                    // Set user type to government
                             currentUserType = UserType.GOVERNMENT;
                             updateAuthButton();
                             updateUserTypeLabel();
                             updateGovernmentFeatures();
                     
-                    // Close login dialog
                     loginStage.close();
                     } else {
-                        // Invalid credentials
                         Alert errorAlert = new Alert(Alert.AlertType.ERROR);
                         errorAlert.setTitle("Σφάλμα Σύνδεσης");
                         errorAlert.setHeaderText(null);
@@ -1666,7 +1541,6 @@ public class HomeController {
                         errorAlert.showAndWait();
                     }
                 } else {
-                    // Show error alert if validation fails
                     Alert alert = new Alert(Alert.AlertType.WARNING);
                     alert.setTitle("Σφάλμα Επικύρωσης");
                     alert.setHeaderText("Παρακαλώ διορθώστε τα σφάλματα");
@@ -1696,8 +1570,8 @@ public class HomeController {
             Scene loginScene = new Scene(loginPane, 400, 450);
             loginStage.setScene(loginScene);
             Window ownerWindow = null;
-            if (authMenuItem != null && authMenuItem.getParentPopup() != null) {
-                ownerWindow = authMenuItem.getParentPopup().getOwnerWindow();
+            if (authButton != null && authButton.getScene() != null) {
+                ownerWindow = authButton.getScene().getWindow();
             } else if (yearComboBox != null && yearComboBox.getScene() != null) {
                 ownerWindow = yearComboBox.getScene().getWindow();
             } else if (homeView != null && homeView.getScene() != null) {
@@ -1724,7 +1598,6 @@ public class HomeController {
             Label titleLabel = new Label("Εγγραφή Νέου Χρήστη");
             titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #10b981;");
 
-            // Username field
             TextField usernameField = new TextField();
             usernameField.setPrefWidth(300);
             usernameField.setStyle("-fx-font-size: 14px; -fx-padding: 10;");
@@ -1741,7 +1614,6 @@ public class HomeController {
                 Constraints.applyValidationStyle(usernameField, result.isValid(), usernameErrorLabel, result.getErrorMessage());
             });
 
-            // Password field
             PasswordField passwordField = new PasswordField();
             passwordField.setPrefWidth(300);
             passwordField.setStyle("-fx-font-size: 14px; -fx-padding: 10;");
@@ -1909,21 +1781,17 @@ public class HomeController {
     private void updateDataForYear() {
         if (selectedYear == null) return;
 
-        // Update header title with year
         if (headerTitleLabel != null) {
             headerTitleLabel.setText("Κρατικός Προϋπολογισμός του " + selectedYear);
         }
         
-        // Update summary cards
         updateSummaryCards(selectedYear);
         
-        // Update all tables
         updateRevenuesTable();
         updateExpensesTable();
         updateAdministrationsTable();
         updateCharts(Integer.parseInt(selectedYear));
         
-        // Update Charts in detailed views if they are visible
         int year = Integer.parseInt(selectedYear);
         if (revenuesView != null && revenuesView.isVisible()) {
             if (pieRevenue != null) {
@@ -1962,7 +1830,6 @@ public class HomeController {
     private void updateSummaryCards(String year) {
         int yearInt = Integer.parseInt(year);
         
-        // Load real data from service
         double totalRevenues = budgetData.getTotalRevenues(yearInt);
         double totalExpenses = budgetData.getTotalExpenses(yearInt);
         double balance = budgetData.getBalance(yearInt);
@@ -1985,7 +1852,6 @@ public class HomeController {
         expensesDeltaLabel.getStyleClass().add(expensesChange >= 0 ? "positive" : "negative");
         expensesDeltaLabel.setStyle("-fx-text-fill: white;");
         
-        // Update balance
         if (balance >= 0) {
             balanceLabel.setText("+" + AmountFormatter.formatCurrency(balance));
             balanceStatusLabel.setText("Πλεόνασμα");
@@ -2020,7 +1886,6 @@ public class HomeController {
             prevYearMap.put(cat.getName(), cat.getAmount());
         }
         
-        // Convert to table data
         ObservableList<CategoryData> tableData = FXCollections.observableArrayList();
         for (BudgetData.CategoryInfo cat : categories) {
             String changeText;
@@ -2680,9 +2545,7 @@ public class HomeController {
     
     // ========== CHART METHODS (from graphs branch) ==========
     
-    /**
-     * Update all charts for the selected year (home view - only overview charts).
-     */
+    // ενημερώνει τα charts
     private void updateCharts(int year) {
         // Update Line Chart
         Charts.loadLineChart(lineHistory, budgetData);
@@ -3042,10 +2905,25 @@ public class HomeController {
             exploreViewTitleLabel.setText("Σύγκριση Προϋπολογισμού μεταξύ δύο ετών");
         }
         
+        // Show overview charts immediately with all years data
+        loadOverviewCharts();
+        
         // Show comparison controls (always visible now)
         if (exploreComparisonControls != null) {
             exploreComparisonControls.setVisible(true);
             exploreComparisonControls.setManaged(true);
+        }
+        
+        // Hide chart container initially
+        if (yearComparisonChartContainer != null) {
+            yearComparisonChartContainer.setVisible(false);
+            yearComparisonChartContainer.setManaged(false);
+        }
+        
+        // Hide table initially
+        if (exploreResultsTable != null) {
+            exploreResultsTable.setVisible(false);
+            exploreResultsTable.setManaged(false);
         }
         if (exploreYear1Label != null) {
             exploreYear1Label.setVisible(true);
@@ -3363,6 +3241,7 @@ public class HomeController {
                 internationalResultsContainer.setManaged(false);
             }
             
+            
             // Setup listeners
             if (internationalYearComboBox != null) {
                 internationalYearComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -3393,9 +3272,7 @@ public class HomeController {
         }
     }
     
-    /**
-     * Helper method to parse year string safely.
-     */
+    // μετατρέπει string έτος σε int
     private int parseYearSafely(String yearStr) {
         if (yearStr == null) return 0;
         try {
@@ -3516,16 +3393,25 @@ public class HomeController {
                 intCountry2Column.setText(country2Name != null ? country2Name : country2Code);
             }
             
-            // Debug: Print budget values
+            // Debug: Print budget values with more details
             System.out.println("=== DEBUG: Budget Comparison ===");
             System.out.println("Budget1 (" + country1Code + " - " + country1Name + "):");
-            System.out.println("  Revenue: " + budget1.getTotalRevenue());
-            System.out.println("  Expenses: " + budget1.getTotalExpenses());
-            System.out.println("  Balance: " + budget1.getBudgetBalance());
+            System.out.println("  GDP: " + budget1.getTotalGDP());
+            System.out.println("  Revenue: " + budget1.getTotalRevenue() + " EUR");
+            System.out.println("  Expenses: " + budget1.getTotalExpenses() + " EUR");
+            System.out.println("  Balance: " + budget1.getBudgetBalance() + " EUR");
+            System.out.println("  Revenue/GDP: " + (budget1.getTotalGDP() > 0 ? (budget1.getTotalRevenue() / budget1.getTotalGDP() * 100) : 0) + "%");
+            System.out.println("  Expenses/GDP: " + (budget1.getTotalGDP() > 0 ? (budget1.getTotalExpenses() / budget1.getTotalGDP() * 100) : 0) + "%");
             System.out.println("Budget2 (" + country2Code + " - " + country2Name + "):");
-            System.out.println("  Revenue: " + budget2.getTotalRevenue());
-            System.out.println("  Expenses: " + budget2.getTotalExpenses());
-            System.out.println("  Balance: " + budget2.getBudgetBalance());
+            System.out.println("  GDP: " + budget2.getTotalGDP());
+            System.out.println("  Revenue: " + budget2.getTotalRevenue() + " EUR");
+            System.out.println("  Expenses: " + budget2.getTotalExpenses() + " EUR");
+            System.out.println("  Balance: " + budget2.getBudgetBalance() + " EUR");
+            System.out.println("  Revenue/GDP: " + (budget2.getTotalGDP() > 0 ? (budget2.getTotalRevenue() / budget2.getTotalGDP() * 100) : 0) + "%");
+            System.out.println("  Expenses/GDP: " + (budget2.getTotalGDP() > 0 ? (budget2.getTotalExpenses() / budget2.getTotalGDP() * 100) : 0) + "%");
+            System.out.println("Ratio (Country2/Country1):");
+            System.out.println("  GDP: " + (budget1.getTotalGDP() > 0 ? (budget2.getTotalGDP() / budget1.getTotalGDP()) : 0));
+            System.out.println("  Expenses: " + (budget1.getTotalExpenses() > 0 ? (budget2.getTotalExpenses() / budget1.getTotalExpenses()) : 0));
             System.out.println("================================");
             
             // Build comparison data for budget categories
@@ -3621,9 +3507,7 @@ public class HomeController {
         return countrySelection.trim();
     }
     
-    /**
-     * Updates the country combo boxes to disable countries that don't have budget data for the selected year.
-     */
+    // ενημερώνει τα country combo boxes
     private void updateCountryComboBoxAvailability() {
         if (internationalYearComboBox == null) return;
         
@@ -3639,9 +3523,7 @@ public class HomeController {
         updateCountryComboBoxAvailability(internationalCountry2ComboBox, availableCountries, year);
     }
     
-    /**
-     * Updates a specific country combo box to disable unavailable countries.
-     */
+    // ενημερώνει ένα συγκεκριμένο country combo box
     private void updateCountryComboBoxAvailability(ComboBox<String> comboBox, List<String> availableCountries, int year) {
         if (comboBox == null) return;
         
@@ -3695,9 +3577,7 @@ public class HomeController {
         });
     }
     
-    /**
-     * Validates and clears country selections if they're not available for the selected year.
-     */
+    // ελέγχει τις επιλογές χωρών
     private void validateCountrySelections() {
         if (internationalYearComboBox == null) return;
         
@@ -3775,6 +3655,10 @@ public class HomeController {
                 exploreColumn3.setText(String.format("%d (€)", year2));
             }
             
+            // Load and display charts
+            Comparisons.ComparisonResults results = comparisons.compareYears(year1, year2);
+            loadYearComparisonCharts(results, year1, year2);
+            
             System.out.println("Comparison data loaded successfully");
         } catch (Exception e) {
             e.printStackTrace();
@@ -3783,6 +3667,65 @@ public class HomeController {
             alert.setHeaderText("Σφάλμα φόρτωσης δεδομένων");
             alert.setContentText("Δεν ήταν δυνατή η φόρτωση των δεδομένων σύγκρισης.\n\nΣφάλμα: " + e.getMessage());
             alert.showAndWait();
+        }
+    }
+    
+    // φορτώνει τα overview charts
+    private void loadOverviewCharts() {
+        try {
+            BudgetData budgetData = BudgetData.getInstance();
+            List<String> availableYears = getAvailableYearsFromDatabase();
+            
+            if (availableYears.isEmpty()) {
+                // Hide charts if no data available
+                if (overviewChartsContainer != null) {
+                    overviewChartsContainer.setVisible(false);
+                    overviewChartsContainer.setManaged(false);
+                }
+                return;
+            }
+            
+            // Show charts container
+            if (overviewChartsContainer != null) {
+                overviewChartsContainer.setVisible(true);
+                overviewChartsContainer.setManaged(true);
+            }
+            
+            // Load trends line chart
+            if (overviewTrendsChart != null) {
+                Charts.loadOverviewTrendsChart(overviewTrendsChart, budgetData, availableYears);
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading overview charts: " + e.getMessage());
+            e.printStackTrace();
+            // Hide charts on error
+            if (overviewChartsContainer != null) {
+                overviewChartsContainer.setVisible(false);
+                overviewChartsContainer.setManaged(false);
+            }
+        }
+    }
+    
+    private void loadYearComparisonCharts(Comparisons.ComparisonResults results, int year1, int year2) {
+        if (results == null) return;
+        
+        // Load revenue vs expenses chart
+        if (yearComparisonRevenueExpensesChart != null) {
+            Charts.loadYearComparisonRevenueExpensesChart(
+                yearComparisonRevenueExpensesChart,
+                results.getTotalRevenueSummary1(),
+                results.getTotalExpensesSummary1(),
+                results.getTotalRevenueSummary2(),
+                results.getTotalExpensesSummary2(),
+                year1,
+                year2
+            );
+        }
+        
+        // Show chart container
+        if (yearComparisonChartContainer != null) {
+            yearComparisonChartContainer.setVisible(true);
+            yearComparisonChartContainer.setManaged(true);
         }
     }
 
@@ -4547,29 +4490,58 @@ public class HomeController {
     }
     
     private void updateMenuSelection(VBox view) {
-        // Remove selected style from all menu items
-        if (homeMenuItem != null) {
-            homeMenuItem.getStyleClass().remove("menu-item-selected");
-        }
-        if (projectionsMenuItem != null) {
-            projectionsMenuItem.getStyleClass().remove("menu-item-selected");
-        }
-        if (dataExplorationMenuItem != null) {
-            dataExplorationMenuItem.getStyleClass().remove("menu-item-selected");
-        }
-        if (statisticsMenuItem != null) {
-            statisticsMenuItem.getStyleClass().remove("menu-item-selected");
+        // Remove selected style from ALL navigation buttons
+        Button[] allNavButtons = {
+            homeButton,
+            projectionsButton,
+            statisticsButton,
+            aiAssistantButton
+        };
+        
+        // Remove selected class from all buttons first
+        for (Button button : allNavButtons) {
+            if (button != null) {
+                ObservableList<String> styles = button.getStyleClass();
+                styles.removeAll("header-nav-button-active");
+                if (!styles.contains("header-nav-button")) {
+                    styles.add("header-nav-button");
+                }
+            }
         }
         
-        // Add selected style to the appropriate menu item
-        if (view == homeView && homeMenuItem != null) {
-            homeMenuItem.getStyleClass().add("menu-item-selected");
-        } else if (view == projectionsView && projectionsMenuItem != null) {
-            projectionsMenuItem.getStyleClass().add("menu-item-selected");
-        } else if (view == dataExplorationView && dataExplorationMenuItem != null) {
-            dataExplorationMenuItem.getStyleClass().add("menu-item-selected");
-        } else if (view == statisticsView && statisticsMenuItem != null) {
-            statisticsMenuItem.getStyleClass().add("menu-item-selected");
+        // Handle comparisons menu button separately
+        if (comparisonsMenuButton != null) {
+            ObservableList<String> menuStyles = comparisonsMenuButton.getStyleClass();
+            menuStyles.removeAll("header-nav-button-active");
+            if (!menuStyles.contains("header-nav-button")) {
+                menuStyles.add("header-nav-button");
+            }
+        }
+        
+        // Add selected style to the appropriate button
+        Button buttonToSelect = null;
+        if (view == homeView) {
+            buttonToSelect = homeButton;
+        } else if (view == projectionsView) {
+            buttonToSelect = projectionsButton;
+        } else if (view == dataExplorationView || view == internationalComparisonView) {
+            // Both comparison views highlight the comparisons menu button
+            buttonToSelect = null; // Will handle menu button separately
+            if (comparisonsMenuButton != null) {
+                ObservableList<String> menuStyles = comparisonsMenuButton.getStyleClass();
+                if (!menuStyles.contains("header-nav-button-active")) {
+                    menuStyles.add("header-nav-button-active");
+                }
+            }
+        } else if (view == statisticsView) {
+            buttonToSelect = statisticsButton;
+        }
+        
+        if (buttonToSelect != null) {
+            ObservableList<String> styles = buttonToSelect.getStyleClass();
+            if (!styles.contains("header-nav-button-active")) {
+                styles.add("header-nav-button-active");
+            }
         }
     }
     
@@ -5585,9 +5557,7 @@ public class HomeController {
         }
     }
     
-    /**
-     * Handles saving a scenario
-     */
+    // αποθηκεύει scenario
     @FXML
     private void onSaveScenario() {
         if (selectedYear == null) {
@@ -5698,9 +5668,7 @@ public class HomeController {
         });
     }
     
-    /**
-     * Handles loading a saved scenario
-     */
+    // φορτώνει scenario
     @FXML
     private void onLoadScenario() {
         List<UserData.SavedScenario> scenarios = userData.getAllScenarios();

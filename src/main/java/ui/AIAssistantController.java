@@ -14,21 +14,13 @@ import javafx.stage.Stage;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
-/**
- * Controller for the AI Assistant chat interface.
- * Manages the chat UI, message sending, and API communication.
- */
+// κλάση για το chat του AI βοηθού
+
 public class AIAssistantController implements Initializable {
     
     @FXML
@@ -57,61 +49,31 @@ public class AIAssistantController implements Initializable {
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Initialize preferences
         preferences = Preferences.userNodeForPackage(AIAssistantController.class);
-        
-        // Initialize AI service
         aiService = new AIAssistantService();
         
-        // Try to load API key from config file first (for easy setup, not in git)
-        String apiKey = loadApiKeyFromFile();
-        
-        // If not in file, try environment variable
-        if (apiKey == null || apiKey.isEmpty()) {
-            apiKey = System.getenv("OPENAI_API_KEY");
-        }
-        
-        // If still not set, try saved preferences (user-entered key)
-        if (apiKey == null || apiKey.isEmpty()) {
-            apiKey = preferences.get(API_KEY_PREF, "");
-        }
-        
-        // If we have a key, use it
-        if (apiKey != null && !apiKey.isEmpty()) {
-            aiService.setApiKey(apiKey);
-        }
-        
-        // Always hide the configuration alert by default
-        // It will only show when user tries to send a message without API key
+        // το πεδίο εισαγωγής API key είναι αρχικά κρυμμένο 
         showConfigurationAlert(false);
         
-        // Initialize conversation history
         conversationHistory = new JSONArray();
         
-        // Add welcome message if configured
-        if (aiService.isConfigured()) {
+        // ελέγχει αν ο χρήστης έχει αποθηκεύσει API key και το φορτώνει
+        String savedApiKey = preferences.get(API_KEY_PREF, "");
+        if (!savedApiKey.isEmpty()) {
+            aiService.setApiKey(savedApiKey);
             addWelcomeMessage();
         }
     }
     
-    /**
-     * Shows or hides the configuration alert.
-     * The UI remains enabled - users can type and see the interface.
-     * Alert only appears when they try to send a message without API key.
-     */
+    // εμφανίζει ή κρύβει το πεδίο εισαγωγής API key
     private void showConfigurationAlert(boolean show) {
         configAlertContainer.setVisible(show);
         configAlertContainer.setManaged(show);
-        
-        // Keep UI enabled - only disable when showing the alert overlay
-        // This allows users to see and interact with the interface
         sendButton.setDisable(show);
         messageInputField.setDisable(show);
     }
     
-    /**
-     * Adds a welcome message to the chat.
-     */
+    // welcome message
     private void addWelcomeMessage() {
         String welcomeMessage = "Γεια σας! Είμαι ο AI Βοηθός για τον ελληνικό κρατικό προϋπολογισμό. " +
                 "Μπορώ να σας βοηθήσω με ερωτήσεις σχετικά με:\n\n" +
@@ -125,46 +87,52 @@ public class AIAssistantController implements Initializable {
         addMessage("assistant", welcomeMessage);
     }
     
-    /**
-     * Handles the send message button click.
-     */
+    //send message button 
+    
     @FXML
     private void onSendMessage() {
         String message = messageInputField.getText().trim();
-        if (message.isEmpty() || !aiService.isConfigured()) {
+        if (message.isEmpty()) {
             return;
         }
         
-        // Add user message to UI
+        if (!aiService.isConfigured()) {
+            String apiKey = preferences.get(API_KEY_PREF, "");
+            if (apiKey.isEmpty()) {
+                showConfigurationAlert(true);
+                return;
+            } else {
+                aiService.setApiKey(apiKey);
+            }
+        }
+        
+        // προσθέτει το μήνυμα του χρήστη στο UI
         addMessage("user", message);
         
-        // Clear input field
         messageInputField.clear();
         sendButton.setDisable(true);
         messageInputField.setDisable(true);
         
-        // Add user message to conversation history
+        // προσθέτει το μήνυμα του χρήστη στην ιστορία συνομιλίας
         JSONObject userMessageObj = new JSONObject();
         userMessageObj.put("role", "user");
         userMessageObj.put("content", message);
         conversationHistory.put(userMessageObj);
         
-        // Show loading indicator
         addLoadingIndicator();
         
-        // Send message asynchronously
+        // στέλνει το μήνυμα ασύγχρονα
         new Thread(() -> {
             try {
-                // Get response from AI
+                // λαμβάνει την απάντηση από το AI
                 String response = aiService.sendMessage(message, conversationHistory);
                 
-                // Add assistant message to conversation history
+                // προσθέτει το μήνυμα του AI στην ιστορία συνομιλίας
                 JSONObject assistantMessageObj = new JSONObject();
                 assistantMessageObj.put("role", "assistant");
                 assistantMessageObj.put("content", response);
                 conversationHistory.put(assistantMessageObj);
                 
-                // Update UI on JavaFX thread
                 Platform.runLater(() -> {
                     removeLoadingIndicator();
                     addMessage("assistant", response);
@@ -183,7 +151,7 @@ public class AIAssistantController implements Initializable {
             } catch (IllegalArgumentException e) {
                 Platform.runLater(() -> {
                     removeLoadingIndicator();
-                    // Show alert only when user tries to use AI without key
+                    // εμφανίζει προειδοποίηση όταν το API key είναι άκυρο ή λείπει
                     showConfigurationAlert(true);
                     addErrorMessage("Το API Key δεν είναι ρυθμισμένο. Παρακαλώ ρυθμίστε το API Key σας.");
                 });
@@ -191,9 +159,7 @@ public class AIAssistantController implements Initializable {
         }).start();
     }
     
-    /**
-     * Adds a message bubble to the chat.
-     */
+    // προσθέτει ένα μήνυμα στο chat
     private void addMessage(String role, String content) {
         Platform.runLater(() -> {
             HBox messageContainer = new HBox(12);
@@ -217,14 +183,11 @@ public class AIAssistantController implements Initializable {
             messageContainer.getChildren().add(messageLabel);
             chatMessagesContainer.getChildren().add(messageContainer);
             
-            // Scroll to bottom
             scrollToBottom();
         });
     }
     
-    /**
-     * Adds a loading indicator while waiting for AI response.
-     */
+    // δείχνει σήμα φόρτωσης όσο περιμένουμε απάντηση από το AI
     private void addLoadingIndicator() {
         Platform.runLater(() -> {
             HBox loadingContainer = new HBox(12);
@@ -243,9 +206,7 @@ public class AIAssistantController implements Initializable {
         });
     }
     
-    /**
-     * Removes the loading indicator.
-     */
+    //αφαιρεί το σήμα φόρτωσης
     private void removeLoadingIndicator() {
         Platform.runLater(() -> {
             chatMessagesContainer.getChildren().removeIf(node -> 
@@ -254,9 +215,7 @@ public class AIAssistantController implements Initializable {
         });
     }
     
-    /**
-     * Adds an error message to the chat.
-     */
+    // προσθέτει error message
     private void addErrorMessage(String errorMessage) {
         Platform.runLater(() -> {
             HBox errorContainer = new HBox(12);
@@ -276,18 +235,14 @@ public class AIAssistantController implements Initializable {
         });
     }
     
-    /**
-     * Scrolls the chat to the bottom.
-     */
+    // σκρολάρει κάτω
     private void scrollToBottom() {
         Platform.runLater(() -> {
             chatScrollPane.setVvalue(1.0);
         });
     }
     
-    /**
-     * Handles the save API key button click.
-     */
+    // αποθηκεύει το API key
     @FXML
     private void onSaveApiKey() {
         String apiKey = apiKeyField.getText().trim();
@@ -296,14 +251,11 @@ public class AIAssistantController implements Initializable {
             return;
         }
         
-        // Save API key
         preferences.put(API_KEY_PREF, apiKey);
         aiService.setApiKey(apiKey);
         
-        // Hide configuration alert
         showConfigurationAlert(false);
         
-        // Clear chat and show welcome message
         chatMessagesContainer.getChildren().clear();
         conversationHistory = new JSONArray();
         addWelcomeMessage();
@@ -311,9 +263,7 @@ public class AIAssistantController implements Initializable {
         showAlert("Επιτυχία", "Το API Key αποθηκεύτηκε επιτυχώς!", Alert.AlertType.INFORMATION);
     }
     
-    /**
-     * Handles the settings button click.
-     */
+    // settings button
     @FXML
     private void onSettingsClicked() {
         showConfigurationAlert(true);
@@ -321,29 +271,6 @@ public class AIAssistantController implements Initializable {
         apiKeyField.setText(currentApiKey);
     }
     
-    /**
-     * Handles the info button click.
-     */
-    @FXML
-    private void onInfoClicked() {
-        String infoMessage = "Το AI Βοηθός χρησιμοποιεί το OpenAI API (διαφορετικό από το ChatGPT Premium).\n\n" +
-                "⚠️ ΣΗΜΑΝΤΙΚΟ: ChatGPT Premium/Plus (για chat.openai.com) ≠ OpenAI API\n" +
-                "Αυτά είναι δύο διαφορετικές υπηρεσίες!\n\n" +
-                "Για να αποκτήσετε API Key:\n" +
-                "1. Επισκεφτείτε το https://platform.openai.com/\n" +
-                "2. Συνδεθείτε με τον ίδιο λογαριασμό OpenAI (αν έχετε)\n" +
-                "3. Μεταβείτε στις API Keys → Create new secret key\n" +
-                "4. Αντιγράψτε το κλειδί (ξεκινάει με sk-...)\n" +
-                "5. Εισάγετε το κλειδί στο πεδίο παραπάνω\n\n" +
-                "💰 Κόστος:\n" +
-                "• Αν έχετε νέο λογαριασμό: δωρεάν πίστωση $5-18\n" +
-                "• Μετά: ~$0.002 ανά 1000 tokens (πολύ φθηνό για demos)\n" +
-                "• Μπορείτε να ορίσετε spending limit $0 για να αποφύγετε χρεώσεις\n" +
-                "• Η λειτουργία είναι προαιρετική!\n\n" +
-                "ℹ️ Pricing: https://openai.com/api/pricing/";
-        
-        showAlert("Πληροφορίες - AI Βοηθός", infoMessage, Alert.AlertType.INFORMATION);
-    }
     
     /**
      * Handles the close button click.
@@ -354,96 +281,6 @@ public class AIAssistantController implements Initializable {
         stage.close();
     }
     
-    /**
-     * Loads API key from config file (api-key.txt in project root).
-     * This file is gitignored so the key won't be visible in the repository.
-     * Tries multiple locations to handle different execution scenarios (Maven, IDE, etc.).
-     */
-    private String loadApiKeyFromFile() {
-        String userDir = System.getProperty("user.dir");
-        
-        // Try multiple possible locations
-        String[] pathsToTry = {
-            // 1. Current working directory
-            userDir + File.separator + "api-key.txt",
-            // 2. Project root (look for pom.xml)
-            findProjectRootWithPom(),
-            // 3. Parent directory (in case running from a subdirectory)
-            userDir + File.separator + ".." + File.separator + "api-key.txt"
-        };
-        
-        for (String path : pathsToTry) {
-            if (path == null) continue;
-            try {
-                File apiKeyFile = new File(path).getCanonicalFile();
-                if (apiKeyFile.exists() && apiKeyFile.isFile()) {
-                    long fileSize = apiKeyFile.length();
-                    
-                    // Check if file is empty (likely OneDrive Files On-Demand not downloaded)
-                    if (fileSize == 0) {
-                        continue; // Try next path or skip
-                    }
-                    
-                    // Try multiple reading methods for compatibility
-                    String key = null;
-                    
-                    // Method 1: Try BufferedReader with FileInputStream (like other code in project)
-                    try (BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(new FileInputStream(apiKeyFile), StandardCharsets.UTF_8))) {
-                        StringBuilder sb = new StringBuilder();
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            if (!line.trim().isEmpty()) { // Skip empty lines
-                                sb.append(line.trim());
-                            }
-                        }
-                        key = sb.toString().trim();
-                    } catch (Exception e1) {
-                        // Fallback to readAllBytes
-                        try {
-                            byte[] fileBytes = Files.readAllBytes(apiKeyFile.toPath());
-                            key = new String(fileBytes, StandardCharsets.UTF_8).trim();
-                        } catch (Exception e2) {
-                            // Continue to next path
-                        }
-                    }
-                    
-                    if (key != null && !key.isEmpty() && key.startsWith("sk-")) {
-                        return key;
-                    }
-                }
-            } catch (Exception e) {
-                // Try next path
-                continue;
-            }
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Attempts to find project root by looking for pom.xml and returns path to api-key.txt.
-     */
-    private String findProjectRootWithPom() {
-        try {
-            File currentDir = new File(System.getProperty("user.dir"));
-            File dir = currentDir.getCanonicalFile();
-            
-            // Search up the directory tree for pom.xml
-            for (int i = 0; i < 5; i++) {
-                File pomFile = new File(dir, "pom.xml");
-                if (pomFile.exists()) {
-                    return dir.getAbsolutePath() + File.separator + "api-key.txt";
-                }
-                File parent = dir.getParentFile();
-                if (parent == null) break;
-                dir = parent;
-            }
-        } catch (Exception e) {
-            // Could not determine
-        }
-        return null;
-    }
     
     /**
      * Shows an alert dialog.

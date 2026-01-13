@@ -68,7 +68,6 @@
                       styleClass="api-key-field"/>
             <HBox spacing="12" alignment="CENTER">
                 <Button text="💾 Αποθήκευση" onAction="#onSaveApiKey" styleClass="save-api-key-button" prefWidth="140" prefHeight="40"/>
-                <Button text="ℹ️ Πληροφορίες" onAction="#onInfoClicked" styleClass="info-button" prefWidth="140" prefHeight="40"/>
             </HBox>
         </children>
     </VBox>
