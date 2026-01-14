@@ -7,7 +7,7 @@ import ui.DatabaseConnection;
 
 // κλάση για τη δημιουργία των πινάκων της βάσης δεδομένων
 public class SQLmaker {
-    public boolean international_data= false;
+    public boolean international_data= true;
      public void make() {
         try {
             Connection conn = DatabaseConnection.getConnection();
@@ -508,7 +508,7 @@ public class SQLmaker {
                 test.insertDecentralizedAdministrations2026();
                 test.insertBudgetSummary2026();
                 // ο λόγος που δεν τρέχουμε στο τελευταίο παραδοτέο αυτη την κλαση FetchInternationalDataFromAPIs είναι διότι διαρκεί πολύ ωρα το κατέβασμα τους
-                if (international_data=false){
+                if (international_data==true){
                    return;
                 } else {
                 // Fetch international indicators data from APIs
