@@ -508,9 +508,9 @@ public class SQLmaker {
                 test.insertDecentralizedAdministrations2026();
                 test.insertBudgetSummary2026();
                 // ο λόγος που δεν τρέχουμε στο τελευταίο παραδοτέο αυτη την κλαση FetchInternationalDataFromAPIs είναι διότι διαρκεί πολύ ωρα το κατέβασμα τους
-                if (international_data==true){
-                   return;
-                } else {
+               
+                
+                
                 // Fetch international indicators data from APIs
                 System.out.println("\n=== Fetching International Indicators from APIs ===");
                 try {
@@ -518,7 +518,7 @@ public class SQLmaker {
                 } catch (Exception e) {
                     System.err.println("Warning: Could not fetch international data: " + e.getMessage());
                 }
-            }
+            
             } catch (Exception e) {
                 e.printStackTrace();
             }
