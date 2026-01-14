@@ -6,7 +6,7 @@
 
     <groupId>com.github.nefelianast</groupId>
     <artifactId>proipologismos</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0 Release</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
