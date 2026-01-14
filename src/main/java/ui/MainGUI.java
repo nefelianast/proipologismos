@@ -51,7 +51,7 @@ public class MainGUI extends Application {
            
             javax.swing.JOptionPane.showMessageDialog(
                     null,
-                    "Παρακαλώ πατήστε οκ για να κατεβούν οι προϋπολογισμοί.\n ΑΝΑΜΟΝΗ:15 δευτερόλεπτα",
+                    "Παρακαλώ πατήστε οκ για να κατεβούν οι προϋπολογισμοί για να εισαχθούν στην βάση\n ΑΝΑΜΟΝΗ:15 δευτερόλεπτα",
                     "Loading",
                     javax.swing.JOptionPane.INFORMATION_MESSAGE
             );
