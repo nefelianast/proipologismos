@@ -116,7 +116,7 @@
                                             <children>
                                                 <Region HBox.hgrow="ALWAYS"/>
                                                 <ComboBox fx:id="yearComboBox" prefWidth="140" onAction="#onYearSelected" styleClass="year-combo-box"/>
-                                                <Button text="Επεξεργασία" fx:id="editButton" styleClass="year-combo-box" HBox.hgrow="NEVER"/>
+                                                <Button text="Επεξεργασία" fx:id="editButton" onAction="#onEditButtonClicked" styleClass="year-combo-box" HBox.hgrow="NEVER"/>
                                                 <Region HBox.hgrow="ALWAYS"/>
                                             </children>
                                         </HBox>

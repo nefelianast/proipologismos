@@ -1284,6 +1284,37 @@ public class HomeController {
     }
 
     @FXML
+    private void onEditButtonClicked() {
+        if (!isGovernmentUser()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Προειδοποίηση");
+            alert.setHeaderText(null);
+            alert.setContentText("Η επεξεργασία είναι διαθέσιμη μόνο για χρήστες κυβέρνησης.");
+            alert.showAndWait();
+            return;
+        }
+        
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/BudgetEditView.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root, 1400, 800);
+            scene.getStylesheets().add(getClass().getResource("/ui/styles.css").toExternalForm());
+            
+            Stage editStage = new Stage();
+            editStage.setTitle("Επεξεργασία Προϋπολογισμού");
+            editStage.setScene(scene);
+            editStage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Σφάλμα");
+            alert.setHeaderText(null);
+            alert.setContentText("Δεν ήταν δυνατή η φόρτωση της σελίδας επεξεργασίας: " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+    
+    @FXML
     private void onYearSelected(javafx.event.ActionEvent event) {
         if (yearComboBox != null && yearComboBox.getValue() != null) {
             selectedYear = yearComboBox.getValue();

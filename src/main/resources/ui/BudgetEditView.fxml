@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.ScrollPane?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="ui.BudgetEditController"
+            prefWidth="1400.0" prefHeight="800.0"
+            styleClass="root-pane">
+
+    <top>
+        <VBox spacing="12" styleClass="header-container">
+            <padding>
+                <Insets top="20" right="32" bottom="20" left="32"/>
+            </padding>
+            <children>
+                <Label text="Επεξεργασία Προϋπολογισμού" styleClass="section-title" style="-fx-font-size: 28px; -fx-alignment: CENTER;"/>
+                <HBox spacing="12" alignment="CENTER">
+                    <ComboBox fx:id="yearComboBox" prefWidth="150" styleClass="year-combo-box"/>
+                    <Button text="Δημοσίευση" onAction="#onPublishBudget" fx:id="publishButton" visible="false" prefWidth="150" style="-fx-background-color: #1e40af; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: 700; -fx-padding: 10 24; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                </HBox>
+            </children>
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="content-scroll" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER">
+            <content>
+                <VBox spacing="16" styleClass="content-container">
+                    <padding>
+                        <Insets top="16" right="80" bottom="16" left="80"/>
+                    </padding>
+                    <children>
+                        <!-- TabPane για τις κατηγορίες (Έσοδα, Δαπάνες, Υπουργεία, Αποκεντρωμένες Διοικήσεις) -->
+                        <TabPane fx:id="categoryTabPane" styleClass="section-card">
+                            <tabs>
+                                <Tab text="Έσοδα" fx:id="revenueTab">
+                                    <content>
+                                        <VBox spacing="16">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <HBox spacing="12" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Button text="Προσθήκη" onAction="#onAddRevenue" styleClass="action-button"/>
+                                                        <Button text="Διαγραφή" onAction="#onDeleteRevenue" styleClass="action-button"/>
+                                                        <Region HBox.hgrow="ALWAYS"/>
+                                                        <Button text="Αποθήκευση" onAction="#onSaveRevenue" styleClass="action-button" fx:id="saveRevenueButton"/>
+                                                    </children>
+                                                </HBox>
+                                                <TableView fx:id="revenueTable" prefHeight="500" editable="true">
+                                                    <columns>
+                                                        <TableColumn fx:id="revenueCategoryColumn" text="Κατηγορία" prefWidth="350" editable="false"/>
+                                                        <TableColumn fx:id="revenueAmountColumn" text="Ποσό (€)" prefWidth="200" editable="true"/>
+                                                    </columns>
+                                                </TableView>
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                </Tab>
+                                <Tab text="Δαπάνες" fx:id="expensesTab">
+                                    <content>
+                                        <VBox spacing="16">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <HBox spacing="12" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Button text="Προσθήκη" onAction="#onAddExpense" styleClass="action-button"/>
+                                                        <Button text="Διαγραφή" onAction="#onDeleteExpense" styleClass="action-button"/>
+                                                        <Region HBox.hgrow="ALWAYS"/>
+                                                        <Button text="Αποθήκευση" onAction="#onSaveExpenses" styleClass="action-button" fx:id="saveExpensesButton"/>
+                                                    </children>
+                                                </HBox>
+                                                <TableView fx:id="expensesTable" prefHeight="500" editable="true">
+                                                    <columns>
+                                                        <TableColumn fx:id="expenseCategoryColumn" text="Κατηγορία" prefWidth="350" editable="false"/>
+                                                        <TableColumn fx:id="expenseAmountColumn" text="Ποσό (€)" prefWidth="200" editable="true"/>
+                                                    </columns>
+                                                </TableView>
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                </Tab>
+                                <Tab text="Υπουργεία" fx:id="ministriesTab">
+                                    <content>
+                                        <VBox spacing="16">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <HBox spacing="12" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Button text="Προσθήκη" onAction="#onAddMinistry" styleClass="action-button"/>
+                                                        <Button text="Διαγραφή" onAction="#onDeleteMinistry" styleClass="action-button"/>
+                                                        <Region HBox.hgrow="ALWAYS"/>
+                                                        <Button text="Αποθήκευση" onAction="#onSaveMinistries" styleClass="action-button" fx:id="saveMinistriesButton"/>
+                                                    </children>
+                                                </HBox>
+                                                <TableView fx:id="ministriesTable" prefHeight="500" editable="true">
+                                                    <columns>
+                                                        <TableColumn fx:id="ministryCategoryColumn" text="Υπουργείο" prefWidth="350" editable="false"/>
+                                                        <TableColumn fx:id="ministryAmountColumn" text="Ποσό (€)" prefWidth="200" editable="true"/>
+                                                    </columns>
+                                                </TableView>
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                </Tab>
+                                <Tab text="Αποκεντρωμένες Διοικήσεις" fx:id="administrationsTab">
+                                    <content>
+                                        <VBox spacing="16">
+                                            <padding>
+                                                <Insets top="20" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <HBox spacing="12" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Button text="Προσθήκη" onAction="#onAddAdministration" styleClass="action-button"/>
+                                                        <Button text="Διαγραφή" onAction="#onDeleteAdministration" styleClass="action-button"/>
+                                                        <Region HBox.hgrow="ALWAYS"/>
+                                                        <Button text="Αποθήκευση" onAction="#onSaveAdministrations" styleClass="action-button" fx:id="saveAdministrationsButton"/>
+                                                    </children>
+                                                </HBox>
+                                                <TableView fx:id="administrationsTable" prefHeight="500" editable="true">
+                                                    <columns>
+                                                        <TableColumn fx:id="administrationCategoryColumn" text="Αποκεντρωμένη Διοίκηση" prefWidth="350" editable="false"/>
+                                                        <TableColumn fx:id="administrationAmountColumn" text="Ποσό (€)" prefWidth="200" editable="true"/>
+                                                    </columns>
+                                                </TableView>
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                </Tab>
+                            </tabs>
+                        </TabPane>
+                        
+                        <!-- Πεδίο Σχολίων -->
+                        <VBox spacing="12" styleClass="section-card">
+                            <padding>
+                                <Insets top="20" right="20" bottom="20" left="20"/>
+                            </padding>
+                            <children>
+                                <Label text="Σχόλια για τις αλλαγές:" style="-fx-font-size: 16px; -fx-font-weight: 700; -fx-text-fill: #1e40af;"/>
+                                <TextArea fx:id="commentsTextArea" prefHeight="120" wrapText="true" promptText="Εισάγετε σχόλια σχετικά με τις αλλαγές που έχετε κάνει..."/>
+                                <HBox spacing="12" alignment="CENTER_RIGHT">
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Button text="Αποθήκευση Σχολίων" onAction="#onSaveComments" styleClass="action-button"/>
+                                </HBox>
+                            </children>
+                        </VBox>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+
+</BorderPane>
