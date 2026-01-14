@@ -387,38 +387,6 @@ public class SQLmaker {
             stmt.execute(sql20);
             stmt.execute(sqlUsers);
             
-            // tables for data persistence (comments, scenarios, preferences)
-            String sql21 = "CREATE TABLE IF NOT EXISTS user_comments ("
-                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "category_name TEXT NOT NULL,"
-                + "year INTEGER NOT NULL,"
-                + "comments TEXT,"
-                + "created_at DATETIME DEFAULT CURRENT_TIMESTAMP,"
-                + "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP"
-                + ");";
-            
-            String sql22 = "CREATE TABLE IF NOT EXISTS saved_scenarios ("
-                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "scenario_name TEXT NOT NULL UNIQUE,"
-                + "description TEXT,"
-                + "year INTEGER NOT NULL,"
-                + "scenario_data TEXT NOT NULL," 
-                + "created_at DATETIME DEFAULT CURRENT_TIMESTAMP,"
-                + "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP"
-                + ");";
-            
-            String sql23 = "CREATE TABLE IF NOT EXISTS user_preferences ("
-                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "preference_key TEXT NOT NULL UNIQUE,"
-                + "preference_value TEXT,"
-                + "created_at DATETIME DEFAULT CURRENT_TIMESTAMP,"
-                + "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP"
-                + ");";
-            
-            stmt.execute(sql21);
-            stmt.execute(sql22);
-            stmt.execute(sql23);
-            
             // Create international tables
             createInternationalTables(conn);
 
@@ -456,7 +424,6 @@ public class SQLmaker {
                     FetchInternationalDataFromAPIs.main(null);
                 } catch (Exception e) {
                     System.err.println("Warning: Could not fetch international data: " + e.getMessage());
-                    // Continue - this is optional data
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -473,13 +440,9 @@ public class SQLmaker {
         createDefaultAdminUser();
     }
     
-    /**
-     * Creates international tables (indicators, published_years, budgets).
-     * This is called both when creating a new database and when verifying existing database.
-     */
+    // δημιουργεί τους πίνακες για τα διεθνή δεδομένα 
     private void createInternationalTables(Connection conn) {
         try (Statement stmt = conn.createStatement()) {
-            // International budget indicators table
             String sql24 = "CREATE TABLE IF NOT EXISTS international_indicators ("
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "country_code TEXT NOT NULL,"
@@ -489,12 +452,12 @@ public class SQLmaker {
                 + "value REAL NOT NULL"
                 + ");";
             
-            // Published years table
+            // πίνακας για τα έτη που έχουν δημοσιευτεί
             String sql25 = "CREATE TABLE IF NOT EXISTS published_years ("
                 + "year INTEGER PRIMARY KEY"
                 + ");";
             
-            // International budgets table (for actual budget amounts)
+            // πίνακας για διεθνείς προϋπολογισμούς
             String sql26 = "CREATE TABLE IF NOT EXISTS international_budgets ("
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "country_code TEXT NOT NULL,"

@@ -732,6 +732,31 @@
     -fx-text-fill: white;
 }
 
+.government-auth-button {
+    -fx-background-color: rgba(255, 255, 255, 0.95);
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 10 20;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #059669;
+    -fx-cursor: hand;
+    -fx-effect: null;
+}
+
+.government-auth-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 1.0);
+    -fx-text-fill: #047857;
+    -fx-effect: dropshadow(gaussian, rgba(5, 150, 105, 0.2), 8, 0, 0, 3);
+}
+
+.government-auth-button:pressed {
+    -fx-background-color: rgba(249, 250, 251, 1.0);
+    -fx-text-fill: #065f46;
+}
+
 /* Logout Button - Red styling */
 .logout-button {
     -fx-background-color: rgba(255, 255, 255, 0.95);
@@ -1490,6 +1515,26 @@
     -fx-translate-y: -1;
 }
 
+/* Primary action button (for Add button) */
+.action-button.primary {
+    -fx-background-color: #1e40af;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #1e3a8a;
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.3), 6, 0, 0, 2);
+}
+
+.action-button.primary:hover {
+    -fx-background-color: #1e3a8a;
+    -fx-border-color: #1e3a8a;
+    -fx-translate-y: -1;
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.4), 8, 0, 0, 3);
+}
+
+.action-button.primary:pressed {
+    -fx-background-color: #1e3a8a;
+    -fx-translate-y: 0;
+}
+
 
 /* Search and Filter Bar */
 .search-filter-bar {
@@ -1645,6 +1690,17 @@
     -fx-border-color: #fca5a5;
 }
 
+.table-action-button.primary {
+    -fx-background-color: #1e40af;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #1e3a8a;
+}
+
+.table-action-button.primary:hover {
+    -fx-background-color: #1e3a8a;
+    -fx-border-color: #1e3a8a;
+}
+
 .table-action-button.secondary {
     -fx-background-color: #f1f5f9;
     -fx-border-color: #cbd5e1;
@@ -1672,11 +1728,21 @@
     -fx-border-radius: 8;
     -fx-font-size: 14px;
     -fx-padding: 12;
+    -fx-text-alignment: left;
+    -fx-node-orientation: LEFT_TO_RIGHT;
 }
 
 .comments-textarea:focused {
     -fx-border-color: #1e40af;
     -fx-border-width: 2px;
+}
+
+.comments-textarea .text {
+    -fx-text-alignment: left;
+}
+
+.ltr-text {
+    -fx-node-orientation: LEFT_TO_RIGHT;
 }
 
 .save-comments-button {
@@ -1745,15 +1811,15 @@
 
 /* Simulation Results */
 .simulation-results {
-    -fx-background-color: #f8fafc;
-    -fx-border-color: #cbd5e1;
-    -fx-border-width: 2px;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1.5px;
     -fx-border-radius: 12px;
-    -fx-padding: 16px;
-    -fx-font-family: "Consolas", "Courier New", monospace;
-    -fx-font-size: 14px;
-    -fx-text-fill: #1e293b;
-    -fx-line-spacing: 4px;
+    -fx-padding: 20px;
+    -fx-font-family: "Segoe UI", "Roboto", "System", sans-serif;
+    -fx-font-size: 15px;
+    -fx-text-fill: #334155;
+    -fx-line-spacing: 6px;
 }
 
 /* Line Chart Legend Styling */
@@ -1788,9 +1854,21 @@
 
 .check-box-table-cell .check-box:selected {
     -fx-background-color: #1e40af;
-    -fx-mark-color: white;
+    -fx-mark-color: #ffffff;
+}
+
+.check-box-table-cell .check-box .box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #94a3b8;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 3px;
+}
+
+.check-box-table-cell .check-box:selected .box {
+    -fx-background-color: #1e40af;
+    -fx-border-color: #1e40af;
 }
 
 .check-box-table-cell .check-box:selected .mark {
-    -fx-background-color: white;
+    -fx-background-color: #ffffff;
 }
