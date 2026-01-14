@@ -1,3 +1,14 @@
+# Κρατικός Προϋπολογισμός - Σύστημα Ανάλυσης
+
+Εφαρμογή JavaFX για ανάλυση, οπτικοποίηση και διαχείριση δεδομένων του κρατικού προϋπολογισμού. Η εφαρμογή παρέχει:
+- Προβολή και επεξεργασία προϋπολογισμού για τα έτη 2023-2027
+- Στατιστική ανάλυση και σύγκριση ετών & κρατών
+- Προσομοιώσεις και σενάρια
+- AI Assistant για αυτοματοποιημένες αναλύσεις
+- Διεθνή δεδομένα 
+
+---
+
 ## Οδηγίες Μεταγλώττισης
 
 ### Προαπαιτούμενα
@@ -51,7 +62,7 @@ mvn javafx:run
 ```bash
 # Μετά τη μεταγλώττιση (mvn package), εκτέλεση:
 # Σημείωση: Χρειάζεται JavaFX SDK εγκατεστημένο τοπικά
-java --module-path <javafx-sdk-path>/lib --add-modules javafx.controls,javafx.fxml -jar target/proipologismos-0.0.1-SNAPSHOT.jar
+java --module-path <javafx-sdk-path>/lib --add-modules javafx.controls,javafx.fxml -jar target/proipologismos-1.0-Release.jar
 ```
 
 **Σημείωση:** Η εκτέλεση με JAR απαιτεί JavaFX SDK. Προτείνεται η χρήση του `mvn javafx:run` που δεν απαιτεί επιπλέον setup.
@@ -83,7 +94,7 @@ mvn exec:java -Dexec.mainClass="ui.MainGUI"
 - Επιλέξτε έτος από το dropdown menu (2023-2027)
 - Προβάλετε έσοδα, δαπάνες, υπουργεία και αποκεντρωμένες διοικήσεις
 
-#### Σύγκριση Ετών
+#### Σύγκριση 
 - Επιλέξτε δύο έτη ή δύο κράτη για σύγκριση
 - Προβάλετε ποσοστιαίες μεταβολές
 - Δείτε αναλυτικές συγκρίσεις ανά κατηγορία
@@ -93,10 +104,6 @@ mvn exec:java -Dexec.mainClass="ui.MainGUI"
 - Προβάλετε το αντίκτυπο στις συνολικές δαπάνες/έσοδα
 - Αποθηκεύστε σενάρια για μελλοντική χρήση
 
-#### Εξαγωγή/Εισαγωγή Δεδομένων
-- Εξαγωγή δεδομένων σε CSV/JSON
-- Εισαγωγή δεδομένων από αρχεία
-
 #### Στατιστική Ανάλυση
 - Προβάλετε στατιστικές μετρικές (μέση τιμή, διάμεσος, τυπική απόκλιση)
 - Εντοπίστε outliers
@@ -104,7 +111,6 @@ mvn exec:java -Dexec.mainClass="ui.MainGUI"
 
 #### AI Assistant
 - Κάντε ερωτήσεις για τον προϋπολογισμό
-- Λάβετε αυτοματοποιημένες αναλύσεις και συστάσεις
 
 ---
 
@@ -115,8 +121,6 @@ proipologismos/
 ├── src/
 │   ├── main/
 │   │   ├── java/
-│   │   │   ├── DataConvert.java          # Μετατροπή PDF σε CSV
-│   │   │   ├── DataDownload.java          # Κατέβασμα PDF από web
 │   │   │   ├── FetchInternationalDataFromAPIs.java  # API calls για διεθνή δεδομένα
 │   │   │   ├── SQLmaker.java             # Δημιουργία βάσης δεδομένων
 │   │   │   ├── SQLinserter.java          # Εισαγωγή δεδομένων στη βάση
@@ -132,13 +136,14 @@ proipologismos/
 │   │   │       ├── Charts.java            # Δημιουργία γραφημάτων
 │   │   │       ├── Comparisons.java       # Σύγκριση ετών
 │   │   │       ├── Simulations.java        # Προσομοιώσεις
-│   │   │       ├── ExportsImports.java     # Εξαγωγή/εισαγωγή δεδομένων
 │   │   │       ├── AIAssistantController.java  # AI assistant UI
 │   │   │       ├── AIAssistantService.java    # AI service integration
 │   │   │       ├── UserData.java           # User data persistence
 │   │   │       ├── Authentication.java     # Authentication logic
 │   │   │       ├── AmountFormatter.java    # Μορφοποίηση ποσών
-│   │   │       └── Constraints.java        # Validation constraints
+│   │   │       ├── Constraints.java        # Validation constraints
+│   │   │       ├── DataConvert.java        # Μετατροπή PDF σε CSV
+│   │   │       └── DataDownload.java       # Κατέβασμα PDF από web
 │   │   └── resources/
 │   │       ├── database/
 │   │       │   └── BudgetData.db          # SQLite database
@@ -205,8 +210,8 @@ proipologismos/
 ┌─────────────────────────────────────────────────────────────┐
 │                    Data Processing Layer                     │
 ├─────────────────────────────────────────────────────────────┤
-│  DataDownload                                                │
-│  DataConvert                                                 │
+│  ui.DataDownload                                             │
+│  ui.DataConvert                                              │
 │  FetchInternationalDataFromAPIs                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -271,21 +276,22 @@ proipologismos/
 #### Test Coverage
 - **Unit Tests**: JUnit 5 για business logic
 - **Test Classes**:
-  - `DataConvertTest.java`
-  - `DataDownloadTest.java`
-  - `SQLinserterTest.java`
-  - `SQLmakerTest.java`
-  - `StatisticalAnalysisTest.java`
-  - `BudgetDataTest.java`
-  - `UserDataTest.java`
-  - `DatabaseConnectionTest.java`
-  - `HomeControllerTest.java`
-  - `LoginControllerTest.java`
-  - `ExportsImportsTest.java`
-  - `AmountFormatterTest.java`
-  - `DataValidatorTest.java`
-  - `MainGUITest.java`
-  - `SplashTest.java`
+  - `SQLinserterTest.java` (root test directory)
+  - `SQLmakerTest.java` (root test directory)
+  - `ui/AIAssistantServiceTest.java`
+  - `ui/AmountFormatterTest.java`
+  - `ui/AuthenticationTest.java`
+  - `ui/BudgetDataTest.java`
+  - `ui/BudgetEditControllerTest.java`
+  - `ui/ComparisonsTest.java`
+  - `ui/ConstraintsTest.java`
+  - `ui/DatabaseConnectionTest.java`
+  - `ui/DataConvertTest.java`
+  - `ui/DataDownloadTest.java`
+  - `ui/HomeControllerTest.java`
+  - `ui/SimulationsTest.java`
+  - `ui/StatisticalAnalysisTest.java`
+  - `ui/UserDataTest.java`
 
 #### Εκτέλεση Tests
 ```bash
@@ -339,6 +345,7 @@ public static double calculateCorrelation(double[] xValues, double[] yValues)
 - **Java Version**: 11
 - **Maven Compiler Plugin**: 3.5.1
 - **JavaFX Maven Plugin**: 0.0.8
+- **Project Version**: 1.0 Release
 - **Encoding**: UTF-8
 
 ### Database Schema Details

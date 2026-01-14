@@ -554,7 +554,6 @@ public class HomeController {
 
     private BudgetData budgetData;
     private UserData userData;
-    private ExportsImports exportImportService;
     
     // ελέγχει αν μπορεί να γίνει edit σε ένα έτος
     private boolean isYearEditable(int year) {
@@ -600,7 +599,6 @@ public class HomeController {
     private void initialize() {
         budgetData = BudgetData.getInstance();
         userData = UserData.getInstance();
-        exportImportService = ExportsImports.getInstance();
         
         initializePublishedYearsTable();
         

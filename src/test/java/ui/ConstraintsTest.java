@@ -3,12 +3,8 @@ package ui;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for Constraints utility class.
- */
 class ConstraintsTest {
 
-    // Username validation tests
     @Test
     void testValidateUsernameValid() {
         Constraints.ValidationResult result = Constraints.validateUsername("testuser");
@@ -53,9 +49,8 @@ class ConstraintsTest {
 
     @Test
     void testValidateUsernameWithSpaces() {
-        // Username with spaces - after trim, "test user" still has space, which is not allowed by regex
         Constraints.ValidationResult result = Constraints.validateUsername("test user");
-        assertFalse(result.isValid()); // Spaces are not allowed even after trim
+        assertFalse(result.isValid());
         assertTrue(result.getErrorMessage().contains("μόνο γράμματα"));
     }
 
@@ -66,7 +61,6 @@ class ConstraintsTest {
         assertTrue(result.getErrorMessage().contains("μόνο γράμματα"));
     }
 
-    // Password validation tests
     @Test
     void testValidatePasswordValid() {
         Constraints.ValidationResult result = Constraints.validatePassword("password123");
@@ -109,7 +103,6 @@ class ConstraintsTest {
         assertTrue(result.isValid());
     }
 
-    // Category validation tests
     @Test
     void testValidateCategoryValid() {
         Constraints.ValidationResult result = Constraints.validateCategory("Υπουργείο");
@@ -144,7 +137,6 @@ class ConstraintsTest {
         assertTrue(result.getErrorMessage().contains("υπερβαίνει"));
     }
 
-    // Amount validation tests
     @Test
     void testValidateAmountValid() {
         Constraints.ValidationResult result = Constraints.validateAmount("1000.50");
@@ -172,10 +164,8 @@ class ConstraintsTest {
 
     @Test
     void testValidateAmountNegative() {
-        // Negative amount - pattern doesn't match, so returns error about positive number
         Constraints.ValidationResult result = Constraints.validateAmount("-100");
         assertFalse(result.isValid());
-        // The error message is about positive number format, not specifically "αρνητικό"
         assertTrue(result.getErrorMessage().contains("θετικός") || result.getErrorMessage().contains("αρνητικό"));
     }
 
@@ -195,10 +185,9 @@ class ConstraintsTest {
     @Test
     void testValidateAmountWithSpaces() {
         Constraints.ValidationResult result = Constraints.validateAmount(" 1000 ");
-        assertTrue(result.isValid()); // Spaces are trimmed
+        assertTrue(result.isValid());
     }
 
-    // Percentage validation tests
     @Test
     void testValidatePercentageValid() {
         Constraints.ValidationResult result = Constraints.validatePercentage("15.5");
@@ -237,7 +226,6 @@ class ConstraintsTest {
         assertTrue(result.isValid());
     }
 
-    // Year validation tests
     @Test
     void testValidateYearValid() {
         Constraints.ValidationResult result = Constraints.validateYear("2024", 2020, 2030);
@@ -290,7 +278,6 @@ class ConstraintsTest {
         assertTrue(result.getErrorMessage().contains("έγκυρος αριθμός"));
     }
 
-    // ComboBox validation tests
     @Test
     void testValidateComboBoxSelectionValid() {
         Constraints.ValidationResult result = Constraints.validateComboBoxSelection("Option1", "Κατηγορία");
@@ -313,10 +300,9 @@ class ConstraintsTest {
     @Test
     void testValidateComboBoxSelectionWithSpaces() {
         Constraints.ValidationResult result = Constraints.validateComboBoxSelection("  Option  ", "Κατηγορία");
-        assertTrue(result.isValid()); // Spaces are trimmed
+        assertTrue(result.isValid());
     }
 
-    // ValidationResult inner class tests
     @Test
     void testValidationResultValid() {
         Constraints.ValidationResult result = new Constraints.ValidationResult(true, "");
@@ -335,13 +321,11 @@ class ConstraintsTest {
     void testValidationResultNullMessage() {
         Constraints.ValidationResult result = new Constraints.ValidationResult(true, null);
         assertTrue(result.isValid());
-        assertEquals("", result.getErrorMessage()); // null should be converted to empty string
+        assertEquals("", result.getErrorMessage());
     }
 
-    // Amount change validation tests
     @Test
     void testValidateAmountChangeWithinLimit() {
-        // Test change within 50% limit (default)
         Constraints.ValidationResult result = 
             Constraints.validateAmountChange(120.0, 100.0);
         assertTrue(result.isValid());
@@ -350,7 +334,6 @@ class ConstraintsTest {
 
     @Test
     void testValidateAmountChangeExceedsDefaultLimit() {
-        // Test change exceeds 50% limit (default)
         Constraints.ValidationResult result = 
             Constraints.validateAmountChange(200.0, 100.0);
         assertFalse(result.isValid());
@@ -360,7 +343,6 @@ class ConstraintsTest {
 
     @Test
     void testValidateAmountChangeNegativeChange() {
-        // Test negative change within limit
         Constraints.ValidationResult result = 
             Constraints.validateAmountChange(50.0, 100.0);
         assertTrue(result.isValid());
@@ -368,7 +350,6 @@ class ConstraintsTest {
 
     @Test
     void testValidateAmountChangeNegativeChangeExceedsLimit() {
-        // Test negative change exceeds limit
         Constraints.ValidationResult result = 
             Constraints.validateAmountChange(20.0, 100.0);
         assertFalse(result.isValid());
@@ -376,7 +357,6 @@ class ConstraintsTest {
 
     @Test
     void testValidateAmountChangeNoChange() {
-        // Test no change
         Constraints.ValidationResult result = 
             Constraints.validateAmountChange(100.0, 100.0);
         assertTrue(result.isValid());
@@ -384,47 +364,37 @@ class ConstraintsTest {
 
     @Test
     void testValidateAmountChangeNewEntry() {
-        // Test new entry (previous amount is 0)
         Constraints.ValidationResult result = 
             Constraints.validateAmountChange(100.0, 0.0);
         assertTrue(result.isValid());
         assertEquals("", result.getErrorMessage());
     }
 
-
     @Test
     void testValidateAmountChangeExactlyAtLimit() {
-        // Test change exactly at 50% limit
-        // 50% is NOT > 50%, so it should be valid
         Constraints.ValidationResult result = 
             Constraints.validateAmountChange(150.0, 100.0);
-        assertTrue(result.isValid()); // Exactly 50% is valid (limit is > 50%, not >=)
+        assertTrue(result.isValid());
     }
 
     @Test
     void testValidateAmountChangeJustBelowLimit() {
-        // Test change just below 50% limit
         Constraints.ValidationResult result = 
             Constraints.validateAmountChange(149.0, 100.0);
-        assertTrue(result.isValid()); // 49% change is within limit
+        assertTrue(result.isValid());
     }
 
     @Test
     void testValidateAmountChangeLargeNumbers() {
-        // Test with large numbers
-        // 1500000.0 from 1000000.0 = 50% change, 50% is NOT > 50%, so valid
         Constraints.ValidationResult result = 
             Constraints.validateAmountChange(1500000.0, 1000000.0);
-        assertTrue(result.isValid()); // Exactly 50% is valid (limit is > 50%, not >=)
+        assertTrue(result.isValid());
     }
 
     @Test
     void testValidateAmountChangeSmallNumbers() {
-        // Test with small numbers
-        // 1.5 from 1.0 = 50% change, 50% is NOT > 50%, so valid
         Constraints.ValidationResult result = 
             Constraints.validateAmountChange(1.5, 1.0);
-        assertTrue(result.isValid()); // Exactly 50% is valid (limit is > 50%, not >=)
+        assertTrue(result.isValid());
     }
 }
-
