@@ -1,3 +1,5 @@
+package ui;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -14,7 +16,7 @@ public class DataDownload
 	// κατεβάζει όλα τα PDF αρχεία προϋπολογισμού (2023-2026) από το minfin.gov.gr
 	public void Download() throws IOException
 	{
-		for (int epilogi = 1; epilogi <=4; epilogi++ ) {
+		for (int epilogi = 1; epilogi <=3; epilogi++ ) {
 
 
 
